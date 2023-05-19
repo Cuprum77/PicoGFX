@@ -51,7 +51,6 @@ enum display_type_t
     GC9A01
 };
 
-
 class Display
 {
 public:
@@ -76,8 +75,8 @@ public:
     void drawFilledRectangle(Point start, Point end, Color color = Colors::White);
     void drawCircle(Point center, uint radius, Color color = Colors::White);
     void drawFilledCircle(Point center, uint radius, Color color = Colors::White);
-    void drawArc(Point start, Point end, uint radius, Color color = Colors::White);
-    void drawArcFilled(Point start, Point end, uint radius, Color color = Colors::White);
+    void drawArc(Point center, uint radius, uint start_angle, uint end_angle, Color color = Colors::White);
+    void drawArcFilled(Point center, uint radius, uint start_angle, uint end_angle, uint outer_radius, uint inner_radius, Color color = Colors::White);
 
     void drawBitmap(const unsigned char* bitmap, uint width, uint height);
     void drawBitmap(const unsigned short* bitmap, uint width, uint height);

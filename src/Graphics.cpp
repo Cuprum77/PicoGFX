@@ -231,6 +231,84 @@ void Display::drawFilledCircle(Point center, uint radius, Color color)
     }
 }
 
+/**
+ * @brief Draw an arc to the display
+ * @param center Center Point
+ * @param radius Radius of the arc
+ * @param start_angle Start angle of the arc
+ * @param end_angle End angle of the arc
+ * @param color Color to draw in
+*/
+void Display::drawArc(Point center, uint radius, uint start_angle, uint end_angle, Color color)
+{
+    // Uses Bresenham's circle algorithm
+    // https://en.wikipedia.org/wiki/Midpoint_circle_algorithm
+
+    // lock the angles to 0 - 360
+    uint start_angle = start_angle % 360;
+    uint end_angle = end_angle % 360;
+
+    // if the start angle is greater than the end angle
+    if(start_angle > end_angle)
+    {
+        // swap the angles
+        start_angle ^= end_angle;
+        end_angle ^= start_angle;
+        start_angle ^= end_angle;
+    }
+
+    // calculate the start and end points
+    Point start = {center.X() + radius * cos(start_angle * M_PI / 180), center.Y() + radius * sin(start_angle * M_PI / 180)};
+    Point end = {center.X() + radius * cos(end_angle * M_PI / 180), center.Y() + radius * sin(end_angle * M_PI / 180)};
+
+    // move Points into local variables
+    int xc = center.X();
+    int yc = center.Y();
+    int x = radius;
+    int y = 0;
+    int error = 3 - 2 * x;
+
+    // loop through the radius
+    while (x <= y) {
+        // Plot the points within the desired arc range
+        if ((x >= start_angle && x <= end_angle) || (y >= start_angle && y <= end_angle)) {
+            printf("(%d, %d)\n", xc + x, yc + y);
+            printf("(%d, %d)\n", xc + y, yc + x);
+            printf("(%d, %d)\n", xc - x, yc + y);
+            printf("(%d, %d)\n", xc - y, yc + x);
+            printf("(%d, %d)\n", xc + x, yc - y);
+            printf("(%d, %d)\n", xc + y, yc - x);
+            printf("(%d, %d)\n", xc - x, yc - y);
+            printf("(%d, %d)\n", xc - y, yc - x);
+        }
+  
+        if (d < 0)
+            d += (4 * x) + 6;
+        else {
+            d += (4 * (x - y)) + 10;
+            y--;
+        }
+  
+        x++;
+    }
+}
+
+/**
+ * @brief Draw a filled arc to the display
+ * @param center Center Point
+ * @param radius Radius of the arc
+ * @param start_angle Start angle of the arc
+ * @param end_angle End angle of the arc
+ * @param outer_radius External radius of the arc
+ * @param inner_radius Internal radius of the arc
+ * @param color Color to draw in
+ * @note This will fill the void between the two radii
+*/
+void Display::drawFilledArc(Point center, uint radius, uint start_angle, uint end_angle, uint outer_radius, uint inner_radius, Color color)
+{
+    
+}
+
 
 /**
  * @brief Draw a 16 bit bitmap on the display
