@@ -1,0 +1,5 @@
+# VSCode
+.vscode/
+build/
+.vscode/
+*.uf2
