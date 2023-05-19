@@ -9,8 +9,7 @@
  * @param backlight Enable backlight
 */
 Display::Display(spi_inst_t* spi, Display_Pins pins, 
-    Display_Params params, display_type_t type, 
-    bool dimming, bool backlight)
+    Display_Params params, display_type_t type, bool dimming)
 {
     this->spi = spi;
     this->pins = pins;
@@ -38,8 +37,8 @@ Display::Display(spi_inst_t* spi, Display_Pins pins,
     gpio_put(this->pins.dc, 1);
 
     // set up the backlight pin depending on the dimming setting
-    this->backlight = backlight;
-    if(backlight)
+    this->backlight = this->pins.bl != -1;
+    if(this->backlight)
     {
         if(dimming)
         {
@@ -100,10 +99,6 @@ void Display::fill(Color color)
     Point Point = {0, 0};
     this->setCursor(Point);
 
-    // swap to BGR if display is a BGR display
-    if(this->BGR)
-        this->BGRtoRGB(&color16);
-
     // fill the frame buffer
     for(int i = 0; i < numPixels; i++)
     {
@@ -122,10 +117,35 @@ void Display::fill(Color color)
  * @param Point Points to draw the pixel at
  * @param color Color to draw in
 */
-void Display::drawPixel(Point Point, Color color)
+void Display::drawPixel(Point point, Color color)
 {
-    // set the cursor position
-    this->setCursor(Point);
+    // optimize the pixel drawing
+    Point current = this->getCursor();
+
+    if(current.Y() == point.Y())
+    {
+        // set the pixel y address
+        this->rowAddressSet(
+            point.Y() + this->params.rowOffset1, 
+            (this->params.height - 1) + this->params.rowOffset2
+        );
+
+        // set the internal cursor position
+        this->cursor.Y(point.Y());
+    }
+
+    if(current.X() != point.X())
+    {
+        // set the pixel x address
+        this->columnAddressSet(
+            point.X() + this->params.columnOffset1, 
+            (this->params.width - 1) + this->params.columnOffset2
+        );
+
+        // set the internal cursor position
+        this->cursor.X(point.X());
+    }
+
     // convert color to 16 bit
     unsigned short color16 = color.to16bit();
     // write the pixel
@@ -318,7 +338,7 @@ void Display::memoryWrite()
  * @param data data to write
  * @param length Length of the data
 */
-void Display::writePixels(unsigned short* data, size_t length)
+void Display::writePixels(const unsigned short* data, size_t length)
 {
     if(!this->dataMode)
     {
@@ -328,31 +348,4 @@ void Display::writePixels(unsigned short* data, size_t length)
     }
 
     spi_write16_blocking(this->spi, data, length / 2);
-}
-
-/**
- * @brief Convert RGB to BGR
- * @param color Color to convert
-*/
-void Display::BGRtoRGB(unsigned short* color)
-{
-    if((*color & 0x1F) != (*color >> 11))
-    {
-        *color ^= (*color >> 11);
-        *color ^= (*color & 0x1F) << 11;
-        *color ^= (*color >> 11);
-    }
-}
-
-/**
- * @brief Convert RGB to BGR
- * @param color Color to convert
- * @param length Length of the data
-*/
-void Display::BGRtoRGB(unsigned short* color, size_t length)
-{
-    for (size_t i = 0; i < length; i++)
-    {
-        this->BGRtoRGB(&color[i]);
-    }
 }

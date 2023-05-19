@@ -2,6 +2,8 @@
 
 void Display::GC9A01_Init()
 {
+	this->BGR = true;
+
     this->GC9A01_HardReset();
     sleep_ms(100);
 
@@ -91,23 +93,23 @@ void Display::GC9A01_SetRotation(displayRotation_t rotation)
 	switch(rotation)
     {
         case displayRotation_t::DEG_90:
-			this->writeData(MADCTL, (uchar)(Display_MADCTL::MX | Display_MADCTL::MV | Display_MADCTL::RGB));
+			this->writeData(MADCTL, (uchar)(Display_MADCTL::MX | Display_MADCTL::MV | Display_MADCTL::BGR));
 			this->params.height = width;
 			this->params.width = height;
             break;
         case displayRotation_t::DEG_180:
-			this->writeData(MADCTL, (uchar)(Display_MADCTL::MX | Display_MADCTL::MY | Display_MADCTL::RGB));
+			this->writeData(MADCTL, (uchar)(Display_MADCTL::MX | Display_MADCTL::MY | Display_MADCTL::BGR));
 			this->params.height = height;
 			this->params.width = width;
             break;
         case displayRotation_t::DEG_270:
-			this->writeData(MADCTL, (uchar)(Display_MADCTL::MV | Display_MADCTL::MY | Display_MADCTL::RGB));
+			this->writeData(MADCTL, (uchar)(Display_MADCTL::MV | Display_MADCTL::MY | Display_MADCTL::BGR));
 			this->params.height = width;
 			this->params.width = height;
             break;
         case displayRotation_t::DEG_0:
         default:
-            this->writeData(MADCTL, (uchar)Display_MADCTL::RGB);
+            this->writeData(MADCTL, (uchar)Display_MADCTL::BGR);
 			this->params.height = height;
 			this->params.width = width;
             break;

@@ -1,6 +1,10 @@
 #pragma once
 
-#include "Display_Structs.hpp"
+#include "Structs.hpp"
+#include "Display.hpp"
+
+#ifdef BGR
+#endif
 
 /**
  * @brief Colors enum

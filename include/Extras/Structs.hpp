@@ -2,12 +2,12 @@
 
 struct Display_Pins
 {
-    unsigned int rst;
-    unsigned int dc;
-    unsigned int cs;
-    unsigned int sda;
-    unsigned int scl;
-    unsigned int bl;
+    int rst;
+    int dc;
+    int cs;
+    int sda;
+    int scl;
+    int bl;
 };
 
 struct Display_Params

@@ -640,6 +640,15 @@ void Display::println(const char* text, Color color, Color background, uchar siz
     this->print(text, color, background, size);
     this->print("\n", color, background, size);
 }
+
+/**
+ * @brief Write a character on the display
+ * @param value Boolean to print
+*/
+void Display::println(bool value)
+{
+    this->println(value ? "true" : "false");
+}
 #pragma endregion
 
 #pragma region Print void
@@ -810,14 +819,5 @@ uint Display::drawAscii(const char character, Point point, uint size, Color colo
 
     // return the character width
     return FONT_WIDTH * size;
-}
-
-/**
- * @brief Write a character on the display
- * @param value Boolean to print
-*/
-void Display::println(bool value)
-{
-    this->println(value ? "true" : "false");
 }
 #pragma endregion

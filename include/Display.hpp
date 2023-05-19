@@ -9,10 +9,10 @@
 #include "hardware/spi.h"
 #include "hardware/pwm.h"
 
-#include "Display_Commands.hpp"
-#include "Display_Structs.hpp"
-#include "Display_Color.hpp"
-#include "Display_Enums.hpp"
+#include "Commands.hpp"
+#include "Structs.hpp"
+#include "Color.hpp"
+#include "Enums.hpp"
 
 #include "Font.h"
 
@@ -55,8 +55,7 @@ class Display
 {
 public:
     Display(spi_inst_t* spi, Display_Pins pins, 
-        Display_Params params, display_type_t type = ST7789, 
-        bool dimming = false, bool backlight = false);
+        Display_Params params, display_type_t type = ST7789, bool dimming = false);
     void clear(void);
     void fill(Color color);
     void drawPixel(Point point, Color color);
@@ -76,7 +75,7 @@ public:
     void drawCircle(Point center, uint radius, Color color = Colors::White);
     void drawFilledCircle(Point center, uint radius, Color color = Colors::White);
     void drawArc(Point center, uint radius, uint start_angle, uint end_angle, Color color = Colors::White);
-    void drawArcFilled(Point center, uint radius, uint start_angle, uint end_angle, uint outer_radius, uint inner_radius, Color color = Colors::White);
+    void drawFilledArc(Point center, uint radius, uint start_angle, uint end_angle, uint outer_radius, uint inner_radius, Color color = Colors::White);
 
     void drawBitmap(const unsigned char* bitmap, uint width, uint height);
     void drawBitmap(const unsigned short* bitmap, uint width, uint height);
@@ -180,7 +179,7 @@ protected:
     void columnAddressSet(uint x0, uint x1);
     void rowAddressSet(uint y0, uint y1);
     void memoryWrite(void);
-    void writePixels(unsigned short* data, size_t length);
+    void writePixels(const unsigned short* data, size_t length);
     void BGRtoRGB(unsigned short* color);
     void BGRtoRGB(unsigned short* color, size_t length);
 

@@ -245,21 +245,21 @@ void Display::drawArc(Point center, uint radius, uint start_angle, uint end_angl
     // https://en.wikipedia.org/wiki/Midpoint_circle_algorithm
 
     // lock the angles to 0 - 360
-    uint start_angle = start_angle % 360;
-    uint end_angle = end_angle % 360;
+    uint _start_angle = start_angle % 360;
+    uint _end_angle = end_angle % 360;
 
     // if the start angle is greater than the end angle
-    if(start_angle > end_angle)
+    if(_start_angle > _end_angle)
     {
         // swap the angles
-        start_angle ^= end_angle;
-        end_angle ^= start_angle;
-        start_angle ^= end_angle;
+        _start_angle ^= _end_angle;
+        _end_angle ^= _start_angle;
+        _start_angle ^= _end_angle;
     }
 
     // calculate the start and end points
-    Point start = {center.X() + radius * cos(start_angle * M_PI / 180), center.Y() + radius * sin(start_angle * M_PI / 180)};
-    Point end = {center.X() + radius * cos(end_angle * M_PI / 180), center.Y() + radius * sin(end_angle * M_PI / 180)};
+    Point start = {(unsigned int)(center.X() + radius * cos(_start_angle * M_PI / 180)), (unsigned int)(center.Y() + radius * sin(_start_angle * M_PI / 180))};
+    Point end = {(unsigned int)(center.X() + radius * cos(_end_angle * M_PI / 180)), (unsigned int)(center.Y() + radius * sin(_end_angle * M_PI / 180))};
 
     // move Points into local variables
     int xc = center.X();
@@ -271,7 +271,7 @@ void Display::drawArc(Point center, uint radius, uint start_angle, uint end_angl
     // loop through the radius
     while (x <= y) {
         // Plot the points within the desired arc range
-        if ((x >= start_angle && x <= end_angle) || (y >= start_angle && y <= end_angle)) {
+        if ((x >= _start_angle && x <= _end_angle) || (y >= _start_angle && y <= _end_angle)) {
             printf("(%d, %d)\n", xc + x, yc + y);
             printf("(%d, %d)\n", xc + y, yc + x);
             printf("(%d, %d)\n", xc - x, yc + y);
@@ -282,10 +282,10 @@ void Display::drawArc(Point center, uint radius, uint start_angle, uint end_angl
             printf("(%d, %d)\n", xc - y, yc - x);
         }
   
-        if (d < 0)
-            d += (4 * x) + 6;
+        if (error < 0)
+            error += (4 * x) + 6;
         else {
-            d += (4 * (x - y)) + 10;
+            error += (4 * (x - y)) + 10;
             y--;
         }
   
@@ -338,10 +338,9 @@ void Display::drawBitmap(const unsigned short* bitmap, uint width, uint height)
     int offset = 0;
     for(int y = 0; y < height; y++)
     {
-        // set the cursor
         this->setCursor(Point(0 + location.X(), y + location.Y()));
         // write the row of pixels, we need to multiply the width by 2 because we are using 16 bit colors
-        this->writePixels((unsigned short*)&bitmap[offset], width * 2);
+        this->writePixels(&bitmap[offset], width * 2);
         // increment the offset
         offset += width;
     }
