@@ -122,7 +122,7 @@ void Display::drawPixel(Point point, Color color)
     // optimize the pixel drawing
     Point current = this->getCursor();
 
-    if(current.Y() == point.Y())
+    if(current.Y() != point.Y())
     {
         // set the pixel y address
         this->rowAddressSet(
