@@ -95,6 +95,16 @@ public:
         this->y = y;
     }
 
+    /**
+     * @brief Calculate the distance between two points
+     * @param other The other point
+     * @return unsigned int The distance between the two points
+    */
+    unsigned int Distance(Point other)
+    {
+        return sqrt(pow(this->x - other.x, 2) + pow(this->y - other.y, 2));
+    }
+
 
     bool operator==(const Point& other)
     {

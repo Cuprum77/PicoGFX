@@ -2,6 +2,11 @@
 
 void Display::ST7789_Init()
 {
+    // constants for this driver
+    this->BGR = false;
+    this->maxHeight = 320;
+    this->maxWidth = 240;
+
     sleep_ms(100);
 
     // set the SPI format
@@ -35,38 +40,45 @@ void Display::ST7789_Init()
     // normal display mode on
     this->writeData(Display_Commands::NORON, NULL, 0);
     sleep_ms(10);
-
-    // display on
-    this->writeData(Display_Commands::DISPON, NULL, 0);
-    sleep_ms(10);
 }
 
 void Display::ST7789_SetRotation(displayRotation_t rotation)
 {
     uint width = this->params.width;
 	uint height = this->params.height;
+    uint maxHeight = this->maxHeight;
+    uint maxWidth = this->maxWidth;
+
 	switch(rotation)
     {
         case displayRotation_t::DEG_90:
 			this->writeData(MADCTL, (uchar)(Display_MADCTL::MX | Display_MADCTL::MV | Display_MADCTL::RGB));
 			this->params.height = width;
 			this->params.width = height;
+            this->maxHeight = maxWidth;
+            this->maxWidth = maxHeight;
             break;
         case displayRotation_t::DEG_180:
 			this->writeData(MADCTL, (uchar)(Display_MADCTL::MX | Display_MADCTL::MY | Display_MADCTL::RGB));
 			this->params.height = height;
 			this->params.width = width;
+            this->maxHeight = maxHeight;
+            this->maxWidth = maxWidth;
             break;
         case displayRotation_t::DEG_270:
 			this->writeData(MADCTL, (uchar)(Display_MADCTL::MV | Display_MADCTL::MY | Display_MADCTL::RGB));
 			this->params.height = width;
 			this->params.width = height;
+            this->maxHeight = maxWidth;
+            this->maxWidth = maxHeight;
             break;
         case displayRotation_t::DEG_0:
         default:
             this->writeData(MADCTL, (uchar)Display_MADCTL::RGB);
 			this->params.height = height;
 			this->params.width = width;
+            this->maxHeight = maxHeight;
+            this->maxWidth = maxWidth;
             break;
     }
 }

@@ -647,7 +647,7 @@ void Display::println(const char* text, Color color, Color background, uchar siz
 */
 void Display::println(bool value)
 {
-    this->println(value ? "true" : "false");
+    this->println(value ? TRUE : FALSE);
 }
 #pragma endregion
 
@@ -658,6 +658,154 @@ void Display::println(bool value)
 void Display::println(void)
 {
     this->println("\n");
+}
+#pragma endregion
+
+#pragma region Get length of string
+/**
+ * @brief Get the length of a string
+ * @param num String to get the length of
+ * @param size Size of the string
+ * @param base Base of the number
+ * @return Length of the string
+*/
+uint Display::getStringLength(char num, uchar size, uchar base)
+{
+    this->getStringLength((long)num, size, base);
+}
+
+/**
+ * @brief Get the length of a string
+ * @param num String to get the length of
+ * @param size Size of the string
+ * @param base Base of the number
+ * @return Length of the string
+*/
+uint Display::getStringLength(uchar num, uchar size, uchar base)
+{
+    this->getStringLength((ulong)num, size, base);
+}
+
+/**
+ * @brief Get the length of a string
+ * @param num String to get the length of
+ * @param size Size of the string
+ * @param base Base of the number
+ * @return Length of the string
+*/
+uint Display::getStringLength(int num, uchar size, uchar base)
+{
+    this->getStringLength((long)num, size, base);
+}
+
+/**
+ * @brief Get the length of a string
+ * @param num String to get the length of
+ * @param size Size of the string
+ * @param base Base of the number
+ * @return Length of the string
+*/
+uint Display::getStringLength(uint num, uchar size, uchar base)
+{
+    this->getStringLength((ulong)num, size, base);
+}
+
+/**
+ * @brief Get the length of a string
+ * @param num String to get the length of
+ * @param size Size of the string
+ * @param base Base of the number
+ * @return Length of the string
+*/
+uint Display::getStringLength(short num, uchar size, uchar base)
+{
+    this->getStringLength((long)num, size, base);
+}
+
+/**
+ * @brief Get the length of a string
+ * @param num String to get the length of
+ * @param size Size of the string
+ * @param base Base of the number
+ * @return Length of the string
+*/
+uint Display::getStringLength(ushort num, uchar size, uchar base)
+{
+    this->getStringLength((ulong)num, size, base);
+}
+
+/**
+ * @brief Get the length of a string
+ * @param num String to get the length of
+ * @param size Size of the string
+ * @param base Base of the number
+ * @return Length of the string
+*/
+uint Display::getStringLength(long num, uchar size, uchar base)
+{
+    // convert the number to a string
+    char buffer[CHARACTER_BUFFER_SIZE];    // largest number a long can represent is 9 223 372 036 854 775 807
+    itoa(num, buffer, base);
+    uint len = strlen(buffer);
+    return (len * size * FONT_WIDTH);
+}
+
+/**
+ * @brief Get the length of a string
+ * @param num String to get the length of
+ * @param size Size of the string
+ * @param base Base of the number
+ * @return Length of the string
+*/
+uint Display::getStringLength(ulong num, uchar size, uchar base)
+{
+    // convert the number to a string
+    char buffer[CHARACTER_BUFFER_SIZE];    // largest number a long can represent is 9 223 372 036 854 775 807
+    itoa(num, buffer, base);
+    uint len = strlen(buffer);
+    return (len * size * FONT_WIDTH);
+}
+
+/**
+ * @brief Get the length of a string
+ * @param num String to get the length of
+ * @param precision Number of decimal places to print
+ * @param size Size of the string
+ * @param base Base of the number
+ * @return Length of the string
+*/
+uint Display::getStringLength(double num, uchar precision, uchar size)
+{
+    // convert the number to a string
+    char buffer[CHARACTER_BUFFER_SIZE];    // largest number a long can represent is 9 223 372 036 854 775 807
+    floatToString(num, buffer, precision);
+    uint len = strlen(buffer);
+    return (len * size * FONT_WIDTH);
+}
+
+/**
+ * @brief Get the length of a string
+ * @param text String to get the length of
+ * @param size Size of the string
+ * @return Length of the string
+*/
+uint Display::getStringLength(const char* text, uchar size)
+{
+    return (strlen(text) * size * FONT_WIDTH);
+}
+
+/**
+ * @brief Get the length of a string
+ * @param value String to get the length of
+ * @param size Size of the string
+ * @return Length of the string
+*/
+uint Display::getStringLength(bool value, uchar size)
+{
+    if(value)
+        return (strlen(TRUE) * size * FONT_WIDTH);
+    else
+        return (strlen(FALSE) * size * FONT_WIDTH);
 }
 #pragma endregion
 

@@ -74,6 +74,8 @@ Display::Display(spi_inst_t* spi, Display_Pins pins,
 
     // clear the display
     this->clear();
+    // turn on the display
+    this->writeData(DISPON, (const uint8_t *) NULL, 0);
 }
 
 /**
@@ -96,20 +98,51 @@ void Display::fill(Color color)
     // calculate the number of pixels and take the offset into account
     int numPixels = this->params.width * this->params.height;
     // set the cursor position to the top left
-    Point Point = {0, 0};
-    this->setCursor(Point);
+    this->setCursor({0, 0});
 
-    // fill the frame buffer
-    for(int i = 0; i < numPixels; i++)
+    // optimize if the display is smaller than the driver buffer
+    if(this->params.width < this->maxWidth)
     {
-        this->frameBuffer[i] = color16;
-    }
+        // fill the frame buffer
+        for(int i = 0; i < numPixels; i++)
+        {
+            this->frameBuffer[i] = color16;
+        }
 
-    // write the pixels to the display
-    this->writePixels(this->frameBuffer, numPixels * sizeof(color16));
+        // write the pixels to the display
+        for(int y = 0; y < this->params.height; y++)
+        {
+            this->writePixels(this->frameBuffer + y, this->params.width * sizeof(color16));
+            this->rowAddressSet(
+                y + this->params.rowOffset1, 
+                (this->params.height - 1) + this->params.rowOffset2
+            );
+        }
+    }
+    else
+    {
+        // fill the frame buffer
+        for(int i = 0; i < numPixels; i++)
+        {
+            this->frameBuffer[i] = color16;
+        }
+
+        // write the pixels to the display
+        this->writePixels(this->frameBuffer, numPixels * sizeof(color16));
+    }
 
     // set the fill color variable
     this->fillColor = color;
+    this->setCursor({0, 0});
+}
+
+/**
+ * @brief Return the current fill color
+ * @return Current fill color
+*/
+Color Display::getFillColor()
+{
+    return this->fillColor;
 }
 
 /**
@@ -122,6 +155,7 @@ void Display::drawPixel(Point point, Color color)
     // optimize the pixel drawing
     Point current = this->getCursor();
 
+    // only change the row if the y coordinate is different
     if(current.Y() != point.Y())
     {
         // set the pixel y address
@@ -134,6 +168,7 @@ void Display::drawPixel(Point point, Color color)
         this->cursor.Y(point.Y());
     }
 
+    // only change the column if the x coordinate is different
     if(current.X() != point.X())
     {
         // set the pixel x address
@@ -249,6 +284,18 @@ void Display::setBrightness(uchar brightness)
     }
 }
 
+/**
+ * @brief Enable or Disable screen tearing
+ * @param enable True to enable tearing, false to disable
+*/
+void Display::setTearing(bool enable)
+{
+    if(enable)
+        this->writeData(Display_Commands::TEON);
+    else
+        this->writeData(Display_Commands::TEOFF);
+}
+
 
 /**
  * @private
@@ -285,6 +332,10 @@ void Display::writeData(uchar command, const uchar* data, size_t length)
 */
 void Display::columnAddressSet(uint x0, uint x1)
 {
+    // deny out of bounds
+    if(x0 >= x1 || x1 >= this->params.width)
+        return;
+
     // pack the data
     uchar data[4] = { 
         (uchar)(x0 >> 8), 
@@ -305,6 +356,10 @@ void Display::columnAddressSet(uint x0, uint x1)
 */
 void Display::rowAddressSet(uint y0, uint y1)
 {
+    // deny out of bounds
+    if(y0 >= y1 || y1 >= this->params.height)
+        return;
+
     // pack the data
     uchar data[4] = { 
         (uchar)(y0 >> 8), 
@@ -312,24 +367,9 @@ void Display::rowAddressSet(uint y0, uint y1)
         (uchar)(y1 >> 8), 
         (uchar)(y1 & 0xff) 
     };
-
+    
     // write the data
     this->writeData(Display_Commands::RASET, data, sizeof(data));
-}
-
-/**
- * @private
- * @brief Write to the memory
-*/
-void Display::memoryWrite()
-{
-    gpio_put(this->pins.dc, 0);
-
-    // memory write
-    uchar command = (uchar)Display_Commands::RAMWR;
-    spi_write_blocking(this->spi, &command, sizeof(command));
-
-    gpio_put(this->pins.dc, 1);
 }
 
 /**
@@ -342,10 +382,14 @@ void Display::writePixels(const unsigned short* data, size_t length)
 {
     if(!this->dataMode)
     {
-        this->memoryWrite();
+        gpio_put(this->pins.dc, 0);
+        uchar command = (uchar)Display_Commands::RAMWR;
+        spi_set_format(this->spi, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
+        spi_write_blocking(this->spi, &command, sizeof(command));
+        gpio_put(this->pins.dc, 1);
         spi_set_format(this->spi, 16, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
         this->dataMode = true;
     }
 
-    spi_write16_blocking(this->spi, data, length / 2);
+    spi_write16_blocking(this->spi, data, length >> 1);
 }

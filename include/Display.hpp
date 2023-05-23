@@ -43,7 +43,9 @@
 #define ST7789_HEIGHT 320
 #define FRAMEBUFFER_SIZE (ST7789_WIDTH * ST7789_HEIGHT)
 // String behavior
-#define TAB_SIZE 4  // how many spaces a tab is worth
+#define TAB_SIZE 4      // how many spaces a tab is worth
+#define FALSE "false"   // string representation of false
+#define TRUE "true"     // string representation of true
 
 enum display_type_t
 {
@@ -58,6 +60,7 @@ public:
         Display_Params params, display_type_t type = ST7789, bool dimming = false);
     void clear(void);
     void fill(Color color);
+    Color getFillColor(void);
     void drawPixel(Point point, Color color);
     void displayOn(void);
     void displayOff(void);
@@ -66,7 +69,9 @@ public:
     Point getCenter(void);
     void setRotation(displayRotation_t rotation);
     void setBrightness(unsigned char brightness);
+    void setTearing(bool enable);
 
+    void fillGradient(Color startColor, Color endColor, Point start, Point end, uint steps = 256);
     void drawLine(Point start, Point end, Color color = Colors::White);
     void drawRectangle(Point start, Point end, Color color = Colors::White);
     void drawRectangle(Rectangle rect, Color color = Colors::White);
@@ -145,6 +150,18 @@ public:
     void println(const char* text, Color color, Color background, uchar size = 1);
     void println(bool value);
     void println(void);
+
+    uint getStringLength(char num, uchar size = 1, uchar base = DEC);
+    uint getStringLength(uchar num, uchar size = 1, uchar base = DEC);
+    uint getStringLength(int num, uchar size = 1, uchar base = DEC);
+    uint getStringLength(uint num, uchar size = 1, uchar base = DEC);
+    uint getStringLength(short num, uchar size = 1, uchar base = DEC);
+    uint getStringLength(ushort num, uchar size = 1, uchar base = DEC);
+    uint getStringLength(long num, uchar size = 1, uchar base = DEC);
+    uint getStringLength(ulong num, uchar size = 1, uchar base = DEC);
+    uint getStringLength(double num, uchar precision = 2, uchar size = 1);
+    uint getStringLength(const char* text, uchar size = 1);
+    uint getStringLength(bool value, uchar size = 1);
 protected:
     spi_inst_t* spi;
     Display_Pins pins;
@@ -154,12 +171,15 @@ protected:
     uint pwmChannel;
     bool dataMode = false;
     ushort frameBufferColumn[ST7789_WIDTH + 1] = {0};
+    ushort frameBufferRow[ST7789_HEIGHT + 1] = {0};
     ushort frameBuffer[FRAMEBUFFER_SIZE + 1] = {0};
     Color fillColor;
     Point cursor = {0, 0};
     bool backlight;
     display_type_t type;
     bool BGR = false;
+    uint maxWidth;
+    uint maxHeight;
 
     void ST7789_Init(void);
     void ST7789_SetRotation(displayRotation_t rotation);
@@ -178,10 +198,10 @@ protected:
     void writeData(uchar command) { writeData(command, nullptr, 0); }
     void columnAddressSet(uint x0, uint x1);
     void rowAddressSet(uint y0, uint y1);
-    void memoryWrite(void);
     void writePixels(const unsigned short* data, size_t length);
     void BGRtoRGB(unsigned short* color);
     void BGRtoRGB(unsigned short* color, size_t length);
+    void interpolate(ushort *color, size_t len, Color start, Color end, uint steps);
 
     uint drawAscii(const char c, Point Point, uint size, Color color, Color background);
     void floatToString(double num, char* buffer, uint precision);
