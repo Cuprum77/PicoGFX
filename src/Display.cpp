@@ -101,7 +101,7 @@ void Display::fill(Color color)
     this->setCursor({0, 0});
 
     // optimize if the display is smaller than the driver buffer
-    if(this->params.width < this->maxWidth)
+    /*if(this->params.width < this->maxWidth)
     {
         // fill the frame buffer
         for(int i = 0; i < numPixels; i++)
@@ -120,7 +120,7 @@ void Display::fill(Color color)
         }
     }
     else
-    {
+    {*/
         // fill the frame buffer
         for(int i = 0; i < numPixels; i++)
         {
@@ -129,7 +129,7 @@ void Display::fill(Color color)
 
         // write the pixels to the display
         this->writePixels(this->frameBuffer, numPixels * sizeof(color16));
-    }
+    //}
 
     // set the fill color variable
     this->fillColor = color;
@@ -333,7 +333,7 @@ void Display::writeData(uchar command, const uchar* data, size_t length)
 void Display::columnAddressSet(uint x0, uint x1)
 {
     // deny out of bounds
-    if(x0 >= x1 || x1 >= this->params.width)
+    if(x0 >= x1 || x1 >= this->maxWidth)
         return;
 
     // pack the data
@@ -357,7 +357,7 @@ void Display::columnAddressSet(uint x0, uint x1)
 void Display::rowAddressSet(uint y0, uint y1)
 {
     // deny out of bounds
-    if(y0 >= y1 || y1 >= this->params.height)
+    if(y0 >= y1 || y1 >= this->maxHeight)
         return;
 
     // pack the data

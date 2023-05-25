@@ -45,6 +45,8 @@ struct Color
     unsigned short g : 6;
     unsigned short b : 5;
 
+    
+
     /**
      * @brief Creates a black color
     */
@@ -159,5 +161,84 @@ struct Color
     Color getOppositeColor()
     {
         return Color(0x1f - this->r, 0x3f - this->g, 0x1f - this->b);
+    }
+
+    /**
+     * @brief Blend two colors
+     * @param color Color to blend with
+     * @param ratio Ratio of the blend (0-1)
+     * @return Blended color
+    */
+    Color blend(Color color, unsigned short ratio)
+    {
+        // split blue and red
+        unsigned short rb = color.to16bit() & 0xf81f;
+        rb += ((this->to16bit() & 0xf81f) - rb) * (ratio >> 2) >> 6;
+        // split out green
+        unsigned short g = color.to16bit() & 0x07e0;
+        g += ((this->to16bit() & 0x07e0) - g) * ratio  >> 8;
+        // recombine
+        unsigned short result = (rb & 0xf81f) | (g & 0x07e0);
+        return Color(result);
+    }
+
+    bool operator==(Color color)
+    {
+        return this->r == color.r && this->g == color.g && this->b == color.b;
+    }
+
+    bool operator!=(Color color)
+    {
+        return this->r != color.r || this->g != color.g || this->b != color.b;
+    }
+
+    Color operator+(Color color)
+    {
+        return Color(this->r + color.r, this->g + color.g, this->b + color.b);
+    }
+
+    Color operator-(Color color)
+    {
+        return Color(this->r - color.r, this->g - color.g, this->b - color.b);
+    }
+
+    Color operator*(Color color)
+    {
+        return Color(this->r * color.r, this->g * color.g, this->b * color.b);
+    }
+
+    Color operator/(Color color)
+    {
+        return Color(this->r / color.r, this->g / color.g, this->b / color.b);
+    }
+
+    Color operator<(Color color)
+    {
+        return Color(this->r < color.r, this->g < color.g, this->b < color.b);
+    }
+
+    Color operator>(Color color)
+    {
+        return Color(this->r > color.r, this->g > color.g, this->b > color.b);
+    }
+
+    Color operator<=(Color color)
+    {
+        return Color(this->r <= color.r, this->g <= color.g, this->b <= color.b);
+    }
+
+    Color operator>=(Color color)
+    {
+        return Color(this->r >= color.r, this->g >= color.g, this->b >= color.b);
+    }
+
+    Color biggest(Color color)
+    {
+        return Color(this->r > color.r ? this->r : color.r, this->g > color.g ? this->g : color.g, this->b > color.b ? this->b : color.b);
+    }
+
+    Color smallest(Color color)
+    {
+        return Color(this->r < color.r ? this->r : color.r, this->g < color.g ? this->g : color.g, this->b < color.b ? this->b : color.b);
     }
 };

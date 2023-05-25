@@ -1,61 +1,114 @@
 #include "Display.hpp"
 
 /**
- * @brief Fill the display with a gradient
+ * @brief Fill the display with a color gradient
  * @param startColor Color to start with
  * @param endColor Color to end with
  * @param start Start Point
  * @param end End Point
- * @param steps Number of steps to take
+ * @note The start and end points are only used to find the direction of the gradient, it will still fill the entire display!
 */
-void Display::fillGradient(Color startColor, Color endColor, Point start, Point end, uint steps)
+void Display::fillGradient(Color startColor, Color endColor, Point start, Point end)
 {
-    // make sure steps is always at least 1
-    if(steps < 1) steps = 1;
+    // check if the start and end Points are the same
+    if(start == end)
+    {
+        this->fill(startColor);
+        return;
+    }
+
+    // calculate the direction of the gradient
+    int deltaX = end.X() - start.X();
+    int deltaY = end.Y() - start.Y();
+    float magnitude = sqrtf(deltaX * deltaX + deltaY * deltaY);
+    float directionX = deltaX / magnitude;
+    float directionY = deltaY / magnitude;
+
+    // loop through each pixel in the buffer
+    int numPixels = this->params.width * this->params.height;
+    for(int i = 0; i < numPixels; i++)
+    {
+        // calculate the position along the gradient direction
+        int x = i % this->params.width;
+        int y = i / this->params.width;
+
+        // calculate the vector from the start to the current pixel
+        int vectorX = x - start.X();
+        int vectorY = y - start.Y();
+
+        // calculate the distance along the gradient direction
+        float position = (vectorX * directionX + vectorY * directionY) / magnitude;
+
+        // interpolate the color based on the position
+        int r = (int)(startColor.r + (endColor.r - startColor.r) * position);
+        int g = (int)(startColor.g + (endColor.g - startColor.g) * position);
+        int b = (int)(startColor.b + (endColor.b - startColor.b) * position);
+
+        // create the color
+        Color color(r, g, b);
+
+        // draw the pixel
+        this->frameBuffer[i] = color.to16bit();
+    }
+
+    // update the display
+    this->writePixels(this->frameBuffer, numPixels * 2);
+}
+
+/**
+ * @brief Fill the display with a color gradient
+ * @param startColor Color to start with
+ * @param endColor Color to end with
+ * @param start Start Point
+ * @param end End Point
+ * @note The start and end points are only used to find the direction of the gradient, it will still fill the entire display!
+*/
+void Display::fillGradientCool(Color startColor, Color endColor, Point start, Point end)
+{
+    // check if the start and end Points are the same
+    if(start == end)
+        return;
+
+    // set the start to end if end is less than start
+    if(end.X() < start.Y() && end.Y() < start.Y())
+    {
+        Point temp = start;
+        start = end;
+        end = temp;
+    }
+
     // calculate the length of the line
     uint length = start.Distance(end);
-    // make an array of colors
-    this->interpolate(this->frameBufferRow, length, startColor, endColor, steps);
 
-    // check if its purely vertical or horizontal to speed it up
-    
-    // if its vertical
-    if(start.X() == end.X())
-    {
-        for(int y = 0; y < this->params.height; y++)
-        {
-            // draw the line
-            this->drawLine({start.X(), y}, {end.X(), y}, this->frameBufferRow[y]);
-        }
-    }
+    // calculate the direction of the gradient
+    uint deltaX = end.X() - start.X();
+    uint deltaY = end.Y() - start.Y();
+    uint magnitude = sqrt((deltaX * deltaX) + (deltaY * deltaY));
+    float gradX = deltaX / magnitude;
+    float gradY = deltaY / magnitude;
 
-    // if its horizontal
-    if(start.Y() == end.Y())
+    // loop through each pixel in the buffer
+    int numPixels = this->params.width * this->params.height;
+    for(int y = 0; y < this->params.height; y++)
     {
         for(int x = 0; x < this->params.width; x++)
         {
-            // draw the line
-            this->drawLine({x, start.Y()}, {x, end.Y()}, this->frameBufferRow[x]);
+            // calculate the position along the gradient direction
+            float position = (gradX * x) + (gradY * y);
+
+            // interpolate the color based on the position
+            Color color;
+            color.r = startColor.r + ((endColor.r - startColor.r) * position / length);
+            color.g = startColor.g + ((endColor.g - startColor.g) * position / length);
+            color.b = startColor.b + ((endColor.b - startColor.b) * position / length);
+
+            // draw the pixel
+            this->frameBuffer[(y*x) + x] = color.to16bit();
         }
     }
 
-    // if its diagonal
-    if(start.X() != end.X() && start.Y() != end.Y())
-    {
-        // calculate the slope
-        float slope = (float)(end.Y() - start.Y()) / (float)(end.X() - start.X());
-        // calculate the y intercept
-        float yIntercept = start.Y() - (slope * start.X());
-
-        // loop through the x values
-        for(int x = 0; x < this->params.width; x++)
-        {
-            // calculate the y value
-            int y = (slope * x) + yIntercept;
-            // draw the line
-            this->drawLine({x, y}, {x, y}, this->frameBufferRow[x]);
-        }
-    }
+    // update the display
+    this->writePixels(this->frameBuffer, numPixels * 2);
 }
 
 /**
@@ -406,35 +459,16 @@ void Display::drawBitmap(const unsigned short* bitmap, uint width, uint height)
 
 /**
  * @private
- * @brief Interpolate between two colors and fill a provided array
- * @param color Array to fill
- * @param len Length of the array
- * @param start Starting color
- * @param end Ending color
- * @param steps Number of steps to interpolate
-*/
-void Display::interpolate(ushort *color, size_t len, Color start, Color end, uint steps)
+ * @brief Interpolate between two colors
+ * @param startColor Starting color
+ * @param endColor Ending color
+ * @param position Position between the two colors
+ * @param interpolateColor Interpolated color
+ */
+void Display::interpolate(Color startColor, Color endColor, float position, Color* interpolateColor)
 {
-    if(len > 0)
-    {
-        // calculate the step size
-        float step_size = 1.0 / (float)steps;
-
-        // calculate the step size for each color
-        float r_step = (end.r - start.r) * step_size;
-        float g_step = (end.g - start.g) * step_size;
-        float b_step = (end.b - start.b) * step_size;
-
-        // loop through the array
-        for(size_t i = 0; i < len; i++)
-        {
-            // calculate the color
-            ushort r = start.r + (r_step * i);
-            ushort g = start.g + (g_step * i);
-            ushort b = start.b + (b_step * i);
-
-            // set the color
-            color[i] = (r << 11) | (g << 5) | b;
-        }
-    }
+    // interpolate the color
+    interpolateColor->r = startColor.r * (1 - position) + endColor.r * position;
+    interpolateColor->g = startColor.g * (1 - position) + endColor.g * position;
+    interpolateColor->b = startColor.b * (1 - position) + endColor.b * position;
 }

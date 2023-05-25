@@ -67,11 +67,14 @@ public:
     void setCursor(Point point);
     Point getCursor(void);
     Point getCenter(void);
+    uint getWidth(void) { return this->params.width; }
+    uint getHeight(void)  { return this->params.height; }
     void setRotation(displayRotation_t rotation);
     void setBrightness(unsigned char brightness);
     void setTearing(bool enable);
 
-    void fillGradient(Color startColor, Color endColor, Point start, Point end, uint steps = 256);
+    void fillGradient(Color startColor, Color endColor, Point start, Point end);
+    void fillGradientCool(Color startColor, Color endColor, Point start, Point end);
     void drawLine(Point start, Point end, Color color = Colors::White);
     void drawRectangle(Point start, Point end, Color color = Colors::White);
     void drawRectangle(Rectangle rect, Color color = Colors::White);
@@ -171,7 +174,6 @@ protected:
     uint pwmChannel;
     bool dataMode = false;
     ushort frameBufferColumn[ST7789_WIDTH + 1] = {0};
-    ushort frameBufferRow[ST7789_HEIGHT + 1] = {0};
     ushort frameBuffer[FRAMEBUFFER_SIZE + 1] = {0};
     Color fillColor;
     Point cursor = {0, 0};
@@ -201,7 +203,7 @@ protected:
     void writePixels(const unsigned short* data, size_t length);
     void BGRtoRGB(unsigned short* color);
     void BGRtoRGB(unsigned short* color, size_t length);
-    void interpolate(ushort *color, size_t len, Color start, Color end, uint steps);
+    void interpolate(Color startColor, Color endColor, float position, Color* gradient);
 
     uint drawAscii(const char c, Point Point, uint size, Color color, Color background);
     void floatToString(double num, char* buffer, uint precision);
