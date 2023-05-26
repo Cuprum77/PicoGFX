@@ -37,6 +37,8 @@ typedef enum
     Gold = 0xfea0,
     Piss = 0xe702,
     Derg = 0x0dfb,
+    OrangeRed = 0xf9e0,
+    DarkYellow = 0xfe00
 } Colors;
 
 struct Color
@@ -44,8 +46,7 @@ struct Color
     unsigned short r : 5;
     unsigned short g : 6;
     unsigned short b : 5;
-
-    
+    unsigned short a : 8;
 
     /**
      * @brief Creates a black color
@@ -55,6 +56,7 @@ struct Color
         this->r = 0;
         this->g = 0;
         this->b = 0;
+        this->a = 0;
     }
 
     /**
@@ -66,6 +68,7 @@ struct Color
         this->r = (color >> 11) & 0x1F;
         this->g = (color >> 5) & 0x3F;
         this->b = color & 0x1F;
+        this->a = 255;
     }
 
     /**
@@ -77,6 +80,7 @@ struct Color
         this->r = (color >> 5) & 0x03;
         this->g = (color >> 2) & 0x03;
         this->b = color & 0x02;
+        this->a = 255;
     }
 
     /**
@@ -88,6 +92,7 @@ struct Color
         this->r = (color >> 11) & 0x1F;
         this->g = (color >> 5) & 0x3F;
         this->b = color & 0x1F;
+        this->a = 255;
     }
 
     /**
@@ -100,6 +105,7 @@ struct Color
         this->r = color.r * multiplier;
         this->g = color.g * multiplier;
         this->b = color.b * multiplier;
+        this->a = color.a;
     }
 
     /**
@@ -112,6 +118,7 @@ struct Color
         this->r = ((color >> 11) & 0x1F) * multiplier;
         this->g = ((color >> 5) & 0x3F) * multiplier;
         this->b = (color & 0x1F) * multiplier;
+        this->a = 255;
     }
 
     /**
@@ -120,11 +127,13 @@ struct Color
      * @param g Green value (6 bits)
      * @param b Blue value (5 bits)
     */
-    Color(unsigned short r, unsigned short g, unsigned short b)
+    Color(unsigned short r, unsigned short g, 
+        unsigned short b, unsigned short a = 255)
     {
         this->r = r;
         this->g = g;
         this->b = b;
+        this->a = a;
     }
 
     /**
@@ -150,6 +159,7 @@ struct Color
         this->r = r >> 3 & 0x1F;
         this->g = g >> 2 & 0x3F;
         this->b = b >> 3 & 0x1F;
+        this->a = 255;
 
         return *this;
     }

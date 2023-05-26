@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "pico/stdlib.h"
+#include "pico/divider.h"
 #include "hardware/spi.h"
 #include "hardware/pwm.h"
 
@@ -60,6 +61,7 @@ public:
         Display_Params params, display_type_t type = ST7789, bool dimming = false);
     void clear(void);
     void fill(Color color);
+    void writeBuffer(void);
     Color getFillColor(void);
     void drawPixel(Point point, Color color);
     void displayOn(void);
@@ -87,70 +89,51 @@ public:
 
     void drawBitmap(const unsigned char* bitmap, uint width, uint height);
     void drawBitmap(const unsigned short* bitmap, uint width, uint height);
+    void drawBitmap(Color* bitmap, uint width, uint height);
 
     void write(char c, uchar size = 1, uchar base = DEC);
     
     void print(char num, Color color, uchar size = 1, uchar base = DEC);
-    void print(char num, Color color, Color background, uchar size = 1, uchar base = DEC);
     void print(uchar c, uchar size = 1, uchar base = DEC);
     void print(uchar num, Color color, uchar size = 1, uchar base = DEC);
-    void print(uchar num, Color color, Color background, uchar size = 1, uchar base = DEC);
     void print(short num, uchar size = 1, uchar base = DEC);
     void print(short num, Color color, uchar size = 1, uchar base = DEC);
-    void print(short num, Color color, Color background, uchar size = 1, uchar base = DEC);
     void print(ushort num, uchar size = 1, uchar base = DEC);
     void print(ushort num, Color color, uchar size = 1, uchar base = DEC);
-    void print(ushort num, Color color, Color background, uchar size = 1, uchar base = DEC);
     void print(int num, uchar size = 1, uchar base = DEC);
     void print(int num, Color color, uchar size = 1, uchar base = DEC);
-    void print(int num, Color color, Color background, uchar size = 1, uchar base = DEC);
     void print(uint num, uchar size = 1, uchar base = DEC);
     void print(uint num, Color color, uchar size = 1, uchar base = DEC);
-    void print(uint num, Color color, Color background, uchar size = 1, uchar base = DEC);
     void print(long num, uchar size = 1, uchar base = DEC);
     void print(long num, Color color, uchar size = 1, uchar base = DEC);
-    void print(long num, Color color, Color background, uchar size = 1, uchar base = DEC);
     void print(ulong num, uchar size = 1, uchar base = DEC);
     void print(ulong num, Color color, uchar size = 1, uchar base = DEC);
-    void print(ulong num, Color color, Color background, uchar size = 1, uchar base = DEC);
     void print(double num, uint precision = 2, uchar size = 1);
     void print(double num, Color color, uint precision = 2, uchar size = 1);
-    void print(double num, Color color, Color background, uint precision = 2, uchar size = 1);
     void print(const char* text, uchar size = 1);
     void print(const char* text, Color color, uchar size = 1);
-    void print(const char* text, Color color, Color background, uchar size = 1);
     void print(bool value);
     
     void println(char c, uchar size = 1, uchar base = DEC);
     void println(char num, Color color, uchar size = 1, uchar base = DEC);
-    void println(char num, Color color, Color background, uchar size = 1, uchar base = DEC);
     void println(uchar c, uchar size = 1, uchar base = DEC);
     void println(uchar num, Color color, uchar size = 1, uchar base = DEC);
-    void println(uchar num, Color color, Color background, uchar size = 1, uchar base = DEC);
     void println(int num, uchar size = 1, uchar base = DEC);
     void println(int num, Color color, uchar size = 1, uchar base = DEC);
-    void println(int num, Color color, Color background, uchar size = 1, uchar base = DEC);
     void println(uint num, uchar size = 1, uchar base = DEC);
     void println(uint num, Color color, uchar size = 1, uchar base = DEC);
-    void println(uint num, Color color, Color background, uchar size = 1, uchar base = DEC);
     void println(short num, uchar size = 1, uchar base = DEC);
     void println(short num, Color color, uchar size = 1, uchar base = DEC);
-    void println(short num, Color color, Color background, uchar size = 1, uchar base = DEC);
     void println(ushort num, uchar size = 1, uchar base = DEC);
     void println(ushort num, Color color, uchar size = 1, uchar base = DEC);
-    void println(ushort num, Color color, Color background, uchar size = 1, uchar base = DEC);
     void println(long num, uchar size = 1, uchar base = DEC);
     void println(long num, Color color, uchar size = 1, uchar base = DEC);
-    void println(long num, Color color, Color background, uchar size = 1, uchar base = DEC);
     void println(ulong num, uchar size = 1, uchar base = DEC);
     void println(ulong num, Color color, uchar size = 1, uchar base = DEC);
-    void println(ulong num, Color color, Color background, uchar size = 1, uchar base = DEC);
     void println(double num, uint precision = 2, uchar size = 1);
     void println(double num, Color color, uint precision = 2, uchar size = 1);
-    void println(double num, Color color, Color background, uint precision = 2, uchar size = 1);
     void println(const char* text, uchar size = 1);
     void println(const char* text, Color color, uchar size = 1);
-    void println(const char* text, Color color, Color background, uchar size = 1);
     void println(bool value);
     void println(void);
 
@@ -173,8 +156,8 @@ protected:
     uint sliceNum;
     uint pwmChannel;
     bool dataMode = false;
-    ushort frameBufferColumn[ST7789_WIDTH + 1] = {0};
-    ushort frameBuffer[FRAMEBUFFER_SIZE + 1] = {0};
+    ushort frameBufferColumn[ST7789_WIDTH + 1];
+    ushort frameBuffer[FRAMEBUFFER_SIZE + 1];
     Color fillColor;
     Point cursor = {0, 0};
     bool backlight;
@@ -205,7 +188,7 @@ protected:
     void BGRtoRGB(unsigned short* color, size_t length);
     void interpolate(Color startColor, Color endColor, float position, Color* gradient);
 
-    uint drawAscii(const char c, Point Point, uint size, Color color, Color background);
+    uint drawAscii(const char c, Point Point, uint size, Color color);
     void floatToString(double num, char* buffer, uint precision);
     void reverse(char* str, uint length);
 };

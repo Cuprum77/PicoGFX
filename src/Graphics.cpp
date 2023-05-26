@@ -10,6 +10,8 @@
 */
 void Display::fillGradient(Color startColor, Color endColor, Point start, Point end)
 {
+    // set the cursor to the start point
+    this->setCursor({0, 0});
     // check if the start and end Points are the same
     if(start == end)
     {
@@ -20,9 +22,28 @@ void Display::fillGradient(Color startColor, Color endColor, Point start, Point 
     // calculate the direction of the gradient
     int deltaX = end.X() - start.X();
     int deltaY = end.Y() - start.Y();
-    float magnitude = sqrtf(deltaX * deltaX + deltaY * deltaY);
-    float directionX = deltaX / magnitude;
-    float directionY = deltaY / magnitude;
+    int magnitudeSquared = (deltaX * deltaX + deltaY * deltaY);
+
+    // create lookup tables for color interpolation
+    int numPositions = 101;  // 0-100 positions
+    int rLUT[numPositions];
+    int gLUT[numPositions];
+    int bLUT[numPositions];
+
+    for(int i = 0; i < numPositions; i++)
+    {
+        int position = i;
+
+        // interpolate the color components based on the position
+        int r = ((endColor.r - startColor.r) * position) / 100 + startColor.r;
+        int g = ((endColor.g - startColor.g) * position) / 100 + startColor.g;
+        int b = ((endColor.b - startColor.b) * position) / 100 + startColor.b;
+
+        // store the interpolated color components in the lookup tables
+        rLUT[i] = r;
+        gLUT[i] = g;
+        bLUT[i] = b;
+    }
 
     // loop through each pixel in the buffer
     int numPixels = this->params.width * this->params.height;
@@ -37,12 +58,16 @@ void Display::fillGradient(Color startColor, Color endColor, Point start, Point 
         int vectorY = y - start.Y();
 
         // calculate the distance along the gradient direction
-        float position = (vectorX * directionX + vectorY * directionY) / magnitude;
+        int dotProduct = (vectorX * deltaX + vectorY * deltaY);
+        int position = (dotProduct * 100) / magnitudeSquared;  // Scale position to 0-100 range
 
-        // interpolate the color based on the position
-        int r = (int)(startColor.r + (endColor.r - startColor.r) * position);
-        int g = (int)(startColor.g + (endColor.g - startColor.g) * position);
-        int b = (int)(startColor.b + (endColor.b - startColor.b) * position);
+        // clamp the position within the valid range
+        position = (position < 0) ? 0 : (position > 100) ? 100 : position;
+
+        // get the interpolated color components from the lookup tables
+        int r = rLUT[position];
+        int g = gLUT[position];
+        int b = bLUT[position];
 
         // create the color
         Color color(r, g, b);
@@ -50,9 +75,6 @@ void Display::fillGradient(Color startColor, Color endColor, Point start, Point 
         // draw the pixel
         this->frameBuffer[i] = color.to16bit();
     }
-
-    // update the display
-    this->writePixels(this->frameBuffer, numPixels * 2);
 }
 
 /**
@@ -106,9 +128,6 @@ void Display::fillGradientCool(Color startColor, Color endColor, Point start, Po
             this->frameBuffer[(y*x) + x] = color.to16bit();
         }
     }
-
-    // update the display
-    this->writePixels(this->frameBuffer, numPixels * 2);
 }
 
 /**

@@ -136,6 +136,17 @@ void Display::fill(Color color)
     this->setCursor({0, 0});
 }
 
+
+/**
+ * @brief Print the frame buffer to the display
+*/
+void Display::writeBuffer(void)
+{
+    this->setCursor({0, 0});
+    int numPixels = this->params.width * this->params.height;
+    this->writePixels(this->frameBuffer, numPixels * 2);
+}
+
 /**
  * @brief Return the current fill color
  * @return Current fill color

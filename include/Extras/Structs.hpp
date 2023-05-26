@@ -23,11 +23,9 @@ struct Display_Params
 
 struct Point
 {
-private:
     int x;
     int y;
 
-public:
     /**
      * @brief Construct a new empty Point object
     */
