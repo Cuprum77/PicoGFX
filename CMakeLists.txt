@@ -9,6 +9,7 @@ add_library(${PROJECT_NAME}
     src/Display.cpp
     src/Print.cpp
     src/Graphics.cpp
+    src/AdvancedGraphics.cpp
     Specifics/ST7789.cpp
     Specifics/GC9A01.cpp
 )
