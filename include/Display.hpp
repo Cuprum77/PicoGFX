@@ -112,7 +112,7 @@ public:
     void print(double num, Color color, uint precision = 2, uchar size = 1);
     void print(const char* text, uchar size = 1);
     void print(const char* text, Color color, uchar size = 1);
-    void print(bool value);
+    void print(bool value, uchar size = 1);
     
     void println(char c, uchar size = 1, uchar base = DEC);
     void println(char num, Color color, uchar size = 1, uchar base = DEC);
@@ -134,7 +134,7 @@ public:
     void println(double num, Color color, uint precision = 2, uchar size = 1);
     void println(const char* text, uchar size = 1);
     void println(const char* text, Color color, uchar size = 1);
-    void println(bool value);
+    void println(bool value, uchar size = 1);
     void println(void);
 
     uint getStringLength(char num, uchar size = 1, uchar base = DEC);

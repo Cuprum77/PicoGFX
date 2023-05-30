@@ -244,9 +244,9 @@ void Display::print(const char* text, Color color, uchar size)
  * @brief Write a character on the display
  * @param value Boolean to print
 */
-void Display::print(bool value)
+void Display::print(bool value, uchar size)
 {
-    this->print(value ? "true" : "false");
+    this->print(value ? "true" : "false", size);
 }
 #pragma endregion
 
@@ -449,9 +449,9 @@ void Display::println(const char* text, Color color, uchar size)
  * @brief Write a character on the display
  * @param value Boolean to print
 */
-void Display::println(bool value)
+void Display::println(bool value, uchar size)
 {
-    this->println(value ? TRUE : FALSE);
+    this->println(value ? TRUE : FALSE, size);
 }
 #pragma endregion
 
