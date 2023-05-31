@@ -7,4 +7,4 @@ This is my work in progress RP2040 based display driver for the different cheap 
 * ST7789 (240x320)
 
 ## License
-See the [LICENSE](LICENSE) file for license rights and limitations (MIT).
+See the [LICENSE](LICENSE) file for license rights and limitations.
