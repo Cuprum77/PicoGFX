@@ -158,8 +158,8 @@ void Display::drawLine(Point start, Point end, Color color)
     
     while(true)
     {
-        // draw the pixel
-        this->drawPixel({x0, y0}, color);
+        // set the pixel in the frame buffer
+        this->frameBuffer[(y0 * this->params.width) + x0] = color.to16bit();
 
         // if we have reached the end Point, break
         if(x0 == x1 && y0 == y1) break;
@@ -283,18 +283,21 @@ void Display::drawCircle(Point center, uint radius, Color color)
     int y = 0;
     int error = 3 - 2 * x;
 
+    // convert the color to 16 bit
+    unsigned short color16 = color.to16bit();
+
     // loop through the radius
     while(x >= y)
     {
-        // draw the pixel
-        this->drawPixel({x0 + x, y0 + y}, color);
-        this->drawPixel({x0 + y, y0 + x}, color);
-        this->drawPixel({x0 - y, y0 + x}, color);
-        this->drawPixel({x0 - x, y0 + y}, color);
-        this->drawPixel({x0 - x, y0 - y}, color);
-        this->drawPixel({x0 - y, y0 - x}, color);
-        this->drawPixel({x0 + y, y0 - x}, color);
-        this->drawPixel({x0 + x, y0 - y}, color);
+        // draw the pixels in the frame buffer
+        this->frameBuffer[((y0 + y) * this->params.width) + (x0 + x)] = color16;
+        this->frameBuffer[((y0 + x) * this->params.width) + (x0 + y)] = color16;
+        this->frameBuffer[((y0 + x) * this->params.width) + (x0 - y)] = color16;
+        this->frameBuffer[((y0 + y) * this->params.width) + (x0 - x)] = color16;
+        this->frameBuffer[((y0 - y) * this->params.width) + (x0 - x)] = color16;
+        this->frameBuffer[((y0 - x) * this->params.width) + (x0 - y)] = color16;
+        this->frameBuffer[((y0 - x) * this->params.width) + (x0 + y)] = color16;
+        this->frameBuffer[((y0 - y) * this->params.width) + (x0 + x)] = color16;
 
         // if the error is greater than 0
         if(error > 0)
@@ -474,20 +477,4 @@ void Display::drawBitmap(const unsigned short* bitmap, uint width, uint height)
         // increment the offset
         offset += width;
     }
-}
-
-/**
- * @private
- * @brief Interpolate between two colors
- * @param startColor Starting color
- * @param endColor Ending color
- * @param position Position between the two colors
- * @param interpolateColor Interpolated color
- */
-void Display::interpolate(Color startColor, Color endColor, float position, Color* interpolateColor)
-{
-    // interpolate the color
-    interpolateColor->r = startColor.r * (1 - position) + endColor.r * position;
-    interpolateColor->g = startColor.g * (1 - position) + endColor.g * position;
-    interpolateColor->b = startColor.b * (1 - position) + endColor.b * position;
 }

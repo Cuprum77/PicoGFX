@@ -184,9 +184,6 @@ protected:
     void columnAddressSet(uint x0, uint x1);
     void rowAddressSet(uint y0, uint y1);
     void writePixels(const unsigned short* data, size_t length);
-    void BGRtoRGB(unsigned short* color);
-    void BGRtoRGB(unsigned short* color, size_t length);
-    void interpolate(Color startColor, Color endColor, float position, Color* gradient);
 
     uint drawAscii(const char c, Point Point, uint size, Color color);
     void floatToString(double num, char* buffer, uint precision);

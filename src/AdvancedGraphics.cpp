@@ -12,15 +12,19 @@ AdvancedGraphics::AdvancedGraphics(spi_inst_t* spi, Display_Pins pins,
 
 /**
  * @brief Draw a circle gradient
+ * @param center The center of the circle
+ * @param radius The radius of the circle
+ * @param rotationSpeed The speed at which the gradient rotates
  * @param start The color to start the gradient with
  * @param end The color to end the gradient with
 */
 void AdvancedGraphics::drawRotCircleGradient(Point center, int radius, int rotationSpeed, Color start, Color end)
 {
     this->theta += rotationSpeed;
+    this->theta = this->theta % numAngles;
 
-    int cosTheta = fixedPointCos(this->theta);
-    int sinTheta = fixedPointSin(this->theta);
+    int cosTheta = fixedPointCosTable[theta];
+    int sinTheta = fixedPointSinTable[theta];
 
     Point rotGradStart = Point(
         center.x - (radius * cosTheta) / fixedPointScale,
@@ -35,26 +39,51 @@ void AdvancedGraphics::drawRotCircleGradient(Point center, int radius, int rotat
 }
 
 /**
- * @brief Draw an eclipse gradient
+ * @brief Draw a rectangle gradient
+ * @param center The center of the rectangle
+ * @param width The width of the rectangle
+ * @param height The height of the rectangle
+ * @param rotationSpeed The speed at which the gradient rotates
  * @param start The color to start the gradient with
  * @param end The color to end the gradient with
 */
-void AdvancedGraphics::drawRotEllipseGradient(Point center, int width, int height, int rotationSpeed, Color start, Color end)
+void AdvancedGraphics::drawRotRectGradient(Point center, int width, int height, int rotationSpeed, Color start, Color end)
 {
     this->theta += rotationSpeed;
+    this->theta = this->theta % numAngles;
+    Point rotGradStart, rotGradEnd;
+    printf("%d\n", this->theta);
 
-    Point rotGradStart = Point(
-        center.x + (width * fixedPointCos(this->theta)) / fixedPointScale,
-        center.y + (height * fixedPointSin(this->theta)) / fixedPointScale
-    );
-    Point rotGradEnd = Point(
-        center.x + (width * fixedPointCos(this->theta + halfNumAngles)) / fixedPointScale,
-        center.y + (height * fixedPointSin(this->theta + halfNumAngles)) / fixedPointScale
+    // follow the quadrants of the unit circle
+    if(this->theta < this->firstQuadrant)
+        rotGradStart = Point(
+            center.x + (width >> 1),
+            center.y - (height >> 1) + (this->theta * height / this->firstQuadrant)
+        );
+    else if(this->theta < this->secondQuadrant)
+        rotGradStart = Point(
+            center.x + (width >> 1) - ((this->theta - this->firstQuadrant) * width / this->firstQuadrant),
+            center.y + (height >> 1)
+        );
+    else if(this->theta < this->thirdQuadrant)
+        rotGradStart = Point(
+            center.x - (width >> 1),
+            center.y + (height >> 1) - ((this->theta - this->secondQuadrant) * height / this->firstQuadrant)
+        );
+    else
+        rotGradStart = Point(
+            center.x - (width >> 1) + ((this->theta - this->thirdQuadrant) * width / this->firstQuadrant),
+            center.y - (height >> 1)
+        );
+
+    // create the end point by making the start point the opposite corner
+    rotGradEnd = Point(
+        center.x - (rotGradStart.x - center.x),
+        center.y - (rotGradStart.y - center.y)
     );
 
     this->fillGradient(start, end, rotGradStart, rotGradEnd);
 }
-
 
 /**
  * @private
@@ -75,32 +104,4 @@ void AdvancedGraphics::fillLookupTables()
         fixedPointCosTable[angle] = static_cast<int>(cosValue * fixedPointScale);
         fixedPointSinTable[angle] = static_cast<int>(sinValue * fixedPointScale);
     }
-}
-
-/**
- * @private
- * @brief Get the cosine of an angle
- * @param theta The angle to get the cosine of
- * @return The cosine of the angle
-*/
-int AdvancedGraphics::fixedPointCos(int theta)
-{
-    // Ensure angle is within the range 0-359
-    theta = theta % numAngles;
-
-    return fixedPointCosTable[theta];
-}
-
-/**
- * @private
- * @brief Get the sine of an angle
- * @param theta The angle to get the sine of
- * @return The sine of the angle
-*/
-int AdvancedGraphics::fixedPointSin(int theta)
-{
-    // Ensure angle is within the range 0-359
-    theta = theta % numAngles;
-
-    return fixedPointSinTable[theta];
 }

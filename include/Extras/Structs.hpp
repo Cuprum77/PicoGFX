@@ -58,6 +58,28 @@ struct Point
     }
 
     /**
+     * @brief Construct a new Point object
+     * @param x X coordinate of the point
+     * @param y Y coordinate of the point
+    */
+    Point(unsigned int x, int y)
+    {
+        this->x = x;
+        this->y = y;
+    }
+
+    /**
+     * @brief Construct a new Point object
+     * @param x X coordinate of the point
+     * @param y Y coordinate of the point
+    */
+    Point(int x, unsigned int y)
+    {
+        this->x = x;
+        this->y = y;
+    }
+
+    /**
      * @brief Get the X coordinate of the point
      * @return int X coordinate of the point
     */
