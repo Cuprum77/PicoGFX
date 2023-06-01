@@ -52,7 +52,6 @@ void AdvancedGraphics::drawRotRectGradient(Point center, int width, int height, 
     this->theta += rotationSpeed;
     this->theta = this->theta % numAngles;
     Point rotGradStart, rotGradEnd;
-    printf("%d\n", this->theta);
 
     // follow the quadrants of the unit circle
     if(this->theta < this->firstQuadrant)
