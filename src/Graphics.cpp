@@ -24,25 +24,25 @@ void Display::fillGradient(Color startColor, Color endColor, Point start, Point 
     int deltaY = end.Y() - start.Y();
     int magnitudeSquared = (deltaX * deltaX + deltaY * deltaY);
 
-    // create lookup tables for color interpolation
-    int numPositions = 101;  // 0-100 positions
+    // find the maximum difference between the color components
+    int dr = abs(endColor.r - startColor.r);
+    int dg = abs(endColor.g - startColor.g);
+    int db = abs(endColor.b - startColor.b);
+    int maxDiff = max(dr, max(dg, db));
+
+    // create the lookup tables based on the maximum difference
+    int numPositions = maxDiff + 1;
     int rLUT[numPositions];
     int gLUT[numPositions];
     int bLUT[numPositions];
 
+    // loop through each position in the gradient
     for(int i = 0; i < numPositions; i++)
     {
-        int position = i;
-
-        // interpolate the color components based on the position
-        int r = ((endColor.r - startColor.r) * position) / 100 + startColor.r;
-        int g = ((endColor.g - startColor.g) * position) / 100 + startColor.g;
-        int b = ((endColor.b - startColor.b) * position) / 100 + startColor.b;
-
-        // store the interpolated color components in the lookup tables
-        rLUT[i] = r;
-        gLUT[i] = g;
-        bLUT[i] = b;
+        // interpolate the color components based on the position and add them to the lookup tables
+        rLUT[i] = ((endColor.r - startColor.r) * i) / maxDiff + startColor.r;
+        gLUT[i] = ((endColor.g - startColor.g) * i) / maxDiff + startColor.g;
+        bLUT[i] = ((endColor.b - startColor.b) * i) / maxDiff + startColor.b;
     }
 
     // loop through each pixel in the buffer
@@ -59,10 +59,10 @@ void Display::fillGradient(Color startColor, Color endColor, Point start, Point 
 
         // calculate the distance along the gradient direction
         int dotProduct = (vectorX * deltaX + vectorY * deltaY);
-        int position = (dotProduct * 100) / magnitudeSquared;  // Scale position to 0-100 range
+        int position = (dotProduct * maxDiff) / magnitudeSquared;  // Scale position to 0-100 range
 
         // clamp the position within the valid range
-        position = (position < 0) ? 0 : (position > 100) ? 100 : position;
+        position = (position < 0) ? 0 : (position > maxDiff) ? maxDiff : position;
 
         // get the interpolated color components from the lookup tables
         int r = rLUT[position];
