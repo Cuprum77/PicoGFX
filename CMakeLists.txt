@@ -10,6 +10,7 @@ add_library(${PROJECT_NAME}
     src/Print.cpp
     src/Graphics.cpp
     src/AdvancedGraphics.cpp
+    src/HardwareSPI.cpp
     Specifics/ST7789.cpp
     Specifics/GC9A01.cpp
 )
@@ -24,5 +25,7 @@ target_include_directories(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME} 
     pico_stdlib
     hardware_spi
+    hardware_dma
     hardware_pwm
+    pico_multicore
 )

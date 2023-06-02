@@ -21,6 +21,24 @@ struct Display_Params
     unsigned int rotation;
 };
 
+// Struct to pass multiple arguments to core1_fillGradient
+typedef struct {
+    uint16_t *frameBuffer;
+    int startPixel;
+    int endPixel;
+    int params_width;
+    int params_height;
+    int deltaX;
+    int deltaY;
+    int magnitudeSquared;
+    int maxDiff;
+    int start_X;
+    int start_Y;
+    int *rLUT;
+    int *gLUT;
+    int *bLUT;
+} GradientArgs;
+
 struct Point
 {
     int x;

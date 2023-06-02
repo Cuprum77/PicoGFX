@@ -7,9 +7,10 @@
 
 #include "pico/stdlib.h"
 #include "pico/divider.h"
-#include "hardware/spi.h"
 #include "hardware/pwm.h"
+#include "pico/multicore.h"
 
+#include "HardwareSPI.hpp"
 #include "Commands.hpp"
 #include "Structs.hpp"
 #include "Color.hpp"
@@ -32,6 +33,7 @@
 
 // SPI
 #define SPI_BAUDRATE 125000000  // 125 MHz
+#define DMA true
 
 // Constants
 #define CHARACTER_BUFFER_SIZE 128
@@ -54,11 +56,12 @@ enum display_type_t
     GC9A01
 };
 
-class Display
+class Display : HardwareSPI
 {
 public:
     Display(spi_inst_t* spi, Display_Pins pins, 
         Display_Params params, display_type_t type = ST7789, bool dimming = false);
+    bool writeReady(void) { return !this->dma_busy(); }
     void clear(void);
     void fill(Color color);
     void writeBuffer(void);
@@ -163,6 +166,7 @@ protected:
     bool backlight;
     display_type_t type;
     bool BGR = false;
+    bool secondCore = false;
     uint maxWidth;
     uint maxHeight;
 

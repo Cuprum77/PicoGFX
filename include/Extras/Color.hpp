@@ -3,8 +3,7 @@
 #include "Structs.hpp"
 #include "Display.hpp"
 
-#ifdef BGR
-#endif
+#define MAX_COLOR_DIFF 255
 
 /**
  * @brief Colors enum

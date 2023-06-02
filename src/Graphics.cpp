@@ -1,5 +1,57 @@
 #include "Display.hpp"
 
+// create a global instance of the args struct
+volatile GradientArgs gradArgs;
+
+// create a global instance of the lookup tables
+int rLUT[MAX_COLOR_DIFF + 1];
+int gLUT[MAX_COLOR_DIFF + 1];
+int bLUT[MAX_COLOR_DIFF + 1];
+
+/**
+ * @brief Calculate the frame buffer on the second core
+*/
+void fillGradientCore1(void)
+{
+    while(1)
+    {
+        // Wait for core0 to signal that it's ready to start
+        uint32_t readySignal = multicore_fifo_pop_blocking();
+        if (readySignal != 1) tight_loop_contents();
+
+        // Loop through the specified range of pixels in the buffer
+        for(int i = gradArgs.startPixel; i < gradArgs.endPixel; i++) {
+            // calculate the position along the gradient direction
+            int x = i % gradArgs.params_width;
+            int y = i / gradArgs.params_width;
+
+            // calculate the vector from the start to the current pixel
+            int vectorX = x - gradArgs.start_X;
+            int vectorY = y - gradArgs.start_Y;
+
+            // calculate the distance along the gradient direction
+            int dotProduct = (vectorX * gradArgs.deltaX + vectorY * gradArgs.deltaY);
+            int position = (dotProduct * gradArgs.maxDiff) / gradArgs.magnitudeSquared;  // Scale position to 0-100 range
+
+            // clamp the position within the valid range
+            position = (position < 0) ? 0 : (position > gradArgs.maxDiff) ? gradArgs.maxDiff : position;
+
+            // get the interpolated color components from the lookup tables and create the color
+            Color color(
+                gradArgs.rLUT[position], 
+                gradArgs.gLUT[position], 
+                gradArgs.bLUT[position]
+            );
+
+            // draw the pixel
+            gradArgs.frameBuffer[i] = color.to16bit();
+        }
+
+        // push a value to the queue to signal that this core is finished
+        multicore_fifo_push_blocking(1);
+    }
+}
+
 /**
  * @brief Fill the display with a color gradient
  * @param startColor Color to start with
@@ -32,9 +84,6 @@ void Display::fillGradient(Color startColor, Color endColor, Point start, Point 
 
     // create the lookup tables based on the maximum difference
     int numPositions = maxDiff + 1;
-    int rLUT[numPositions];
-    int gLUT[numPositions];
-    int bLUT[numPositions];
 
     // loop through each position in the gradient
     for(int i = 0; i < numPositions; i++)
@@ -45,9 +94,39 @@ void Display::fillGradient(Color startColor, Color endColor, Point start, Point 
         bLUT[i] = ((endColor.b - startColor.b) * i) / maxDiff + startColor.b;
     }
 
-    // loop through each pixel in the buffer
+    // calculate the number of pixels in the buffer
     int numPixels = this->params.width * this->params.height;
-    for(int i = 0; i < numPixels; i++)
+    // calculate the midpoint of the buffer
+    int midpoint = numPixels / 2;
+
+    // Set up the arguments for core1_fillGradient
+    gradArgs.frameBuffer = this->frameBuffer;
+    gradArgs.startPixel = midpoint;
+    gradArgs.endPixel = numPixels;
+    gradArgs.params_width = this->params.width;
+    gradArgs.params_height = this->params.height;
+    gradArgs.deltaX = deltaX;
+    gradArgs.deltaY = deltaY;
+    gradArgs.magnitudeSquared = magnitudeSquared;
+    gradArgs.maxDiff = maxDiff;
+    gradArgs.start_X = start.X();
+    gradArgs.start_Y = start.Y();
+    gradArgs.rLUT = rLUT;
+    gradArgs.gLUT = gLUT;
+    gradArgs.bLUT = bLUT;
+
+    // Launch the second core if not already running
+    if(!this->secondCore)
+    {
+        multicore_launch_core1(fillGradientCore1);
+        this->secondCore = true;
+    }
+
+    // Signal to core1 that it should start
+    multicore_fifo_push_blocking(1);
+
+    // loop through each pixel in the buffer
+    for(int i = 0; i < midpoint; i++)
     {
         // calculate the position along the gradient direction
         int x = i % this->params.width;
@@ -64,16 +143,24 @@ void Display::fillGradient(Color startColor, Color endColor, Point start, Point 
         // clamp the position within the valid range
         position = (position < 0) ? 0 : (position > maxDiff) ? maxDiff : position;
 
-        // get the interpolated color components from the lookup tables
-        int r = rLUT[position];
-        int g = gLUT[position];
-        int b = bLUT[position];
-
-        // create the color
-        Color color(r, g, b);
+        // get the interpolated color components from the lookup tables and create the color
+        Color color(
+            rLUT[position], 
+            gLUT[position], 
+            bLUT[position]
+        );
 
         // draw the pixel
         this->frameBuffer[i] = color.to16bit();
+    }
+
+    // wait for the second core to finish
+    while (multicore_fifo_rvalid()) {
+        uint32_t finished_signal = multicore_fifo_pop_blocking();
+        if (finished_signal == 1) {
+            // the second core is finished
+            break;
+        }
     }
 }
 

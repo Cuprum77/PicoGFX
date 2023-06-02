@@ -9,32 +9,19 @@
  * @param backlight Enable backlight
 */
 Display::Display(spi_inst_t* spi, Display_Pins pins, 
-    Display_Params params, display_type_t type, bool dimming)
+    Display_Params params, display_type_t type, bool dimming) : HardwareSPI(spi, SPI_BAUDRATE, pins.dc, pins.cs, pins.scl, pins.sda, false)
 {
     this->spi = spi;
     this->pins = pins;
     this->params = params;
     this->type = type;
 
-    // enable the SPI bus
-    spi_init(this->spi, SPI_BAUDRATE);
-
-    // set the pins to SPI function
-    gpio_set_function(this->pins.sda, GPIO_FUNC_SPI);
-    gpio_set_function(this->pins.scl, GPIO_FUNC_SPI);
-    gpio_set_function(this->pins.cs, GPIO_FUNC_SPI);
-
     // init the rest of the pins
     gpio_init(this->pins.rst);
-    gpio_init(this->pins.dc);
-
     // set the rest of the pins to GPIO output
     gpio_set_dir(this->pins.rst, GPIO_OUT);
-    gpio_set_dir(this->pins.dc, GPIO_OUT);
-
     // set the pins to high
     gpio_put(this->pins.rst, 1);
-    gpio_put(this->pins.dc, 1);
 
     // set up the backlight pin depending on the dimming setting
     this->backlight = this->pins.bl != -1;
@@ -318,7 +305,7 @@ void Display::setTearing(bool enable)
 void Display::writeData(uchar command, const uchar* data, size_t length)
 {
     // configure the spi to 8 bit mode
-    spi_set_format(this->spi, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
+    /*spi_set_format(this->spi, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
     this->dataMode = false;
 
     // set the display to write mode
@@ -332,7 +319,9 @@ void Display::writeData(uchar command, const uchar* data, size_t length)
     if (length)
     {
         spi_write_blocking(this->spi, data, length);
-    }
+    }*/
+    this->dataMode = false;
+    this->spi_write_data(command, data, length);
 }
 
 /**
@@ -393,14 +382,16 @@ void Display::writePixels(const unsigned short* data, size_t length)
 {
     if(!this->dataMode)
     {
-        gpio_put(this->pins.dc, 0);
+        this->spi_set_data_mode(Display_Commands::RAMWR);
+        /*gpio_put(this->pins.dc, 0);
         uchar command = (uchar)Display_Commands::RAMWR;
         spi_set_format(this->spi, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
         spi_write_blocking(this->spi, &command, sizeof(command));
         gpio_put(this->pins.dc, 1);
-        spi_set_format(this->spi, 16, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
+        spi_set_format(this->spi, 16, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);*/
         this->dataMode = true;
     }
 
-    spi_write16_blocking(this->spi, data, length >> 1);
+    //spi_write16_blocking(this->spi, data, length >> 1);
+    this->spi_write_pixels(data, length);
 }
