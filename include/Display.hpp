@@ -33,7 +33,6 @@
 
 // SPI
 #define SPI_BAUDRATE 125000000  // 125 MHz
-#define DMA true
 
 // Constants
 #define CHARACTER_BUFFER_SIZE 128
@@ -59,8 +58,8 @@ enum display_type_t
 class Display : HardwareSPI
 {
 public:
-    Display(spi_inst_t* spi, Display_Pins pins, 
-        Display_Params params, display_type_t type = ST7789, bool dimming = false);
+    Display(spi_inst_t* spi, Display_Pins pins, Display_Params params, display_type_t type = ST7789, 
+        bool dimming = false, SPI_Interface_t interface = SPI_Interface_t::SPI_HW);
     bool writeReady(void) { return !this->dma_busy(); }
     void clear(void);
     void fill(Color color);
@@ -78,7 +77,6 @@ public:
     void setBrightness(unsigned char brightness);
     void setTearing(bool enable);
 
-    void fillGradient(Color startColor, Color endColor, Point start, Point end);
     void fillGradientCool(Color startColor, Color endColor, Point start, Point end);
     void drawLine(Point start, Point end, Color color = Colors::White);
     void drawRectangle(Point start, Point end, Color color = Colors::White);
@@ -169,6 +167,7 @@ protected:
     bool secondCore = false;
     uint maxWidth;
     uint maxHeight;
+    uint totalPixels;
 
     void ST7789_Init(void);
     void ST7789_SetRotation(displayRotation_t rotation);
@@ -185,8 +184,8 @@ protected:
     void writeData(uchar command, const uchar* data, size_t length);
     void writeData(uchar command, uchar data) { writeData(command, &data, 1); }
     void writeData(uchar command) { writeData(command, nullptr, 0); }
-    void columnAddressSet(uint x0, uint x1);
-    void rowAddressSet(uint y0, uint y1);
+    inline void columnAddressSet(uint x0, uint x1);
+    inline void rowAddressSet(uint y0, uint y1);
     void writePixels(const unsigned short* data, size_t length);
 
     uint drawAscii(const char c, Point Point, uint size, Color color);

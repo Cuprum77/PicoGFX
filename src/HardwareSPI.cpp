@@ -8,9 +8,9 @@
  * @param cs Chip select pin
  * @param scl Clock pin
  * @param sda Data pin
- * @param dma Use DMA for transfers, defaults to false
+ * @param interface Which interface to use, defaults to SPI
 */
-HardwareSPI::HardwareSPI(spi_inst_t* spi, uint baudrate, uint8_t dc, uint8_t cs, uint8_t scl, uint8_t sda, bool dma)
+HardwareSPI::HardwareSPI(SPI_Interface_t interface, uint8_t sda, uint8_t scl, uint8_t cs, uint8_t dc, spi_inst_t* spi, uint baudrate)
 {
     this->spi = spi;
     this->baudrate = baudrate;
@@ -18,65 +18,86 @@ HardwareSPI::HardwareSPI(spi_inst_t* spi, uint baudrate, uint8_t dc, uint8_t cs,
     this->sda = sda;
     this->dc = dc;
     this->cs = cs;
-    this->dma = dma;
 
-    if(dma)
-        this->initDMA();
-    else
-        this->initSPI();
+    switch(interface)
+    {
+        case(SPI_Interface_t::DMA_HW):
+            this->interface = SPI_Interface_t::DMA_HW;
+            this->initDMA();
+            break;
+        case(SPI_Interface_t::PIO_HW):
+            this->interface = SPI_Interface_t::PIO_HW;
+            this->initPIO();
+            break;
+        default:
+            this->interface = SPI_Interface_t::SPI_HW;
+            this->initSPI();
+            break;
+    }
 }
 
 /**
  * @brief Write data to the SPI bus
- * @param spi The SPI instance to use
  * @param command The command to send
  * @param data The data to send
  * @param length The length of the data
- * @param dma Use DMA for transfers, defaults to false
  * @return bytes written on success, -1 on failure
 */
-int HardwareSPI::spi_write_data(uint8_t command, const uint8_t* data, size_t length)
+void HardwareSPI::spi_write_data(uint8_t command, const uint8_t* data, size_t length)
 {
-    // create a counter to track the number of bytes written
-    int counter = 0;
-
-    // configure the spi to 8 bit mode
-    spi_set_format(this->spi, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
-    // set the display to write mode
-    gpio_put(this->dc, 0);
-    // send the command
-    counter += spi_write_blocking(this->spi, &command, 1);
-    // send the data
-    gpio_put(this->dc, 1);
-    // if there is data to send, send it
-    if (length)
-        counter += spi_write_blocking(this->spi, data, length);
-
-    // return the number of bytes written
-    return counter;
+    switch(interface)
+    {
+        case(SPI_Interface_t::PIO_HW):
+            pio_spi_program_wait_idle(this->pio, this->sm);
+            this->set_dc_cs(0, 0);
+            pio_spi_program_put(this->pio, this->sm, command);
+            if(length)
+            {
+                pio_spi_program_wait_idle(this->pio, this->sm);
+                this->set_dc_cs(1, 0);
+                for(size_t i = 0; i < length; i++)
+                    pio_spi_program_put(this->pio, this->sm, *data++);
+            }
+            pio_spi_program_wait_idle(this->pio, this->sm);
+            this->set_dc_cs(1, 1);
+            break;
+        default:
+            // configure the spi to 8 bit mode
+            spi_set_format(this->spi, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
+            // set the display to write mode
+            gpio_put(this->dc, 0);
+            // send the command
+            spi_write_blocking(this->spi, &command, 1);
+            // send the data
+            gpio_put(this->dc, 1);
+            // if there is data to send, send it
+            if (length)
+                spi_write_blocking(this->spi, data, length);
+            break;
+    }
 }
 
 /**
  * @brief Write data mode to the SPI bus
- * @param spi The SPI instance to use
- * @param dc Data/Command pin
  * @param command The command to send
- * @param dma Use DMA for transfers, defaults to false
  * @return bytes written on success, -1 on failure
 */
-int HardwareSPI::spi_set_data_mode(uint8_t command)
+void HardwareSPI::spi_set_data_mode(uint8_t command)
 {
-    // create a counter to track the number of bytes written
-    int counter = 0;
-
-    gpio_put(this->dc, 0);
-    spi_set_format(this->spi, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
-    counter += spi_write_blocking(this->spi, &command, sizeof(command));
-    gpio_put(this->dc, 1);
-    spi_set_format(this->spi, 16, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
-
-    // return the number of bytes written
-    return counter;
+    switch(interface)
+    {
+        case(SPI_Interface_t::PIO_HW):
+            this->spi_write_data(command, nullptr, 0);
+            this->set_dc_cs(1, 0);
+            break;
+        default:
+            gpio_put(this->dc, 0);
+            spi_set_format(this->spi, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
+            spi_write_blocking(this->spi, &command, sizeof(command));
+            gpio_put(this->dc, 1);
+            spi_set_format(this->spi, 16, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
+            break;
+    }
 }
 
 /**
@@ -84,42 +105,43 @@ int HardwareSPI::spi_set_data_mode(uint8_t command)
  * @param spi The SPI instance to use
  * @param data The data to send
  * @param length The length of the data
- * @param dma Use DMA for transfers, defaults to false
  * @return bytes written on success, -1 on failure
 */
-int HardwareSPI::spi_write_pixels(const uint16_t* data, size_t length)
+void HardwareSPI::spi_write_pixels(const uint16_t* data, size_t length)
 {
-    // create a counter to track the number of bytes written
-    int counter = 0;
-
-    if(this->dma)
+    switch(interface)
     {
-        dma_channel_configure(
-            this->dma_tx, // Channel to be configured
-            &this->dma_config, // The configuration we just created
-            &spi_get_hw(this->spi)->dr, // The write address
-            data, // Pointer to the data we want to transmit
-            length >> 1, // Number of bytes to transmit
-            true // Start immediately
-        );
+        case(SPI_Interface_t::DMA_HW):
+            dma_channel_configure(
+                this->dma_tx, // Channel to be configured
+                &this->dma_config, // The configuration we just created
+                &spi_get_hw(this->spi)->dr, // The write address
+                data, // Pointer to the data we want to transmit
+                length, // Number of bytes to transmit
+                true // Start immediately
+            );
+            break;
+        case(SPI_Interface_t::PIO_HW):
+            while(length--)
+            {
+                pio_spi_program_put_16(this->pio, this->sm, *data++);
+            }
+            break;
+        default:
+            // send the data
+            spi_write16_blocking(this->spi, data, length);
+            break;
     }
-    else
-    {
-        // send the data
-        counter += spi_write16_blocking(this->spi, data, length >> 1);
-    }
-
-    // return the number of bytes written
-    return counter;
 }
 
 /**
  * @brief Check if the DMA is busy
  * @return true if busy, false if not
+ * @note Always returns false if DMA is not enabled
 */
-bool HardwareSPI::dma_busy()
+bool HardwareSPI::dma_busy(void)
 {
-    if(!this->dma)
+    if(this->interface != SPI_Interface_t::DMA_HW)
         return false;
     
     return dma_channel_is_busy(this->dma_tx);
@@ -129,7 +151,7 @@ bool HardwareSPI::dma_busy()
  * @private
  * @brief Initialize the SPI bus
 */
-void HardwareSPI::initSPI()
+void HardwareSPI::initSPI(void)
 {
     // enable the SPI bus
     spi_init(this->spi, this->baudrate);
@@ -148,7 +170,7 @@ void HardwareSPI::initSPI()
  * @private
  * @brief Initialize the SPI bus with DMA
 */
-void HardwareSPI::initDMA()
+void HardwareSPI::initDMA(void)
 {
     // enable the SPI bus
     this->initSPI();
@@ -162,4 +184,38 @@ void HardwareSPI::initDMA()
     channel_config_set_dreq(&this->dma_config, DREQ_SPI0_TX); // SPI TX DREQ
     channel_config_set_read_increment(&this->dma_config, true); // increment the read address
     channel_config_set_write_increment(&this->dma_config, false); // don't increment the write address
+}
+
+/**
+ * @private
+ * @brief Initialize the SPI bus with PIO
+*/
+void HardwareSPI::initPIO(void)
+{
+    // create the first spi state machine
+    this->pio = pio0;
+    this->sm = 0;
+    this->offset = pio_add_program(pio, &pio_spi_program);
+    pio_spi_program_init(this->pio, this->sm, this->offset, this->sda, this->scl, SERIAL_CLK_DIV);
+
+    // set the pins to SPI function
+    gpio_init(this->cs);
+    gpio_init(this->dc);
+    gpio_set_dir(this->cs, GPIO_OUT);
+    gpio_set_dir(this->dc, GPIO_OUT);
+    gpio_put(this->cs, 1);
+    gpio_put(this->dc, 1);
+}
+
+/**
+ * @private
+ * @brief Set the data/command pin and/or the chip select pin
+ * @param dc The data/command pin
+ * @param cs The chip select pin
+*/
+inline void HardwareSPI::set_dc_cs(bool dc, bool cs)
+{
+    sleep_us(1);
+    gpio_put_masked((1u << this->dc) | (1u << this->cs), !!dc << this->dc | !!cs << this->cs);
+    sleep_us(1);
 }

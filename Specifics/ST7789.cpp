@@ -6,15 +6,10 @@ void Display::ST7789_Init()
     this->BGR = false;
     this->maxHeight = 320;
     this->maxWidth = 240;
-
-    sleep_ms(100);
-
-    // set the SPI format
-    spi_set_format(this->spi, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
     
     // reset the display
     this->writeData(Display_Commands::SWRESET, NULL, 0);
-    sleep_ms(150);
+    sleep_ms(100);
 
     // set the display to sleep out
     this->writeData(Display_Commands::SLPOUT, NULL, 0);

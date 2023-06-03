@@ -22,10 +22,13 @@ target_include_directories(${PROJECT_NAME}
     PUBLIC ${PROJECT_SOURCE_DIR}/Fonts
 )
 
+pico_generate_pio_header(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/include/pio_spi.pio)
+
 target_link_libraries(${PROJECT_NAME} 
     pico_stdlib
     hardware_spi
     hardware_dma
     hardware_pwm
+    hardware_pio
     pico_multicore
 )

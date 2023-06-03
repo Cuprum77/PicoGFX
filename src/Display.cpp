@@ -9,12 +9,13 @@
  * @param backlight Enable backlight
 */
 Display::Display(spi_inst_t* spi, Display_Pins pins, 
-    Display_Params params, display_type_t type, bool dimming) : HardwareSPI(spi, SPI_BAUDRATE, pins.dc, pins.cs, pins.scl, pins.sda, false)
+    Display_Params params, display_type_t type, bool dimming, SPI_Interface_t interface) : HardwareSPI(interface, pins.sda, pins.scl, pins.cs, pins.dc, spi, SPI_BAUDRATE)
 {
     this->spi = spi;
     this->pins = pins;
     this->params = params;
     this->type = type;
+    this->totalPixels = params.width * params.height;
 
     // init the rest of the pins
     gpio_init(this->pins.rst);
@@ -71,6 +72,7 @@ Display::Display(spi_inst_t* spi, Display_Pins pins,
 void Display::clear()
 {
     this->fill(Colors::Black);
+    this->writeBuffer();
 }
 
 /**
@@ -81,48 +83,15 @@ void Display::fill(Color color)
 {
     // convert color to 16 bit
     unsigned short color16 = color.to16bit();
-
-    // calculate the number of pixels and take the offset into account
-    int numPixels = this->params.width * this->params.height;
     // set the cursor position to the top left
     this->setCursor({0, 0});
-
-    // optimize if the display is smaller than the driver buffer
-    /*if(this->params.width < this->maxWidth)
-    {
-        // fill the frame buffer
-        for(int i = 0; i < numPixels; i++)
-        {
-            this->frameBuffer[i] = color16;
-        }
-
-        // write the pixels to the display
-        for(int y = 0; y < this->params.height; y++)
-        {
-            this->writePixels(this->frameBuffer + y, this->params.width * sizeof(color16));
-            this->rowAddressSet(
-                y + this->params.rowOffset1, 
-                (this->params.height - 1) + this->params.rowOffset2
-            );
-        }
-    }
-    else
-    {*/
-        // fill the frame buffer
-        for(int i = 0; i < numPixels; i++)
-        {
-            this->frameBuffer[i] = color16;
-        }
-
-        // write the pixels to the display
-        this->writePixels(this->frameBuffer, numPixels * sizeof(color16));
-    //}
-
+    // fill the frame buffer
+    for(int i = 0; i < this->totalPixels; i++)
+        this->frameBuffer[i] = color16;
     // set the fill color variable
     this->fillColor = color;
     this->setCursor({0, 0});
 }
-
 
 /**
  * @brief Print the frame buffer to the display
@@ -130,8 +99,7 @@ void Display::fill(Color color)
 void Display::writeBuffer(void)
 {
     this->setCursor({0, 0});
-    int numPixels = this->params.width * this->params.height;
-    this->writePixels(this->frameBuffer, numPixels * 2);
+    this->writePixels(this->frameBuffer, this->totalPixels);
 }
 
 /**
@@ -150,39 +118,12 @@ Color Display::getFillColor()
 */
 void Display::drawPixel(Point point, Color color)
 {
-    // optimize the pixel drawing
-    Point current = this->getCursor();
-
-    // only change the row if the y coordinate is different
-    if(current.Y() != point.Y())
-    {
-        // set the pixel y address
-        this->rowAddressSet(
-            point.Y() + this->params.rowOffset1, 
-            (this->params.height - 1) + this->params.rowOffset2
-        );
-
-        // set the internal cursor position
-        this->cursor.Y(point.Y());
-    }
-
-    // only change the column if the x coordinate is different
-    if(current.X() != point.X())
-    {
-        // set the pixel x address
-        this->columnAddressSet(
-            point.X() + this->params.columnOffset1, 
-            (this->params.width - 1) + this->params.columnOffset2
-        );
-
-        // set the internal cursor position
-        this->cursor.X(point.X());
-    }
-
+    // get the point on the frame buffer
+    int index = point.Y() * this->params.width + point.X();
     // convert color to 16 bit
     unsigned short color16 = color.to16bit();
-    // write the pixel
-    this->writePixels(&color16, sizeof(color16));
+    // draw the pixel
+    this->frameBuffer[index] = color16;
 }
 
 /**
@@ -304,23 +245,9 @@ void Display::setTearing(bool enable)
 */
 void Display::writeData(uchar command, const uchar* data, size_t length)
 {
-    // configure the spi to 8 bit mode
-    /*spi_set_format(this->spi, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
+    // set the data mode
     this->dataMode = false;
-
-    // set the display to write mode
-    gpio_put(this->pins.dc, 0);
-
-    // send the command
-    spi_write_blocking(this->spi, &command, 1);
-
-    // send the data
-    gpio_put(this->pins.dc, 1);
-    if (length)
-    {
-        spi_write_blocking(this->spi, data, length);
-    }*/
-    this->dataMode = false;
+    // write the command
     this->spi_write_data(command, data, length);
 }
 
@@ -330,7 +257,7 @@ void Display::writeData(uchar command, const uchar* data, size_t length)
  * @param x0 Start column
  * @param x1 End column
 */
-void Display::columnAddressSet(uint x0, uint x1)
+inline void Display::columnAddressSet(uint x0, uint x1)
 {
     // deny out of bounds
     if(x0 >= x1 || x1 >= this->maxWidth)
@@ -354,7 +281,7 @@ void Display::columnAddressSet(uint x0, uint x1)
  * @param y0 Start row
  * @param y1 End row
 */
-void Display::rowAddressSet(uint y0, uint y1)
+inline void Display::rowAddressSet(uint y0, uint y1)
 {
     // deny out of bounds
     if(y0 >= y1 || y1 >= this->maxHeight)
@@ -377,21 +304,17 @@ void Display::rowAddressSet(uint y0, uint y1)
  * @brief Write pixels to the display
  * @param data data to write
  * @param length Length of the data
+ * @note length should be number of 16 bit pixels, not bytes!
 */
 void Display::writePixels(const unsigned short* data, size_t length)
 {
+    // check if the data mode is set
     if(!this->dataMode)
     {
+        // set the data mode
         this->spi_set_data_mode(Display_Commands::RAMWR);
-        /*gpio_put(this->pins.dc, 0);
-        uchar command = (uchar)Display_Commands::RAMWR;
-        spi_set_format(this->spi, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
-        spi_write_blocking(this->spi, &command, sizeof(command));
-        gpio_put(this->pins.dc, 1);
-        spi_set_format(this->spi, 16, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);*/
         this->dataMode = true;
     }
-
-    //spi_write16_blocking(this->spi, data, length >> 1);
+    // write the pixels
     this->spi_write_pixels(data, length);
 }

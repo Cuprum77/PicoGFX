@@ -10,8 +10,9 @@ class AdvancedGraphics : public Display
 {
 public:
     AdvancedGraphics(spi_inst_t* spi, Display_Pins pins, 
-        Display_Params params, display_type_t type = ST7789, bool dimming = false);
+        Display_Params params, display_type_t type = ST7789, bool dimming = false, SPI_Interface_t interface = SPI_Interface_t::SPI_HW);
 
+    void fillGradient(Color startColor, Color endColor, Point start, Point end);
     void drawRotCircleGradient(Point center, int radius, int rotationSpeed, Color start, Color end);
     void drawRotRectGradient(Point center, int width, int height, int rotationSpeed, Color start, Color end);
 private:
