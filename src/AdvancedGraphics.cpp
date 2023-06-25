@@ -1,15 +1,5 @@
 #include "AdvancedGraphics.hpp"
 
-/**
- * @brief Construct a new Advanced Graphics object
-*/
-AdvancedGraphics::AdvancedGraphics(spi_inst_t* spi, Display_Pins pins, 
-    Display_Params params, display_type_t type, bool dimming, SPI_Interface_t interface) : Display(spi, pins, params, type, dimming, interface)
-{
-    this->theta = 0;
-    this->fillLookupTables();
-}
-
 // create a global instance of the args struct
 volatile GradientArgs gradArgs;
 
@@ -64,6 +54,17 @@ void fillGradientCore1(void)
 }
 
 /**
+ * @brief Construct a new Advanced Graphics object
+*/
+AdvancedGraphics::AdvancedGraphics(Display* display)
+{
+    this->display = display;
+    this->theta = 0;
+    this->fillLookupTables();
+    multicore_launch_core1(fillGradientCore1);
+}
+
+/**
  * @brief Fill the display with a color gradient
  * @param startColor Color to start with
  * @param endColor Color to end with
@@ -74,11 +75,11 @@ void fillGradientCore1(void)
 void AdvancedGraphics::fillGradient(Color startColor, Color endColor, Point start, Point end)
 {
     // set the cursor to the start point
-    this->setCursor({0, 0});
+    this->display->setCursor({0, 0});
     // check if the start and end Points are the same
     if(start == end)
     {
-        this->fill(startColor);
+        this->display->fill(startColor);
         return;
     }
 
@@ -106,14 +107,14 @@ void AdvancedGraphics::fillGradient(Color startColor, Color endColor, Point star
     }
 
     // calculate the midpoint of the buffer
-    int midpoint = this->totalPixels / 2;
+    int midpoint = display->getWidth() * display->getHeight() / 2;
 
     // Set up the arguments for core1_fillGradient
-    gradArgs.frameBuffer = this->frameBuffer;
+    gradArgs.frameBuffer = this->display->getFrameBuffer();
     gradArgs.startPixel = midpoint;
-    gradArgs.endPixel = this->totalPixels;
-    gradArgs.params_width = this->params.width;
-    gradArgs.params_height = this->params.height;
+    gradArgs.endPixel = display->getWidth() * display->getHeight();
+    gradArgs.params_width = display->getWidth();
+    gradArgs.params_height = display->getWidth();
     gradArgs.deltaX = deltaX;
     gradArgs.deltaY = deltaY;
     gradArgs.magnitudeSquared = magnitudeSquared;
@@ -124,13 +125,6 @@ void AdvancedGraphics::fillGradient(Color startColor, Color endColor, Point star
     gradArgs.gLUT = gLUT;
     gradArgs.bLUT = bLUT;
 
-    // Launch the second core if not already running
-    if(!this->secondCore)
-    {
-        multicore_launch_core1(fillGradientCore1);
-        this->secondCore = true;
-    }
-
     // Signal to core1 that it should start
     multicore_fifo_push_blocking(1);
 
@@ -138,8 +132,8 @@ void AdvancedGraphics::fillGradient(Color startColor, Color endColor, Point star
     for(int i = 0; i < midpoint; i++)
     {
         // calculate the position along the gradient direction
-        int x = i % this->params.width;
-        int y = i / this->params.width;
+        int x = i % this->display->getWidth();
+        int y = i / this->display->getWidth();
 
         // calculate the vector from the start to the current pixel
         int vectorX = x - start.X();
@@ -160,7 +154,7 @@ void AdvancedGraphics::fillGradient(Color startColor, Color endColor, Point star
         );
 
         // draw the pixel
-        this->frameBuffer[i] = color.to16bit();
+        this->display->getFrameBuffer()[i] = color.to16bit();
     }
 
     // wait for the second core to finish

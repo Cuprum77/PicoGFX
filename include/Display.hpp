@@ -49,49 +49,48 @@
 #define FALSE "false"   // string representation of false
 #define TRUE "true"     // string representation of true
 
-enum display_type_t
-{
-    ST7789,
-    GC9A01
-};
-
-class Display : HardwareSPI
+class Display
 {
 public:
-    Display(spi_inst_t* spi, Display_Pins pins, Display_Params params, display_type_t type = ST7789, 
-        bool dimming = false, SPI_Interface_t interface = SPI_Interface_t::SPI_HW);
-    bool writeReady(void) { return !this->dma_busy(); }
-    void clear(void);
-    void fill(Color color);
-    void writeBuffer(void);
-    Color getFillColor(void);
-    void drawPixel(Point point, Color color);
+    Display(HardwareSPI* spi, Display_Pins pins, Display_Params params);
+    bool writeReady(void) { return !this->spi->dma_busy(); }
+    void setBrightness(unsigned char brightness);
+    void setRotation(displayRotation_t rotation);
     void displayOn(void);
     void displayOff(void);
+    void clear(void);
+    void fill(Color color);
+    Color getFillColor(void);
+
+    void update(void);
+    void setPixel(Point point, Color color);
+    void setPixel(uint point, ushort color);
+    Color getPixel(Point point);
+    ushort getPixel(uint point);
+    size_t getBufferSize(void);
+
     void setCursor(Point point);
     Point getCursor(void);
     Point getCenter(void);
+
     uint getWidth(void) { return this->params.width; }
     uint getHeight(void)  { return this->params.height; }
-    void setRotation(displayRotation_t rotation);
-    void setBrightness(unsigned char brightness);
-    void setTearing(bool enable);
+    ushort* getFrameBuffer(void) { return this->frameBuffer; }
+
 protected:
-    spi_inst_t* spi;
+    HardwareSPI* spi;
     Display_Pins pins;
     Display_Params params;
     bool dimmingEnabled = false;
     uint sliceNum;
     uint pwmChannel;
     bool dataMode = false;
-    ushort frameBufferColumn[ST7789_WIDTH + 1];
     ushort frameBuffer[FRAMEBUFFER_SIZE + 1];
     Color fillColor;
     Point cursor = {0, 0};
     bool backlight;
     display_type_t type;
     bool BGR = false;
-    bool secondCore = false;
     uint maxWidth;
     uint maxHeight;
     uint totalPixels;
@@ -114,8 +113,4 @@ protected:
     inline void columnAddressSet(uint x0, uint x1);
     inline void rowAddressSet(uint y0, uint y1);
     void writePixels(const unsigned short* data, size_t length);
-
-    uint drawAscii(const char c, Point Point, uint size, Color color);
-    void floatToString(double num, char* buffer, uint precision);
-    void reverse(char* str, uint length);
 };

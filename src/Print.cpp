@@ -1,5 +1,14 @@
 #include "Print.hpp"
 
+/**
+ * @brief Construct a new Print object
+ * @param display Display to print on
+*/
+Print::Print(Display* display)
+{
+    this->display = display;
+}
+
 #pragma region Write char
 /**
  * @brief Write a character on the display
@@ -8,7 +17,7 @@
 */
 void Print::write(char c, uchar size, uchar base)
 {
-    this->print((long)c, this->fillColor.getOppositeColor(), size, base);
+    this->print((long)c, this->display->getFillColor().getOppositeColor(), size, base);
 }
 
 /**
@@ -31,7 +40,7 @@ void Print::print(char c, Color color, uchar size, uchar base)
 */
 void Print::print(uchar c, uchar size, uchar base)
 {
-    this->print((ulong)c, this->fillColor.getOppositeColor(), size, base);
+    this->print((ulong)c, this->display->getFillColor().getOppositeColor(), size, base);
 }
 
 /**
@@ -54,7 +63,7 @@ void Print::print(uchar c, Color color, uchar size, uchar base)
 */
 void Print::print(int number, uchar size, uchar base)
 {
-    this->print((long)number, this->fillColor.getOppositeColor(), size, base);
+    this->print((long)number, this->display->getFillColor().getOppositeColor(), size, base);
 }
 
 /**
@@ -77,7 +86,7 @@ void Print::print(int number, Color color, uchar size, uchar base)
 */
 void Print::print(uint number, uchar size, uchar base)
 {
-    this->print((ulong)number, this->fillColor.getOppositeColor(), size, base);
+    this->print((ulong)number, this->display->getFillColor().getOppositeColor(), size, base);
 }
 
 /**
@@ -100,7 +109,7 @@ void Print::print(uint number, Color color, uchar size, uchar base)
 */
 void Print::print(long number, uchar size, uchar base)
 {
-    this->print(number, this->fillColor.getOppositeColor(), size, base);
+    this->print(number, this->display->getFillColor().getOppositeColor(), size, base);
 }
 
 /**
@@ -128,7 +137,7 @@ void Print::print(long number, Color color, uchar size, uchar base)
 */
 void Print::print(ulong number, uchar size, uchar base)
 {
-    this->print(number, this->fillColor.getOppositeColor(), size, base);
+    this->print(number, this->display->getFillColor().getOppositeColor(), size, base);
 }
 
 /**
@@ -156,7 +165,7 @@ void Print::print(ulong number, Color color, uchar size, uchar base)
 */
 void Print::print(double number, uint precision, uchar size)
 {
-    this->print(number, this->fillColor.getOppositeColor(), precision, size);
+    this->print(number, this->display->getFillColor().getOppositeColor(), precision, size);
 }
 
 /**
@@ -184,7 +193,7 @@ void Print::print(double number, Color color, uint precision, uchar size)
 */
 void Print::print(const char* text, uchar size)
 {
-    this->print(text, this->fillColor.getOppositeColor(), size);
+    this->print(text, this->display->getFillColor().getOppositeColor(), size);
 }
 
 /**
@@ -196,7 +205,7 @@ void Print::print(const char* text, uchar size)
 void Print::print(const char* text, Color color, uchar size)
 {
     // copy the Point to local variables
-    Point location = this->cursor;
+    Point location = this->display->getCursor();
     // copy the Point to local variables
     uint x = location.X();
     uint y = location.Y();
@@ -220,14 +229,14 @@ void Print::print(const char* text, Color color, uchar size)
             continue;
         }
         // check if the text is going to go off the screen by checking the future x Point with the width of the screen
-        else if ((x + FONT_WIDTH * size) > this->params.width)
+        else if ((x + FONT_WIDTH * size) > this->display->getWidth())
         {
             // move the text to the next line
             x = 0;
             y += FONT_HEIGHT * size;
         }
         // if we overflowed the screen, begin from the top again
-        if ((y + FONT_HEIGHT * size) > this->params.height)
+        if ((y + FONT_HEIGHT * size) > this->display->getHeight())
         {
             y = 0;
         }
@@ -237,7 +246,7 @@ void Print::print(const char* text, Color color, uchar size)
     }
 
     // set the cursor
-    this->setCursor(Point(x, y));
+    this->display->setCursor(Point(x, y));
 }
 
 /**
@@ -258,7 +267,7 @@ void Print::print(bool value, uchar size)
 */
 void Print::println(char c, uchar size, uchar base)
 {
-    this->println((long)c, this->fillColor.getOppositeColor(), size);
+    this->println((long)c, this->display->getFillColor().getOppositeColor(), size);
 }
 
 /**
@@ -281,7 +290,7 @@ void Print::println(char c, Color color, uchar size, uchar base)
 */
 void Print::println(uchar number, uchar size, uchar base)
 {
-    this->println((long)number, this->fillColor.getOppositeColor(), size, base);
+    this->println((long)number, this->display->getFillColor().getOppositeColor(), size, base);
 }
 
 /**
@@ -304,7 +313,7 @@ void Print::println(uchar number, Color color, uchar size, uchar base)
 */
 void Print::println(int number, uchar size, uchar base)
 {
-    this->println((long)number, this->fillColor.getOppositeColor(), size, base);
+    this->println((long)number, this->display->getFillColor().getOppositeColor(), size, base);
 }
 
 /**
@@ -327,7 +336,7 @@ void Print::println(int number, Color color, uchar size, uchar base)
 */
 void Print::println(uint number, uchar size, uchar base)
 {
-    this->println((ulong)number, this->fillColor.getOppositeColor(), size, base);
+    this->println((ulong)number, this->display->getFillColor().getOppositeColor(), size, base);
 }
 
 /**
@@ -350,7 +359,7 @@ void Print::println(uint number, Color color, uchar size, uchar base)
 */
 void Print::println(long number, uchar size, uchar base)
 {
-    this->println(number, this->fillColor.getOppositeColor(), size, base);
+    this->println(number, this->display->getFillColor().getOppositeColor(), size, base);
 }
 
 /**
@@ -377,7 +386,7 @@ void Print::println(long number, Color color, uchar size, uchar base)
 */
 void Print::println(ulong number, uchar size, uchar base)
 {
-    this->println(number, this->fillColor.getOppositeColor(), size, base);
+    this->println(number, this->display->getFillColor().getOppositeColor(), size, base);
 }
 
 /**
@@ -405,7 +414,7 @@ void Print::println(ulong number, Color color, uchar size, uchar base)
 */
 void Print::println(double number, uint precision, uchar size)
 {
-    this->println(number, this->fillColor.getOppositeColor(), precision, size);
+    this->println(number, this->display->getFillColor().getOppositeColor(), precision, size);
 }
 
 /**
@@ -430,7 +439,7 @@ void Print::println(double number, Color color, uint precision, uchar size)
 */
 void Print::println(const char* text, uchar size)
 {
-    this->println(text, this->fillColor.getOppositeColor(), size);
+    this->println(text, this->display->getFillColor().getOppositeColor(), size);
 }
 
 /**
@@ -710,20 +719,14 @@ uint Print::drawAscii(const char character, Point point, uint size, Color color)
         size = 1;
 
     // make sure the font size will not overflow the buffer
-    if((FONT_WIDTH * FONT_HEIGHT) * size > sizeof(this->frameBuffer))
+    if ((FONT_WIDTH * FONT_HEIGHT) * size > this->display->getBufferSize())
         return 0;
 
-    uint bufferPosition = point.x + (point.y * this->params.width);
     uint rowPosition = 0;
     uint columnPosition = 0;
     uint rowSize = FONT_WIDTH * size;
 
-    // copy the column to the buffer
-    memcpy(&this->frameBufferColumn, this->frameBuffer + bufferPosition + (columnPosition * this->params.width), rowSize * sizeof(unsigned short));
-    
-    // loop through the bitmap data
-    this->setCursor(point);
-    for(int j = 0; j < FONT_DATA; j++)
+    for (int j = 0; j < FONT_DATA; j++)
     {
         // get the current data
         uint data = bitmap[j] * size;
@@ -732,28 +735,45 @@ uint Print::drawAscii(const char character, Point point, uint size, Color color)
         if (data == 0)
             break;
 
-        for(int i = 0; i < data; i++)
+        for (int i = 0; i < data; i++)
         {
-            if(j & 0x1)
-                this->frameBufferColumn[rowPosition++] = color.to16bit();
-            else
-                rowPosition++;
+            if (j & 0x1)
+            {
+                for (uint k = 0; k < size; k++)
+                {
+                    Point pixelPos(point.x + rowPosition, point.y + columnPosition + k);
+                    this->display->setPixel(pixelPos, color);
+                }
+            }
+            else if (size > 1)
+            {
+                for (uint k = 0; k < size; k++)
+                {
+                    Point pixelPos(point.x + rowPosition, point.y + columnPosition + k);
+                    Color prevColor = this->display->getPixel(pixelPos);
+                    this->display->setPixel(pixelPos, prevColor);
+                }
+            }
 
-            if(rowPosition == rowSize)
+            rowPosition++;
+
+            if (rowPosition == rowSize)
             {
                 // reset the row position
                 rowPosition = 0;
 
                 // copy the column to the buffer as many times as specified by the size
-                for(int j = 0; j < size; j++)
+                for (int j = 0; j < size; j++)
                 {
                     // copy the column to the buffer
-                    memcpy(&this->frameBuffer[bufferPosition + (columnPosition * this->params.width)], this->frameBufferColumn, rowSize * sizeof(unsigned short));
+                    for (uint k = 0; k < rowSize; k++)
+                    {
+                        Point pixelPos(point.x + k, point.y + columnPosition);
+                        Color pixelColor = this->display->getPixel(pixelPos);
+                        this->display->setPixel(pixelPos, pixelColor);
+                    }
                     columnPosition++;
                 }
-
-                // reset the column
-                memcpy(&this->frameBufferColumn, this->frameBuffer + bufferPosition + (columnPosition * this->params.width), rowSize * sizeof(unsigned short));
             }
         }
     }

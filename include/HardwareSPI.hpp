@@ -10,16 +10,10 @@
 
 #include "pio_spi.pio.h"
 #include "Commands.hpp"
+#include "Structs.hpp"
 
 #define SERIAL_CLK_DIV 1.0f
-
-
-typedef enum
-{
-    SPI_HW,
-    DMA_HW,
-    PIO_HW
-}   SPI_Interface_t;
+#define SPI_BAUDRATE 125000000  // 125 MHz
 
 typedef struct pio_spi_inst {
     PIO pio;
@@ -30,8 +24,8 @@ typedef struct pio_spi_inst {
 
 class HardwareSPI
 {
-protected:
-    HardwareSPI(SPI_Interface_t interface, uint8_t sda, uint8_t scl, uint8_t cs, uint8_t dc, spi_inst_t* spi = nullptr, uint baudrate = -1);
+public:
+    HardwareSPI(Display_Pins pins, Display_Params params);
 
     void spi_write_data(uint8_t command, const uint8_t* data, size_t length);
     void spi_set_data_mode(uint8_t command);
@@ -45,7 +39,6 @@ private:
 
     // spi stuff
     spi_inst_t* spi;
-    uint baudrate;
     uint8_t scl;
     uint8_t sda;
     uint8_t dc;

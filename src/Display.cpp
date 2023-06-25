@@ -8,13 +8,12 @@
  * @param dimming Enable dimming
  * @param backlight Enable backlight
 */
-Display::Display(spi_inst_t* spi, Display_Pins pins, 
-    Display_Params params, display_type_t type, bool dimming, SPI_Interface_t interface) : HardwareSPI(interface, pins.sda, pins.scl, pins.cs, pins.dc, spi, SPI_BAUDRATE)
+Display::Display(HardwareSPI* spi, Display_Pins pins, Display_Params params)
 {
     this->spi = spi;
     this->pins = pins;
     this->params = params;
-    this->type = type;
+    this->type = params.type;
     this->totalPixels = params.width * params.height;
 
     // init the rest of the pins
@@ -28,7 +27,7 @@ Display::Display(spi_inst_t* spi, Display_Pins pins,
     this->backlight = this->pins.bl != -1;
     if(this->backlight)
     {
-        if(dimming)
+        if(params.dimming)
         {
             // enable dimming
             this->dimmingEnabled = true;
@@ -72,7 +71,7 @@ Display::Display(spi_inst_t* spi, Display_Pins pins,
 void Display::clear()
 {
     this->fill(Colors::Black);
-    this->writeBuffer();
+    this->update();
 }
 
 /**
@@ -96,7 +95,7 @@ void Display::fill(Color color)
 /**
  * @brief Print the frame buffer to the display
 */
-void Display::writeBuffer(void)
+void Display::update(void)
 {
     this->setCursor({0, 0});
     this->writePixels(this->frameBuffer, this->totalPixels);
@@ -112,18 +111,54 @@ Color Display::getFillColor()
 }
 
 /**
- * @brief Place a pixel on the display
+ * @brief Put a pixel in the framebuffer
  * @param Point Points to draw the pixel at
  * @param color Color to draw in
 */
-void Display::drawPixel(Point point, Color color)
+void Display::setPixel(Point point, Color color)
 {
-    // get the point on the frame buffer
-    int index = point.Y() * this->params.width + point.X();
-    // convert color to 16 bit
-    unsigned short color16 = color.to16bit();
-    // draw the pixel
-    this->frameBuffer[index] = color16;
+    // set the framebuffer pixel
+    this->frameBuffer[point.X() + point.Y() * this->params.width] = color.to16bit();
+}
+
+/**
+ * @brief Put a pixel in the framebuffer
+ * @param Point Buffer index
+ * @param color Color to draw in as a 16 bit value
+*/
+void Display::setPixel(uint index, ushort color)
+{
+    // set the framebuffer pixel
+    this->frameBuffer[index] = color;
+}
+
+/**
+ * @brief Get a pixel from the framebuffer
+ * @param Point Point to get the pixel from
+ * @return Color The color of the pixel
+*/
+Color Display::getPixel(Point point)
+{
+    return Color(this->frameBuffer[point.X() + point.Y() * this->params.width]);
+}
+
+/**
+ * @brief Get a pixel from the framebuffer
+ * @param Point Buffer index
+ * @return Color The color of the pixel
+*/
+ushort Display::getPixel(uint index)
+{
+    return this->frameBuffer[index];
+}
+
+/**
+ * @brief Get the size of the display framebuffer
+ * @return Size of the framebuffer
+*/
+size_t Display::getBufferSize()
+{
+    return FRAMEBUFFER_SIZE;
 }
 
 /**
@@ -223,18 +258,6 @@ void Display::setBrightness(uchar brightness)
     }
 }
 
-/**
- * @brief Enable or Disable screen tearing
- * @param enable True to enable tearing, false to disable
-*/
-void Display::setTearing(bool enable)
-{
-    if(enable)
-        this->writeData(Display_Commands::TEON);
-    else
-        this->writeData(Display_Commands::TEOFF);
-}
-
 
 /**
  * @private
@@ -248,7 +271,7 @@ void Display::writeData(uchar command, const uchar* data, size_t length)
     // set the data mode
     this->dataMode = false;
     // write the command
-    this->spi_write_data(command, data, length);
+    this->spi->spi_write_data(command, data, length);
 }
 
 /**
@@ -312,9 +335,9 @@ void Display::writePixels(const unsigned short* data, size_t length)
     if(!this->dataMode)
     {
         // set the data mode
-        this->spi_set_data_mode(Display_Commands::RAMWR);
+        this->spi->spi_set_data_mode(Display_Commands::RAMWR);
         this->dataMode = true;
     }
     // write the pixels
-    this->spi_write_pixels(data, length);
+    this->spi->spi_write_pixels(data, length);
 }

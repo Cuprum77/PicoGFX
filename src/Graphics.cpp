@@ -1,6 +1,15 @@
 #include "Graphics.hpp"
 
 /**
+ * @brief Construct a new Graphics object
+ * @param display The display to use
+*/
+Graphics::Graphics(Display* display)
+{
+    this->display = display;
+}
+
+/**
  * @brief Fill the display with a color gradient
  * @param startColor Color to start with
  * @param endColor Color to end with
@@ -33,9 +42,9 @@ void Graphics::fillGradientCool(Color startColor, Color endColor, Point start, P
     float gradY = deltaY / magnitude;
 
     // loop through each pixel in the buffer
-    for(int y = 0; y < this->params.height; y++)
+    for(int y = 0; y < this->display->getHeight(); y++)
     {
-        for(int x = 0; x < this->params.width; x++)
+        for(int x = 0; x < this->display->getWidth(); x++)
         {
             // calculate the position along the gradient direction
             float position = (gradX * x) + (gradY * y);
@@ -47,7 +56,7 @@ void Graphics::fillGradientCool(Color startColor, Color endColor, Point start, P
             color.b = startColor.b + ((endColor.b - startColor.b) * position / length);
 
             // draw the pixel
-            this->frameBuffer[(y*x) + x] = color.to16bit();
+            this->display->setPixel({x, y}, color);
         }
     }
 }
@@ -81,7 +90,7 @@ void Graphics::drawLine(Point start, Point end, Color color)
     while(true)
     {
         // set the pixel in the frame buffer
-        this->frameBuffer[(y0 * this->params.width) + x0] = color.to16bit();
+        this->display->setPixel({x0, y0}, color);
 
         // if we have reached the end Point, break
         if(x0 == x1 && y0 == y1) break;
@@ -170,19 +179,14 @@ void Graphics::drawFilledRectangle(Point start, Point end, Color color)
     uint width = end.X() - start.X();
     uint height = end.Y() - start.Y();
     
-    this->setCursor({0, 0});
-    
     // loop through the height
     for(int i = 0; i < height; i++)
     {
-        // move the cursor to the next row
-        this->setCursor({start.X(), start.Y() + i});
-
         // loop through the width
         for(int j = 0; j < width; j++)
         {
             // write the pixel
-            this->writePixels(&color16, sizeof(color16));
+            this->display->setPixel({start.X() + j, start.Y() + i}, color);
         }
     }
 }
@@ -212,14 +216,14 @@ void Graphics::drawCircle(Point center, uint radius, Color color)
     while(x >= y)
     {
         // draw the pixels in the frame buffer
-        this->frameBuffer[((y0 + y) * this->params.width) + (x0 + x)] = color16;
-        this->frameBuffer[((y0 + x) * this->params.width) + (x0 + y)] = color16;
-        this->frameBuffer[((y0 + x) * this->params.width) + (x0 - y)] = color16;
-        this->frameBuffer[((y0 + y) * this->params.width) + (x0 - x)] = color16;
-        this->frameBuffer[((y0 - y) * this->params.width) + (x0 - x)] = color16;
-        this->frameBuffer[((y0 - x) * this->params.width) + (x0 - y)] = color16;
-        this->frameBuffer[((y0 - x) * this->params.width) + (x0 + y)] = color16;
-        this->frameBuffer[((y0 - y) * this->params.width) + (x0 + x)] = color16;
+        this->display->setPixel({x0 + x, y0 + y}, color);
+        this->display->setPixel({x0 + y, y0 + x}, color);
+        this->display->setPixel({x0 - y, y0 + x}, color);
+        this->display->setPixel({x0 - x, y0 + y}, color);
+        this->display->setPixel({x0 - x, y0 - y}, color);
+        this->display->setPixel({x0 - y, y0 - x}, color);
+        this->display->setPixel({x0 + y, y0 - x}, color);
+        this->display->setPixel({x0 + x, y0 - y}, color);
 
         // if the error is greater than 0
         if(error > 0)
@@ -386,17 +390,10 @@ void Graphics::drawBitmap(const uchar* bitmap, uint width, uint height)
 */
 void Graphics::drawBitmap(const unsigned short* bitmap, uint width, uint height)
 {
-    // get the cursor location
-    Point location = this->getCursor();
-
-    // write the bitmap
-    int offset = 0;
-    for(int y = 0; y < height; y++)
+    // write the entire bitmap directly to the framebuffer using the setPixel function
+    for(int i = 0; i < width * height; i++)
     {
-        this->setCursor(Point(0 + location.X(), y + location.Y()));
-        // write the row of pixels, we need to multiply the width by 2 because we are using 16 bit colors
-        this->writePixels(&bitmap[offset], width * 2);
-        // increment the offset
-        offset += width;
+        // write the pixel
+        this->display->setPixel({i % width, i / width}, bitmap[i]);
     }
 }

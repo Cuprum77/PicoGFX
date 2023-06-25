@@ -1,4 +1,18 @@
 #pragma once
+#include <math.h>
+
+typedef enum
+{
+    SPI_HW,
+    DMA_HW,
+    PIO_HW
+}   SPI_Interface_t;
+
+enum display_type_t
+{
+    ST7789,
+    GC9A01
+};
 
 struct Display_Pins
 {
@@ -12,6 +26,10 @@ struct Display_Pins
 
 struct Display_Params
 {
+    SPI_Interface_t interface;
+    display_type_t type;
+    spi_inst_t* spi;
+    bool dimming;
     unsigned int height;
     unsigned int width;
     unsigned int columnOffset1;
@@ -20,24 +38,6 @@ struct Display_Params
     unsigned int rowOffset2;   
     unsigned int rotation;
 };
-
-// Struct to pass multiple arguments to core1_fillGradient
-typedef struct {
-    uint16_t *frameBuffer;
-    int startPixel;
-    int endPixel;
-    int params_width;
-    int params_height;
-    int deltaX;
-    int deltaY;
-    int magnitudeSquared;
-    int maxDiff;
-    int start_X;
-    int start_Y;
-    int *rLUT;
-    int *gLUT;
-    int *bLUT;
-} GradientArgs;
 
 struct Point
 {

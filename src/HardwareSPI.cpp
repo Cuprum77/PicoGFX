@@ -2,24 +2,18 @@
 
 /**
  * @brief Construct a new HardwareSPI::HardwareSPI object
- * @param spi The SPI instance to use
- * @param baudrate The baudrate to use
- * @param dc Data/Command pin
- * @param cs Chip select pin
- * @param scl Clock pin
- * @param sda Data pin
- * @param interface Which interface to use, defaults to SPI
+ * @param pins The struct containing the pins to use
+ * @param params The struct containing the parameters to use
 */
-HardwareSPI::HardwareSPI(SPI_Interface_t interface, uint8_t sda, uint8_t scl, uint8_t cs, uint8_t dc, spi_inst_t* spi, uint baudrate)
+HardwareSPI::HardwareSPI(Display_Pins pins, Display_Params params)
 {
-    this->spi = spi;
-    this->baudrate = baudrate;
-    this->scl = scl;
-    this->sda = sda;
-    this->dc = dc;
-    this->cs = cs;
+    this->spi = params.spi;
+    this->scl = pins.scl;
+    this->sda = pins.sda;
+    this->dc = pins.dc;
+    this->cs = pins.cs;
 
-    switch(interface)
+    switch(params.interface)
     {
         case(SPI_Interface_t::DMA_HW):
             this->interface = SPI_Interface_t::DMA_HW;
@@ -154,7 +148,7 @@ bool HardwareSPI::dma_busy(void)
 void HardwareSPI::initSPI(void)
 {
     // enable the SPI bus
-    spi_init(this->spi, this->baudrate);
+    spi_init(this->spi, SPI_BAUDRATE);
 
     // set the pins to SPI function
     gpio_set_function(this->sda, GPIO_FUNC_SPI);

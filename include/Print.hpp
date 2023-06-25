@@ -5,6 +5,8 @@
 class Print
 {
 public:
+    Print(Display* display);
+
     void write(char c, uchar size = 1, uchar base = DEC);
 
     void print(char num, Color color, uchar size = 1, uchar base = DEC);
@@ -62,4 +64,10 @@ public:
     uint getStringLength(double num, uchar precision = 2, uchar size = 1);
     uint getStringLength(const char* text, uchar size = 1);
     uint getStringLength(bool value, uchar size = 1);
+private:
+    Display* display;
+
+    uint drawAscii(const char c, Point Point, uint size, Color color);
+    void floatToString(double num, char* buffer, uint precision);
+    void reverse(char* str, uint length);
 };

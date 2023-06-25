@@ -5,6 +5,8 @@
 class Graphics
 {
 public:
+    Graphics(Display* display);
+
     void fillGradientCool(Color startColor, Color endColor, Point start, Point end);
     void drawLine(Point start, Point end, Color color = Colors::White);
     void drawRectangle(Point start, Point end, Color color = Colors::White);
@@ -19,4 +21,6 @@ public:
     void drawBitmap(const unsigned char* bitmap, uint width, uint height);
     void drawBitmap(const unsigned short* bitmap, uint width, uint height);
     void drawBitmap(Color* bitmap, uint width, uint height);
+private:
+    Display* display;
 };
