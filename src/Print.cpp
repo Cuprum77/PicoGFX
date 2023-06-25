@@ -1,4 +1,4 @@
-#include "Display.hpp"
+#include "Print.hpp"
 
 #pragma region Write char
 /**
@@ -6,7 +6,7 @@
  * @param c Character to print
  * @param size Size of the character
 */
-void Display::write(char c, uchar size, uchar base)
+void Print::write(char c, uchar size, uchar base)
 {
     this->print((long)c, this->fillColor.getOppositeColor(), size, base);
 }
@@ -17,7 +17,7 @@ void Display::write(char c, uchar size, uchar base)
  * @param color Character color
  * @param size Size of the character
 */
-void Display::print(char c, Color color, uchar size, uchar base)
+void Print::print(char c, Color color, uchar size, uchar base)
 {
     this->print((long)c, color, size, base);
 }
@@ -29,7 +29,7 @@ void Display::print(char c, Color color, uchar size, uchar base)
  * @param number Number to print
  * @param size Size of the number
 */
-void Display::print(uchar c, uchar size, uchar base)
+void Print::print(uchar c, uchar size, uchar base)
 {
     this->print((ulong)c, this->fillColor.getOppositeColor(), size, base);
 }
@@ -40,7 +40,7 @@ void Display::print(uchar c, uchar size, uchar base)
  * @param color Number color
  * @param size Size of the number
 */
-void Display::print(uchar c, Color color, uchar size, uchar base)
+void Print::print(uchar c, Color color, uchar size, uchar base)
 {
     this->print((ulong)c, color, size, base);
 }
@@ -52,7 +52,7 @@ void Display::print(uchar c, Color color, uchar size, uchar base)
  * @param number Number to print
  * @param size Size of the number
 */
-void Display::print(int number, uchar size, uchar base)
+void Print::print(int number, uchar size, uchar base)
 {
     this->print((long)number, this->fillColor.getOppositeColor(), size, base);
 }
@@ -63,7 +63,7 @@ void Display::print(int number, uchar size, uchar base)
  * @param color Number color
  * @param size Size of the number
 */
-void Display::print(int number, Color color, uchar size, uchar base)
+void Print::print(int number, Color color, uchar size, uchar base)
 {
     this->print((long)number, color, size, base);
 }
@@ -75,7 +75,7 @@ void Display::print(int number, Color color, uchar size, uchar base)
  * @param number Number to print
  * @param size Size of the number
 */
-void Display::print(uint number, uchar size, uchar base)
+void Print::print(uint number, uchar size, uchar base)
 {
     this->print((ulong)number, this->fillColor.getOppositeColor(), size, base);
 }
@@ -86,7 +86,7 @@ void Display::print(uint number, uchar size, uchar base)
  * @param color Number color
  * @param size Size of the number
 */
-void Display::print(uint number, Color color, uchar size, uchar base)
+void Print::print(uint number, Color color, uchar size, uchar base)
 {
     this->print((ulong)number, color, size, base);
 }
@@ -98,7 +98,7 @@ void Display::print(uint number, Color color, uchar size, uchar base)
  * @param number Number to print
  * @param size Size of the number
 */
-void Display::print(long number, uchar size, uchar base)
+void Print::print(long number, uchar size, uchar base)
 {
     this->print(number, this->fillColor.getOppositeColor(), size, base);
 }
@@ -109,7 +109,7 @@ void Display::print(long number, uchar size, uchar base)
  * @param color Number color
  * @param size Size of the number
 */
-void Display::print(long number, Color color, uchar size, uchar base)
+void Print::print(long number, Color color, uchar size, uchar base)
 {
     // set base to decimal 
     // convert the number to a string
@@ -126,7 +126,7 @@ void Display::print(long number, Color color, uchar size, uchar base)
  * @param number Number to print
  * @param size Size of the number
 */
-void Display::print(ulong number, uchar size, uchar base)
+void Print::print(ulong number, uchar size, uchar base)
 {
     this->print(number, this->fillColor.getOppositeColor(), size, base);
 }
@@ -137,7 +137,7 @@ void Display::print(ulong number, uchar size, uchar base)
  * @param color Number color
  * @param size Size of the number
 */
-void Display::print(ulong number, Color color, uchar size, uchar base)
+void Print::print(ulong number, Color color, uchar size, uchar base)
 {
     // convert the number to a string
     char buffer[CHARACTER_BUFFER_SIZE];    // largest number a long can represent is 9 223 372 036 854 775 807
@@ -154,7 +154,7 @@ void Display::print(ulong number, Color color, uchar size, uchar base)
  * @param precision Number of decimal places to print
  * @param size Size of the number
 */
-void Display::print(double number, uint precision, uchar size)
+void Print::print(double number, uint precision, uchar size)
 {
     this->print(number, this->fillColor.getOppositeColor(), precision, size);
 }
@@ -166,7 +166,7 @@ void Display::print(double number, uint precision, uchar size)
  * @param precision Number of decimal places to print
  * @param size Size of the number
 */
-void Display::print(double number, Color color, uint precision, uchar size)
+void Print::print(double number, Color color, uint precision, uchar size)
 {
     // convert the number to a string
     char buffer[CHARACTER_BUFFER_SIZE] = {0};    // largest number a double can represent is 1.79769e+308
@@ -182,7 +182,7 @@ void Display::print(double number, Color color, uint precision, uchar size)
  * @param character Character to print
  * @param size Size of the character
 */
-void Display::print(const char* text, uchar size)
+void Print::print(const char* text, uchar size)
 {
     this->print(text, this->fillColor.getOppositeColor(), size);
 }
@@ -193,7 +193,7 @@ void Display::print(const char* text, uchar size)
  * @param color Character color
  * @param size Size of the character
 */
-void Display::print(const char* text, Color color, uchar size)
+void Print::print(const char* text, Color color, uchar size)
 {
     // copy the Point to local variables
     Point location = this->cursor;
@@ -244,7 +244,7 @@ void Display::print(const char* text, Color color, uchar size)
  * @brief Write a character on the display
  * @param value Boolean to print
 */
-void Display::print(bool value, uchar size)
+void Print::print(bool value, uchar size)
 {
     this->print(value ? "true" : "false", size);
 }
@@ -256,7 +256,7 @@ void Display::print(bool value, uchar size)
  * @param number Number to print
  * @param size Size of the number
 */
-void Display::println(char c, uchar size, uchar base)
+void Print::println(char c, uchar size, uchar base)
 {
     this->println((long)c, this->fillColor.getOppositeColor(), size);
 }
@@ -267,7 +267,7 @@ void Display::println(char c, uchar size, uchar base)
  * @param color Number color
  * @param size Size of the number
 */
-void Display::println(char c, Color color, uchar size, uchar base)
+void Print::println(char c, Color color, uchar size, uchar base)
 {
     this->println((long)c, color, size);
 }
@@ -279,7 +279,7 @@ void Display::println(char c, Color color, uchar size, uchar base)
  * @param number Number to print
  * @param size Size of the number
 */
-void Display::println(uchar number, uchar size, uchar base)
+void Print::println(uchar number, uchar size, uchar base)
 {
     this->println((long)number, this->fillColor.getOppositeColor(), size, base);
 }
@@ -290,7 +290,7 @@ void Display::println(uchar number, uchar size, uchar base)
  * @param color Number color
  * @param size Size of the number
 */
-void Display::println(uchar number, Color color, uchar size, uchar base)
+void Print::println(uchar number, Color color, uchar size, uchar base)
 {
     this->println((long)number, color, size, base);
 }
@@ -302,7 +302,7 @@ void Display::println(uchar number, Color color, uchar size, uchar base)
  * @param number Number to print
  * @param size Size of the number
 */
-void Display::println(int number, uchar size, uchar base)
+void Print::println(int number, uchar size, uchar base)
 {
     this->println((long)number, this->fillColor.getOppositeColor(), size, base);
 }
@@ -313,7 +313,7 @@ void Display::println(int number, uchar size, uchar base)
  * @param color Number color
  * @param size Size of the number
 */
-void Display::println(int number, Color color, uchar size, uchar base)
+void Print::println(int number, Color color, uchar size, uchar base)
 {
     this->println((long)number, color, size, base);
 }
@@ -325,7 +325,7 @@ void Display::println(int number, Color color, uchar size, uchar base)
  * @param number Number to print
  * @param size Size of the number
 */
-void Display::println(uint number, uchar size, uchar base)
+void Print::println(uint number, uchar size, uchar base)
 {
     this->println((ulong)number, this->fillColor.getOppositeColor(), size, base);
 }
@@ -336,7 +336,7 @@ void Display::println(uint number, uchar size, uchar base)
  * @param color Number color
  * @param size Size of the number
 */
-void Display::println(uint number, Color color, uchar size, uchar base)
+void Print::println(uint number, Color color, uchar size, uchar base)
 {
     this->println((ulong)number, color, size, base);
 }
@@ -348,7 +348,7 @@ void Display::println(uint number, Color color, uchar size, uchar base)
  * @param number Number to print
  * @param size Size of the number
 */
-void Display::println(long number, uchar size, uchar base)
+void Print::println(long number, uchar size, uchar base)
 {
     this->println(number, this->fillColor.getOppositeColor(), size, base);
 }
@@ -359,7 +359,7 @@ void Display::println(long number, uchar size, uchar base)
  * @param color Number color
  * @param size Size of the number
 */
-void Display::println(long number, Color color, uchar size, uchar base)
+void Print::println(long number, Color color, uchar size, uchar base)
 {
     // convert the number to a string
     char buffer[CHARACTER_BUFFER_SIZE];    // largest number a long can represent is 9 223 372 036 854 775 807
@@ -375,7 +375,7 @@ void Display::println(long number, Color color, uchar size, uchar base)
  * @param number Number to print
  * @param size Size of the number
 */
-void Display::println(ulong number, uchar size, uchar base)
+void Print::println(ulong number, uchar size, uchar base)
 {
     this->println(number, this->fillColor.getOppositeColor(), size, base);
 }
@@ -386,7 +386,7 @@ void Display::println(ulong number, uchar size, uchar base)
  * @param color Number color
  * @param size Size of the number
 */
-void Display::println(ulong number, Color color, uchar size, uchar base)
+void Print::println(ulong number, Color color, uchar size, uchar base)
 {
     // convert the number to a string
     char buffer[CHARACTER_BUFFER_SIZE];    // largest number a long can represent is 9 223 372 036 854 775 807
@@ -403,7 +403,7 @@ void Display::println(ulong number, Color color, uchar size, uchar base)
  * @param precision Number of decimal places to print
  * @param size Size of the number
 */
-void Display::println(double number, uint precision, uchar size)
+void Print::println(double number, uint precision, uchar size)
 {
     this->println(number, this->fillColor.getOppositeColor(), precision, size);
 }
@@ -415,7 +415,7 @@ void Display::println(double number, uint precision, uchar size)
  * @param precision Number of decimal places to print
  * @param size Size of the number
 */
-void Display::println(double number, Color color, uint precision, uchar size)
+void Print::println(double number, Color color, uint precision, uchar size)
 {
     this->print(number, color, precision, size);
     this->print("\n");
@@ -428,7 +428,7 @@ void Display::println(double number, Color color, uint precision, uchar size)
  * @param character Character to print
  * @param size Size of the character
 */
-void Display::println(const char* text, uchar size)
+void Print::println(const char* text, uchar size)
 {
     this->println(text, this->fillColor.getOppositeColor(), size);
 }
@@ -439,7 +439,7 @@ void Display::println(const char* text, uchar size)
  * @param color Character color
  * @param size Size of the character
 */
-void Display::println(const char* text, Color color, uchar size)
+void Print::println(const char* text, Color color, uchar size)
 {
     this->print(text, color, size);
     this->print("\n", color, size);
@@ -449,7 +449,7 @@ void Display::println(const char* text, Color color, uchar size)
  * @brief Write a character on the display
  * @param value Boolean to print
 */
-void Display::println(bool value, uchar size)
+void Print::println(bool value, uchar size)
 {
     this->println(value ? TRUE : FALSE, size);
 }
@@ -459,7 +459,7 @@ void Display::println(bool value, uchar size)
 /**
  * @brief Print a newline
 */
-void Display::println(void)
+void Print::println(void)
 {
     this->println("\n");
 }
@@ -473,7 +473,7 @@ void Display::println(void)
  * @param base Base of the number
  * @return Length of the string
 */
-uint Display::getStringLength(char num, uchar size, uchar base)
+uint Print::getStringLength(char num, uchar size, uchar base)
 {
     return this->getStringLength((long)num, size, base);
 }
@@ -485,7 +485,7 @@ uint Display::getStringLength(char num, uchar size, uchar base)
  * @param base Base of the number
  * @return Length of the string
 */
-uint Display::getStringLength(uchar num, uchar size, uchar base)
+uint Print::getStringLength(uchar num, uchar size, uchar base)
 {
     return this->getStringLength((ulong)num, size, base);
 }
@@ -497,7 +497,7 @@ uint Display::getStringLength(uchar num, uchar size, uchar base)
  * @param base Base of the number
  * @return Length of the string
 */
-uint Display::getStringLength(int num, uchar size, uchar base)
+uint Print::getStringLength(int num, uchar size, uchar base)
 {
     return this->getStringLength((long)num, size, base);
 }
@@ -509,7 +509,7 @@ uint Display::getStringLength(int num, uchar size, uchar base)
  * @param base Base of the number
  * @return Length of the string
 */
-uint Display::getStringLength(uint num, uchar size, uchar base)
+uint Print::getStringLength(uint num, uchar size, uchar base)
 {
     return this->getStringLength((ulong)num, size, base);
 }
@@ -521,7 +521,7 @@ uint Display::getStringLength(uint num, uchar size, uchar base)
  * @param base Base of the number
  * @return Length of the string
 */
-uint Display::getStringLength(short num, uchar size, uchar base)
+uint Print::getStringLength(short num, uchar size, uchar base)
 {
     return this->getStringLength((long)num, size, base);
 }
@@ -533,7 +533,7 @@ uint Display::getStringLength(short num, uchar size, uchar base)
  * @param base Base of the number
  * @return Length of the string
 */
-uint Display::getStringLength(ushort num, uchar size, uchar base)
+uint Print::getStringLength(ushort num, uchar size, uchar base)
 {
     return this->getStringLength((ulong)num, size, base);
 }
@@ -545,7 +545,7 @@ uint Display::getStringLength(ushort num, uchar size, uchar base)
  * @param base Base of the number
  * @return Length of the string
 */
-uint Display::getStringLength(long num, uchar size, uchar base)
+uint Print::getStringLength(long num, uchar size, uchar base)
 {
     // convert the number to a string
     char buffer[CHARACTER_BUFFER_SIZE];    // largest number a long can represent is 9 223 372 036 854 775 807
@@ -561,7 +561,7 @@ uint Display::getStringLength(long num, uchar size, uchar base)
  * @param base Base of the number
  * @return Length of the string
 */
-uint Display::getStringLength(ulong num, uchar size, uchar base)
+uint Print::getStringLength(ulong num, uchar size, uchar base)
 {
     // convert the number to a string
     char buffer[CHARACTER_BUFFER_SIZE];    // largest number a long can represent is 9 223 372 036 854 775 807
@@ -578,7 +578,7 @@ uint Display::getStringLength(ulong num, uchar size, uchar base)
  * @param base Base of the number
  * @return Length of the string
 */
-uint Display::getStringLength(double num, uchar precision, uchar size)
+uint Print::getStringLength(double num, uchar precision, uchar size)
 {
     // convert the number to a string
     char buffer[CHARACTER_BUFFER_SIZE];    // largest number a long can represent is 9 223 372 036 854 775 807
@@ -593,7 +593,7 @@ uint Display::getStringLength(double num, uchar precision, uchar size)
  * @param size Size of the string
  * @return Length of the string
 */
-uint Display::getStringLength(const char* text, uchar size)
+uint Print::getStringLength(const char* text, uchar size)
 {
     return (strlen(text) * size * FONT_WIDTH);
 }
@@ -604,7 +604,7 @@ uint Display::getStringLength(const char* text, uchar size)
  * @param size Size of the string
  * @return Length of the string
 */
-uint Display::getStringLength(bool value, uchar size)
+uint Print::getStringLength(bool value, uchar size)
 {
     if(value)
         return (strlen(TRUE) * size * FONT_WIDTH);
@@ -621,7 +621,7 @@ uint Display::getStringLength(bool value, uchar size)
  * @param buffer Buffer to write to
  * @param precision Precision of the value
 */
-void Display::floatToString(double num, char* buffer, uint precision)
+void Print::floatToString(double num, char* buffer, uint precision)
 {
     // if precision is 0, just return the integer part
     if(precision == 0)
@@ -676,7 +676,7 @@ void Display::floatToString(double num, char* buffer, uint precision)
 	}
 }
 
-void Display::reverse(char* buffer, uint length)
+void Print::reverse(char* buffer, uint length)
 {
     for(int i = 0; i < length/2; i++) {
         char temp = *(buffer + i);
@@ -696,7 +696,7 @@ void Display::reverse(char* buffer, uint length)
  * @param color Color to draw the character
  * @return Width of the character
 */
-uint Display::drawAscii(const char character, Point point, uint size, Color color)
+uint Print::drawAscii(const char character, Point point, uint size, Color color)
 {
     // get the relevant bitmap data which is indexed according to the ascii table
     const uint* bitmap = FONT(character);

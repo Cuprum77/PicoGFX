@@ -1,4 +1,4 @@
-#include "Display.hpp"
+#include "Graphics.hpp"
 
 /**
  * @brief Fill the display with a color gradient
@@ -8,7 +8,7 @@
  * @param end End Point
  * @note The start and end points are only used to find the direction of the gradient, it will still fill the entire display!
 */
-void Display::fillGradientCool(Color startColor, Color endColor, Point start, Point end)
+void Graphics::fillGradientCool(Color startColor, Color endColor, Point start, Point end)
 {
     // check if the start and end Points are the same
     if(start == end)
@@ -59,7 +59,7 @@ void Display::fillGradientCool(Color startColor, Color endColor, Point start, Po
  * @param color Color to draw in
  * @param thickness Thickness of the line
 */
-void Display::drawLine(Point start, Point end, Color color)
+void Graphics::drawLine(Point start, Point end, Color color)
 {
     // Uses Bresenham's line algorithm
     // https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
@@ -116,7 +116,7 @@ void Display::drawLine(Point start, Point end, Color color)
  * @param color Color to draw in
  * @param thickness Thickness of the line
 */
-void Display::drawRectangle(Point start, Point end, Color color)
+void Graphics::drawRectangle(Point start, Point end, Color color)
 {
     // draw the rectangle
     this->drawLine({start.X(), start.Y()}, {end.X(), start.Y()}, color);
@@ -131,7 +131,7 @@ void Display::drawRectangle(Point start, Point end, Color color)
  * @param color Color to draw in
  * @param thickness Thickness of the line
 */
-void Display::drawRectangle(Rectangle rect, Color color)
+void Graphics::drawRectangle(Rectangle rect, Color color)
 {
     // draw the rectangle
     this->drawRectangle(rect.X(), rect.Y(), color);
@@ -145,7 +145,7 @@ void Display::drawRectangle(Rectangle rect, Color color)
  * @param color Color to draw in
  * @param thickness Thickness of the line
 */
-void Display::drawRectangle(Point center, uint width, uint height, Color color)
+void Graphics::drawRectangle(Point center, uint width, uint height, Color color)
 {
     // calculate the start and end Points
     Point start = {center.X() - (width / 2), center.Y() - (height / 2)};
@@ -161,7 +161,7 @@ void Display::drawRectangle(Point center, uint width, uint height, Color color)
  * @param end End Point
  * @param color Color to draw in
 */
-void Display::drawFilledRectangle(Point start, Point end, Color color)
+void Graphics::drawFilledRectangle(Point start, Point end, Color color)
 {
     // convert color to 16 bit
     unsigned short color16 = color.to16bit();
@@ -193,7 +193,7 @@ void Display::drawFilledRectangle(Point start, Point end, Color color)
  * @param radius Radius of the circle
  * @param color Color to draw in
 */
-void Display::drawCircle(Point center, uint radius, Color color)
+void Graphics::drawCircle(Point center, uint radius, Color color)
 {
     // Uses Bresenham's circle algorithm
     // https://en.wikipedia.org/wiki/Midpoint_circle_algorithm
@@ -246,7 +246,7 @@ void Display::drawCircle(Point center, uint radius, Color color)
  * @param radius Radius of the circle
  * @param color Color to draw in
 */
-void Display::drawFilledCircle(Point center, uint radius, Color color)
+void Graphics::drawFilledCircle(Point center, uint radius, Color color)
 {
     // Uses Bresenham's circle algorithm
     // https://en.wikipedia.org/wiki/Midpoint_circle_algorithm
@@ -294,7 +294,7 @@ void Display::drawFilledCircle(Point center, uint radius, Color color)
  * @param end_angle End angle of the arc
  * @param color Color to draw in
 */
-void Display::drawArc(Point center, uint radius, uint start_angle, uint end_angle, Color color)
+void Graphics::drawArc(Point center, uint radius, uint start_angle, uint end_angle, Color color)
 {
     // Uses Bresenham's circle algorithm
     // https://en.wikipedia.org/wiki/Midpoint_circle_algorithm
@@ -359,7 +359,7 @@ void Display::drawArc(Point center, uint radius, uint start_angle, uint end_angl
  * @param color Color to draw in
  * @note This will fill the void between the two radii
 */
-void Display::drawFilledArc(Point center, uint radius, uint start_angle, uint end_angle, uint outer_radius, uint inner_radius, Color color)
+void Graphics::drawFilledArc(Point center, uint radius, uint start_angle, uint end_angle, uint outer_radius, uint inner_radius, Color color)
 {
     
 }
@@ -372,7 +372,7 @@ void Display::drawFilledArc(Point center, uint radius, uint start_angle, uint en
  * @param width Width of the bitmap
  * @param height Height of the bitmap
 */
-void Display::drawBitmap(const uchar* bitmap, uint width, uint height)
+void Graphics::drawBitmap(const uchar* bitmap, uint width, uint height)
 {
     this->drawBitmap((const unsigned short*)bitmap, width, height);
 }
@@ -384,7 +384,7 @@ void Display::drawBitmap(const uchar* bitmap, uint width, uint height)
  * @param width Width of the bitmap
  * @param height Height of the bitmap
 */
-void Display::drawBitmap(const unsigned short* bitmap, uint width, uint height)
+void Graphics::drawBitmap(const unsigned short* bitmap, uint width, uint height)
 {
     // get the cursor location
     Point location = this->getCursor();
