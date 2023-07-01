@@ -8,35 +8,35 @@
  * @param dimming Enable dimming
  * @param backlight Enable backlight
 */
-Display::Display(HardwareSPI* spi, Display_Pins pins, Display_Params params)
+Display::Display(HardwareSPI* spi, Display_Pins* pins, Display_Params* params)
 {
     this->spi = spi;
     this->pins = pins;
     this->params = params;
-    this->type = params.type;
-    this->totalPixels = params.width * params.height;
+    this->type = params->type;
+    this->totalPixels = params->width * params->height;
 
     // init the rest of the pins
-    gpio_init(this->pins.rst);
+    gpio_init(this->pins->rst);
     // set the rest of the pins to GPIO output
-    gpio_set_dir(this->pins.rst, GPIO_OUT);
+    gpio_set_dir(this->pins->rst, GPIO_OUT);
     // set the pins to high
-    gpio_put(this->pins.rst, 1);
+    gpio_put(this->pins->rst, 1);
 
     // set up the backlight pin depending on the dimming setting
-    this->backlight = this->pins.bl != -1;
+    this->backlight = this->pins->bl != -1;
     if(this->backlight)
     {
-        if(params.dimming)
+        if(params->dimming)
         {
             // enable dimming
             this->dimmingEnabled = true;
-            gpio_set_function(this->pins.bl, GPIO_FUNC_PWM);
+            gpio_set_function(this->pins->bl, GPIO_FUNC_PWM);
             // get the PWM slice number
-            uint sliceNum = pwm_gpio_to_slice_num(this->pins.bl);
+            uint sliceNum = pwm_gpio_to_slice_num(this->pins->bl);
             this->sliceNum = sliceNum;
             // get the PWM channel
-            uint chan = pwm_gpio_to_channel(this->pins.bl);
+            uint chan = pwm_gpio_to_channel(this->pins->bl);
             this->pwmChannel = chan;
             // turn on the PWM slice
             pwm_set_enabled(sliceNum, true);
@@ -48,9 +48,9 @@ Display::Display(HardwareSPI* spi, Display_Pins pins, Display_Params params)
         else
         {
             this->dimmingEnabled = false;
-            gpio_init(this->pins.bl);
-            gpio_set_dir(this->pins.bl, GPIO_OUT);
-            gpio_put(this->pins.bl, 1);
+            gpio_init(this->pins->bl);
+            gpio_set_dir(this->pins->bl, GPIO_OUT);
+            gpio_put(this->pins->bl, 1);
         }
     }
 
@@ -118,7 +118,7 @@ Color Display::getFillColor()
 void Display::setPixel(Point point, Color color)
 {
     // set the framebuffer pixel
-    this->frameBuffer[point.X() + point.Y() * this->params.width] = color.to16bit();
+    this->frameBuffer[point.X() + point.Y() * this->params->width] = color.to16bit();
 }
 
 /**
@@ -139,7 +139,7 @@ void Display::setPixel(uint index, ushort color)
 */
 Color Display::getPixel(Point point)
 {
-    return Color(this->frameBuffer[point.X() + point.Y() * this->params.width]);
+    return Color(this->frameBuffer[point.X() + point.Y() * this->params->width]);
 }
 
 /**
@@ -187,13 +187,13 @@ void Display::setCursor(Point point)
 {
     // set the pixel x address
     this->columnAddressSet(
-        point.X() + this->params.columnOffset1, 
-        (this->params.width - 1) + this->params.columnOffset2
+        point.X() + this->params->columnOffset1, 
+        (this->params->width - 1) + this->params->columnOffset2
     );
     // set the pixel y address
     this->rowAddressSet(
-        point.Y() + this->params.rowOffset1, 
-        (this->params.height - 1) + this->params.rowOffset2
+        point.Y() + this->params->rowOffset1, 
+        (this->params->height - 1) + this->params->rowOffset2
     );
     // set the internal cursor position
     this->cursor = point;
@@ -215,8 +215,8 @@ Point Display::getCursor()
 Point Display::getCenter()
 {
     Point Point = {
-        this->params.width / 2,
-        this->params.height / 2
+        this->params->width / 2,
+        this->params->height / 2
     };
     return Point;
 }
@@ -254,7 +254,7 @@ void Display::setBrightness(uchar brightness)
         // make sure the brightness is between 0 and 1
         brightness = brightness & 0x01;
         // toggle the backlight pin based on the brightness
-        gpio_put(this->pins.bl, brightness);
+        gpio_put(this->pins->bl, brightness);
     }
 }
 

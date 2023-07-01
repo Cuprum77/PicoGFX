@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <string.h>
 
 #include "pico/stdlib.h"
 #include "pico/divider.h"
@@ -16,27 +15,13 @@
 #include "Color.hpp"
 #include "Enums.hpp"
 
-#include "Font.h"
-
-
 // Typedefs
 #define ulong unsigned long
 #define uint unsigned int
 #define ushort unsigned short
 #define uchar unsigned char
 
-// Typedefs for number bases
-#define BIN 2
-#define OCT 8
-#define DEC 10
-#define HEX 16
-
-// SPI
-#define SPI_BAUDRATE 125000000  // 125 MHz
-
 // Constants
-#define CHARACTER_BUFFER_SIZE 128
-
 #define min(x, y) (((x) < (y)) ? (x) : (y))
 #define max(x, y) (((x) > (y)) ? (x) : (y))
 #define sq(x) ((x) * (x))
@@ -44,15 +29,11 @@
 #define ST7789_WIDTH 240
 #define ST7789_HEIGHT 320
 #define FRAMEBUFFER_SIZE (ST7789_WIDTH * ST7789_HEIGHT)
-// String behavior
-#define TAB_SIZE 4      // how many spaces a tab is worth
-#define FALSE "false"   // string representation of false
-#define TRUE "true"     // string representation of true
 
 class Display
 {
 public:
-    Display(HardwareSPI* spi, Display_Pins pins, Display_Params params);
+    Display(HardwareSPI* spi, Display_Pins* pins, Display_Params* params);
     bool writeReady(void) { return !this->spi->dma_busy(); }
     void setBrightness(unsigned char brightness);
     void setRotation(displayRotation_t rotation);
@@ -73,14 +54,14 @@ public:
     Point getCursor(void);
     Point getCenter(void);
 
-    uint getWidth(void) { return this->params.width; }
-    uint getHeight(void)  { return this->params.height; }
+    uint getWidth(void) { return this->params->width; }
+    uint getHeight(void)  { return this->params->height; }
     ushort* getFrameBuffer(void) { return this->frameBuffer; }
 
 protected:
     HardwareSPI* spi;
-    Display_Pins pins;
-    Display_Params params;
+    Display_Pins* pins;
+    Display_Params* params;
     bool dimmingEnabled = false;
     uint sliceNum;
     uint pwmChannel;

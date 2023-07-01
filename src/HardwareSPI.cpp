@@ -4,10 +4,11 @@
  * @brief Construct a new HardwareSPI::HardwareSPI object
  * @param pins The struct containing the pins to use
  * @param params The struct containing the parameters to use
+ * @param spi The SPI bus to use, can be ignored if using DMA or PIO
+ * @note If SPI is in use, and the instance is not specified, spi0 will be used
 */
-HardwareSPI::HardwareSPI(Display_Pins pins, Display_Params params)
+HardwareSPI::HardwareSPI(Display_Pins pins, Display_Params params, spi_inst_t *spi)
 {
-    this->spi = params.spi;
     this->scl = pins.scl;
     this->sda = pins.sda;
     this->dc = pins.dc;
@@ -24,6 +25,11 @@ HardwareSPI::HardwareSPI(Display_Pins pins, Display_Params params)
             this->initPIO();
             break;
         default:
+            if (spi == nullptr)
+                this->spi = spi0;
+            else
+                this->spi = spi;
+            
             this->interface = SPI_Interface_t::SPI_HW;
             this->initSPI();
             break;

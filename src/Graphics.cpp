@@ -2,11 +2,14 @@
 
 /**
  * @brief Construct a new Graphics object
- * @param display The display to use
+ * @param frameBuffer Pointer to the frame buffer
+ * @param params Display parameters
 */
-Graphics::Graphics(Display* display)
+Graphics::Graphics(unsigned short* frameBuffer, Display_Params params)
 {
-    this->display = display;
+    this->frameBuffer = frameBuffer;
+    this->params = params;
+    this->totalPixels = params.width * params.height;
 }
 
 /**
@@ -32,19 +35,19 @@ void Graphics::fillGradientCool(Color startColor, Color endColor, Point start, P
     }
 
     // calculate the length of the line
-    uint length = start.Distance(end);
+    unsigned int length = start.Distance(end);
 
     // calculate the direction of the gradient
-    uint deltaX = end.X() - start.X();
-    uint deltaY = end.Y() - start.Y();
-    uint magnitude = sqrt((deltaX * deltaX) + (deltaY * deltaY));
+    unsigned int deltaX = end.X() - start.X();
+    unsigned int deltaY = end.Y() - start.Y();
+    unsigned int magnitude = sqrt((deltaX * deltaX) + (deltaY * deltaY));
     float gradX = deltaX / magnitude;
     float gradY = deltaY / magnitude;
 
     // loop through each pixel in the buffer
-    for(int y = 0; y < this->display->getHeight(); y++)
+    for(int y = 0; y < this->params.height; y++)
     {
-        for(int x = 0; x < this->display->getWidth(); x++)
+        for(int x = 0; x < this->params.width; x++)
         {
             // calculate the position along the gradient direction
             float position = (gradX * x) + (gradY * y);
@@ -56,7 +59,7 @@ void Graphics::fillGradientCool(Color startColor, Color endColor, Point start, P
             color.b = startColor.b + ((endColor.b - startColor.b) * position / length);
 
             // draw the pixel
-            this->display->setPixel({x, y}, color);
+            this->frameBuffer[x + y * this->params.width] = color.to16bit();
         }
     }
 }
@@ -74,10 +77,10 @@ void Graphics::drawLine(Point start, Point end, Color color)
     // https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
 
     // move Points into local variables
-    uint x0 = start.X();
-    uint y0 = start.Y();
-    uint x1 = end.X();
-    uint y1 = end.Y();
+    unsigned int x0 = start.X();
+    unsigned int y0 = start.Y();
+    unsigned int x1 = end.X();
+    unsigned int y1 = end.Y();
 
     // get the difference between the x and y Points
     int dx = abs((int)end.X() - (int)start.X());
@@ -90,7 +93,7 @@ void Graphics::drawLine(Point start, Point end, Color color)
     while(true)
     {
         // set the pixel in the frame buffer
-        this->display->setPixel({x0, y0}, color);
+        this->frameBuffer[x0 + y0 * this->params.width] = color.to16bit();
 
         // if we have reached the end Point, break
         if(x0 == x1 && y0 == y1) break;
@@ -154,7 +157,7 @@ void Graphics::drawRectangle(Rectangle rect, Color color)
  * @param color Color to draw in
  * @param thickness Thickness of the line
 */
-void Graphics::drawRectangle(Point center, uint width, uint height, Color color)
+void Graphics::drawRectangle(Point center, unsigned int width, unsigned int height, Color color)
 {
     // calculate the start and end Points
     Point start = {center.X() - (width / 2), center.Y() - (height / 2)};
@@ -176,8 +179,8 @@ void Graphics::drawFilledRectangle(Point start, Point end, Color color)
     unsigned short color16 = color.to16bit();
 
     // calculate the size of the rectangle
-    uint width = end.X() - start.X();
-    uint height = end.Y() - start.Y();
+    unsigned int width = end.X() - start.X();
+    unsigned int height = end.Y() - start.Y();
     
     // loop through the height
     for(int i = 0; i < height; i++)
@@ -186,7 +189,7 @@ void Graphics::drawFilledRectangle(Point start, Point end, Color color)
         for(int j = 0; j < width; j++)
         {
             // write the pixel
-            this->display->setPixel({start.X() + j, start.Y() + i}, color);
+            this->frameBuffer[(start.X() + j) + (start.Y() + i) * this->params.width] = color16;
         }
     }
 }
@@ -197,7 +200,7 @@ void Graphics::drawFilledRectangle(Point start, Point end, Color color)
  * @param radius Radius of the circle
  * @param color Color to draw in
 */
-void Graphics::drawCircle(Point center, uint radius, Color color)
+void Graphics::drawCircle(Point center, unsigned int radius, Color color)
 {
     // Uses Bresenham's circle algorithm
     // https://en.wikipedia.org/wiki/Midpoint_circle_algorithm
@@ -216,15 +219,15 @@ void Graphics::drawCircle(Point center, uint radius, Color color)
     while(x >= y)
     {
         // draw the pixels in the frame buffer
-        this->display->setPixel({x0 + x, y0 + y}, color);
-        this->display->setPixel({x0 + y, y0 + x}, color);
-        this->display->setPixel({x0 - y, y0 + x}, color);
-        this->display->setPixel({x0 - x, y0 + y}, color);
-        this->display->setPixel({x0 - x, y0 - y}, color);
-        this->display->setPixel({x0 - y, y0 - x}, color);
-        this->display->setPixel({x0 + y, y0 - x}, color);
-        this->display->setPixel({x0 + x, y0 - y}, color);
-
+        this->frameBuffer[(x0 + x) + (y0 + y) * this->params.width] = color16;
+        this->frameBuffer[(x0 + y) + (y0 + x) * this->params.width] = color16;
+        this->frameBuffer[(x0 - y) + (y0 + x) * this->params.width] = color16;
+        this->frameBuffer[(x0 - x) + (y0 + y) * this->params.width] = color16;
+        this->frameBuffer[(x0 - x) + (y0 - y) * this->params.width] = color16;
+        this->frameBuffer[(x0 - y) + (y0 - x) * this->params.width] = color16;
+        this->frameBuffer[(x0 + y) + (y0 - x) * this->params.width] = color16;
+        this->frameBuffer[(x0 + x) + (y0 - y) * this->params.width] = color16;
+        
         // if the error is greater than 0
         if(error > 0)
         {
@@ -250,7 +253,7 @@ void Graphics::drawCircle(Point center, uint radius, Color color)
  * @param radius Radius of the circle
  * @param color Color to draw in
 */
-void Graphics::drawFilledCircle(Point center, uint radius, Color color)
+void Graphics::drawFilledCircle(Point center, unsigned int radius, Color color)
 {
     // Uses Bresenham's circle algorithm
     // https://en.wikipedia.org/wiki/Midpoint_circle_algorithm
@@ -298,14 +301,14 @@ void Graphics::drawFilledCircle(Point center, uint radius, Color color)
  * @param end_angle End angle of the arc
  * @param color Color to draw in
 */
-void Graphics::drawArc(Point center, uint radius, uint start_angle, uint end_angle, Color color)
+void Graphics::drawArc(Point center, unsigned int radius, unsigned int start_angle, unsigned int end_angle, Color color)
 {
     // Uses Bresenham's circle algorithm
     // https://en.wikipedia.org/wiki/Midpoint_circle_algorithm
 
     // lock the angles to 0 - 360
-    uint _start_angle = start_angle % 360;
-    uint _end_angle = end_angle % 360;
+    unsigned int _start_angle = start_angle % 360;
+    unsigned int _end_angle = end_angle % 360;
 
     // if the start angle is greater than the end angle
     if(_start_angle > _end_angle)
@@ -330,15 +333,8 @@ void Graphics::drawArc(Point center, uint radius, uint start_angle, uint end_ang
     // loop through the radius
     while (x <= y) {
         // Plot the points within the desired arc range
-        if ((x >= _start_angle && x <= _end_angle) || (y >= _start_angle && y <= _end_angle)) {
-            printf("(%d, %d)\n", xc + x, yc + y);
-            printf("(%d, %d)\n", xc + y, yc + x);
-            printf("(%d, %d)\n", xc - x, yc + y);
-            printf("(%d, %d)\n", xc - y, yc + x);
-            printf("(%d, %d)\n", xc + x, yc - y);
-            printf("(%d, %d)\n", xc + y, yc - x);
-            printf("(%d, %d)\n", xc - x, yc - y);
-            printf("(%d, %d)\n", xc - y, yc - x);
+        if ((x >= _start_angle && x <= _end_angle) || (y >= _start_angle && y <= _end_angle)) 
+        {
         }
   
         if (error < 0)
@@ -363,7 +359,7 @@ void Graphics::drawArc(Point center, uint radius, uint start_angle, uint end_ang
  * @param color Color to draw in
  * @note This will fill the void between the two radii
 */
-void Graphics::drawFilledArc(Point center, uint radius, uint start_angle, uint end_angle, uint outer_radius, uint inner_radius, Color color)
+void Graphics::drawFilledArc(Point center, unsigned int radius, unsigned int start_angle, unsigned int end_angle, unsigned int outer_radius, unsigned int inner_radius, Color color)
 {
     
 }
@@ -376,7 +372,7 @@ void Graphics::drawFilledArc(Point center, uint radius, uint start_angle, uint e
  * @param width Width of the bitmap
  * @param height Height of the bitmap
 */
-void Graphics::drawBitmap(const uchar* bitmap, uint width, uint height)
+void Graphics::drawBitmap(const unsigned char* bitmap, unsigned int width, unsigned int height)
 {
     this->drawBitmap((const unsigned short*)bitmap, width, height);
 }
@@ -388,12 +384,12 @@ void Graphics::drawBitmap(const uchar* bitmap, uint width, uint height)
  * @param width Width of the bitmap
  * @param height Height of the bitmap
 */
-void Graphics::drawBitmap(const unsigned short* bitmap, uint width, uint height)
+void Graphics::drawBitmap(const unsigned short* bitmap, unsigned int width, unsigned int height)
 {
     // write the entire bitmap directly to the framebuffer using the setPixel function
     for(int i = 0; i < width * height; i++)
     {
         // write the pixel
-        this->display->setPixel({i % width, i / width}, bitmap[i]);
+        this->frameBuffer[i] = bitmap[i];
     }
 }

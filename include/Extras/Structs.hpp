@@ -28,7 +28,6 @@ struct Display_Params
 {
     SPI_Interface_t interface;
     display_type_t type;
-    spi_inst_t* spi;
     bool dimming;
     unsigned int height;
     unsigned int width;
@@ -140,7 +139,7 @@ struct Point
     */
     unsigned int Distance(Point other)
     {
-        return sqrt(pow(this->x - other.x, 2) + pow(this->y - other.y, 2));
+        return (unsigned int) sqrt(pow(this->x - other.x, 2) + pow(this->y - other.y, 2));
     }
 
 
