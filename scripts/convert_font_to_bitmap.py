@@ -4,6 +4,10 @@ import string
 from textwrap import wrap
 import os
 
+# Define font file and color
+font_file = ["RobotoMono.ttf", "ComicSans.ttf"]
+# Output directory
+output_dir = "../fonts/"
 # Standard font sizes
 font_size = [20, 22, 24, 28, 32, 48]
 # Variables
@@ -268,13 +272,6 @@ FontStruct {font_name}{size} = {{
         f.write(struct)
         headers.append(output_file)
 
-
-
-# Define font file and color
-font_file = ["RobotoMono.ttf", "ComicSans.ttf"]
-#font_file = ["ComicSans.ttf"]
-# Output directory
-output_dir = "../Fonts/"
 
 # Loop through each font size and generate a file
 for font in font_file:
