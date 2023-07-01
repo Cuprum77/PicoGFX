@@ -12,17 +12,12 @@ Print::Print(unsigned short* frameBuffer, Display_Params params)
 }
 
 /**
- * @brief Write a number on the display
- * @param number Number to print
- * @param size Size of the number
+ * @brief Set the font to use
+ * @param font Font to use
 */
-void Print::print(long number, unsigned char size, number_base_t base)
+void Print::setFont(FontStruct* font)
 {
-    // convert the number to a string
-    char buffer[CHARACTER_BUFFER_SIZE];    // largest number a long can represent is 9 223 372 036 854 775 807
-    itoa(number, buffer, base);
-    // write the string
-    this->print(buffer, size);
+    this->font = font;
 }
 
 /**
@@ -30,13 +25,27 @@ void Print::print(long number, unsigned char size, number_base_t base)
  * @param number Number to print
  * @param size Size of the number
 */
-void Print::print(unsigned long number, unsigned char size, number_base_t base)
+void Print::print(long number, number_base_t base)
 {
     // convert the number to a string
     char buffer[CHARACTER_BUFFER_SIZE];    // largest number a long can represent is 9 223 372 036 854 775 807
     itoa(number, buffer, base);
     // write the string
-    this->print(buffer, size);
+    this->print(buffer);
+}
+
+/**
+ * @brief Write a number on the display
+ * @param number Number to print
+ * @param size Size of the number
+*/
+void Print::print(unsigned long number, number_base_t base)
+{
+    // convert the number to a string
+    char buffer[CHARACTER_BUFFER_SIZE];    // largest number a long can represent is 9 223 372 036 854 775 807
+    itoa(number, buffer, base);
+    // write the string
+    this->print(buffer);
 }
 
 /**
@@ -45,13 +54,13 @@ void Print::print(unsigned long number, unsigned char size, number_base_t base)
  * @param precision Number of decimal places to print
  * @param size Size of the number
 */
-void Print::print(double number, unsigned char size, unsigned int precision)
+void Print::print(double number, unsigned int precision)
 {
     // convert the number to a string
     char buffer[CHARACTER_BUFFER_SIZE] = {0};    // largest number a double can represent is 1.79769e+308
     this->floatToString(number, buffer, precision);
     // write the string
-    this->print(buffer, size);
+    this->print(buffer);
 }
 
 /**
@@ -60,7 +69,7 @@ void Print::print(double number, unsigned char size, unsigned int precision)
  * @param color Character color
  * @param size Size of the character
 */
-void Print::print(const char* text, unsigned char size)
+void Print::print(const char* text)
 {
     // get the length of the text
     unsigned int length = strlen(text);
@@ -73,29 +82,29 @@ void Print::print(const char* text, unsigned char size)
         // if the text is a new line, move the text to the next line
         if (text[i] == '\n')
         {
-            this->cursor = this->cursor - (this->cursor % this->params.width) + this->params.width * (FONT_HEIGHT * size);
+            this->cursor = this->cursor - (this->cursor % this->params.width) + this->params.width * (this->font->height );
             continue;
         }
         // if the text is a tab move the text to the next tab stop
         else if (text[i] == '\t')
         {
-            this->cursor += FONT_WIDTH * size * TAB_SIZE;
+            this->cursor += this->font->width * TAB_SIZE;
             continue;
         }
         // check if the text is going to go off the screen by checking the future x Point with the width of the screen
-        else if ((x + FONT_WIDTH * size) > this->params.width)
+        else if ((x + this->font->width ) > this->params.width)
         {
             // move the text to the next line
-            this->cursor = this->cursor - (this->cursor % this->params.width) + this->params.width * (FONT_HEIGHT * size);
+            this->cursor = this->cursor - (this->cursor % this->params.width) + this->params.width * (this->font->height );
         }
         // if we overflowed the screen, begin from the top again
-        if ((y + FONT_HEIGHT * size) > this->params.height)
+        if ((y + this->font->height ) > this->params.height)
         {
             this->cursor = 0;
         }
 
         // draw the character
-        this->drawAscii(text[i], size);
+        this->drawAscii(text[i]);
     }
 }
 
@@ -104,13 +113,13 @@ void Print::print(const char* text, unsigned char size)
  * @param number Number to print
  * @param size Size of the number
 */
-void Print::println(long number, unsigned char size, number_base_t base)
+void Print::println(long number, number_base_t base)
 {
     // convert the number to a string
     char buffer[CHARACTER_BUFFER_SIZE];    // largest number a long can represent is 9 223 372 036 854 775 807
     itoa(number, buffer, base);
     // write the string
-    this->println(buffer, size);
+    this->println(buffer);
 }
 
 /**
@@ -118,13 +127,13 @@ void Print::println(long number, unsigned char size, number_base_t base)
  * @param number Number to print
  * @param size Size of the number
 */
-void Print::println(unsigned long number, unsigned char size, number_base_t base)
+void Print::println(unsigned long number, number_base_t base)
 {
     // convert the number to a string
     char buffer[CHARACTER_BUFFER_SIZE];    // largest number a long can represent is 9 223 372 036 854 775 807
     itoa(number, buffer, base);
     // write the string
-    this->println(buffer, size);
+    this->println(buffer);
 }
 
 /**
@@ -133,13 +142,13 @@ void Print::println(unsigned long number, unsigned char size, number_base_t base
  * @param precision Number of decimal places to print
  * @param size Size of the number
 */
-void Print::println(double number, unsigned char size, unsigned int precision)
+void Print::println(double number, unsigned int precision)
 {
     // convert the number to a string
     char buffer[CHARACTER_BUFFER_SIZE] = {0};    // largest number a double can represent is 1.79769e+308
     this->floatToString(number, buffer, precision);
     // write the string
-    this->println(buffer, size);
+    this->println(buffer);
 }
 
 /**
@@ -147,19 +156,19 @@ void Print::println(double number, unsigned char size, unsigned int precision)
  * @param character Character to print
  * @param size Size of the character
 */
-void Print::println(const char* text, unsigned char size)
+void Print::println(const char* text)
 {
-    this->print(text, size);
-    this->print("\n", size);
+    this->print(text);
+    this->print("\n");
 }
 
 /**
  * @brief Write a character on the display
  * @param value Boolean to print
 */
-void Print::println(bool value, unsigned char size)
+void Print::println(bool value)
 {
-    this->println(value ? TRUE : FALSE, size);
+    this->println(value ? TRUE : FALSE);
 }
 
 /**
@@ -177,13 +186,13 @@ void Print::println(void)
  * @param base Base of the number
  * @return Length of the string
 */
-unsigned int Print::getStringLength(long num, unsigned char size, number_base_t base)
+unsigned int Print::getStringLength(long num, number_base_t base)
 {
     // convert the number to a string
     char buffer[CHARACTER_BUFFER_SIZE];    // largest number a long can represent is 9 223 372 036 854 775 807
     itoa(num, buffer, base);
     unsigned int len = strlen(buffer);
-    return (len * size * FONT_WIDTH);
+    return (len  * this->font->width);
 }
 
 /**
@@ -193,13 +202,13 @@ unsigned int Print::getStringLength(long num, unsigned char size, number_base_t 
  * @param base Base of the number
  * @return Length of the string
 */
-unsigned int Print::getStringLength(unsigned long num, unsigned char size, number_base_t base)
+unsigned int Print::getStringLength(unsigned long num, number_base_t base)
 {
     // convert the number to a string
     char buffer[CHARACTER_BUFFER_SIZE];    // largest number a long can represent is 9 223 372 036 854 775 807
     itoa(num, buffer, base);
     unsigned int len = strlen(buffer);
-    return (len * size * FONT_WIDTH);
+    return (len  * this->font->width);
 }
 
 /**
@@ -210,13 +219,13 @@ unsigned int Print::getStringLength(unsigned long num, unsigned char size, numbe
  * @param base Base of the number
  * @return Length of the string
 */
-unsigned int Print::getStringLength(double num, unsigned char precision, unsigned char size)
+unsigned int Print::getStringLength(double num, unsigned char precision)
 {
     // convert the number to a string
     char buffer[CHARACTER_BUFFER_SIZE];    // largest number a long can represent is 9 223 372 036 854 775 807
     floatToString(num, buffer, precision);
     unsigned int len = strlen(buffer);
-    return (len * size * FONT_WIDTH);
+    return (len  * this->font->width);
 }
 
 /**
@@ -225,9 +234,9 @@ unsigned int Print::getStringLength(double num, unsigned char precision, unsigne
  * @param size Size of the string
  * @return Length of the string
 */
-unsigned int Print::getStringLength(const char* text, unsigned char size)
+unsigned int Print::getStringLength(const char* text)
 {
-    return (strlen(text) * size * FONT_WIDTH);
+    return (strlen(text)  * this->font->width);
 }
 
 /**
@@ -236,12 +245,12 @@ unsigned int Print::getStringLength(const char* text, unsigned char size)
  * @param size Size of the string
  * @return Length of the string
 */
-unsigned int Print::getStringLength(bool value, unsigned char size)
+unsigned int Print::getStringLength(bool value)
 {
     if(value)
-        return (strlen(TRUE) * size * FONT_WIDTH);
+        return (strlen(TRUE)  * this->font->width);
     else
-        return (strlen(FALSE) * size * FONT_WIDTH);
+        return (strlen(FALSE)  * this->font->width);
 }
 
 /**
@@ -323,30 +332,27 @@ void Print::reverse(char* buffer, unsigned int length)
  * @param size Text size
  * @param color Color to draw the character
 */
-void Print::drawAscii(const char character, unsigned int size)
+void Print::drawAscii(const char character)
 {
     // get the relevant bitmap data which is indexed according to the ascii table
-    const unsigned int* bitmap = FONT(character);
+    const unsigned int* bitmap = this->font->function(character);
 
     // if the bitmap is a null pointer or overflows the frame buffer, return 0
-    if (bitmap == nullptr || ((FONT_WIDTH * FONT_HEIGHT) * size > this->totalPixels))
+    if (bitmap == nullptr || ((this->font->width * this->font->height)  > this->totalPixels))
         return;
-
-    // minimum size is 1, not 0
-    if (size == 0) size = 1;
 
     // get our current framebuffer pointer location
     unsigned int bufferPosition = this->cursor;
     // keep track of the current row position
     unsigned int rowPosition = 0;
     // calculate the row size
-    unsigned int rowSize = FONT_WIDTH * size;
+    unsigned int rowSize = this->font->width ;
 
     // loop through the bitmap data
-    for (int j = 0; j < FONT_DATA; j++)
+    for (int j = 0; j < this->font->size; j++)
     {
         // get the current data, and multiply it by the size to get the number of pixels to draw
-        unsigned int data = bitmap[j] * size;
+        unsigned int data = bitmap[j] ;
         // if the current data is 0, we have completed our loop
         if (data == 0) break;
 

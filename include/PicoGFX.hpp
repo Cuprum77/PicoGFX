@@ -1,9 +1,11 @@
 #pragma once
 
+#include "HardwareSPI.hpp"
 #include "Display.hpp"
 #include "Graphics.hpp"
 #include "Print.hpp"
 #include "AdvancedGraphics.hpp"
+#include "Fonts.h"
 
 class PicoGFX {
 public:
