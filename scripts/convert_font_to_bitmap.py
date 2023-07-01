@@ -12,7 +12,6 @@ output_dir = "../fonts/"
 font_size = [20, 22, 24, 28, 32, 48]
 # Variables
 total_memory_usage = 0
-headers = []
 
 def Generate_Font(font_file, font_size):
     # Grab the font
@@ -175,17 +174,8 @@ typedef struct {{
 """
         f.write(header)
 
-def Generate_Includes():
-    global headers
-    # Output all the files as a importable header file
-    with open(os.path.abspath(output_dir) + '/' + "Fonts.h", "w") as f:
-        font_file = f"#pragma once\n\n"
-        for header in headers:
-            font_file += f"#include \"{header}.h\"\n"
-        f.write(font_file)
-
 def Generate_File(font_file, size):
-    global total_memory_usage, headers
+    global total_memory_usage
     font, crop, height_offset = Generate_Font(font_file, size)
     font_name = font_file[:-4]
     output_file = f"{font_name}{size}"
@@ -270,7 +260,6 @@ FontStruct {font_name}{size} = {{
         
         # Output struct for storing the font data
         f.write(struct)
-        headers.append(output_file)
 
 
 # Loop through each font size and generate a file
@@ -280,5 +269,4 @@ for font in font_file:
 
 # Generate the header file
 Generate_Header()
-Generate_Includes()
 print(f"Total memory usage: {str(total_memory_usage).replace(',', ' ')} bytes")
