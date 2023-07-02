@@ -12,6 +12,11 @@
 #define FALSE "false"   // string representation of false
 #define TRUE "true"     // string representation of true
 
+// If on a microcontroller, we replace _itoa with itoa
+#ifdef __arm__
+#define _itoa itoa
+#endif
+
 // Typedefs for number bases
 typedef enum
 {

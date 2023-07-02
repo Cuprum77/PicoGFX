@@ -320,8 +320,8 @@ void Graphics::drawArc(Point center, unsigned int radius, unsigned int start_ang
     }
 
     // calculate the start and end points
-    Point start = {(unsigned int)(center.X() + radius * cos(_start_angle * M_PI / 180)), (unsigned int)(center.Y() + radius * sin(_start_angle * M_PI / 180))};
-    Point end = {(unsigned int)(center.X() + radius * cos(_end_angle * M_PI / 180)), (unsigned int)(center.Y() + radius * sin(_end_angle * M_PI / 180))};
+    Point start = {(unsigned int)(center.X() + radius * cos(_start_angle * PI / 180)), (unsigned int)(center.Y() + radius * sin(_start_angle * PI / 180))};
+    Point end = {(unsigned int)(center.X() + radius * cos(_end_angle * PI / 180)), (unsigned int)(center.Y() + radius * sin(_end_angle * PI / 180))};
 
     // move Points into local variables
     int xc = center.X();
