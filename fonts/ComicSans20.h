@@ -1,4 +1,3 @@
-
 #pragma once
 
 // Include the font struct for storing the font data
@@ -351,7 +350,7 @@ static const FontCharacter ComicSans20_character[] = {
 };
 
 // Font struct
-FontStruct ComicSans20 = {
+inline FontStruct ComicSans20 = {
     .bitmap = ComicSans20_bitmap,
     .characters = ComicSans20_character,
     .size = 3612,

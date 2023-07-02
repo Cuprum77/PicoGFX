@@ -1,4 +1,3 @@
-
 #pragma once
 
 // Estimated total memory usage: 62948 bytes

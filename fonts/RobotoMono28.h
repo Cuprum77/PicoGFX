@@ -1,4 +1,3 @@
-
 #pragma once
 
 // Include the font struct for storing the font data
@@ -436,7 +435,7 @@ static const FontCharacter RobotoMono28_character[] = {
 };
 
 // Font struct
-FontStruct RobotoMono28 = {
+inline FontStruct RobotoMono28 = {
     .bitmap = RobotoMono28_bitmap,
     .characters = RobotoMono28_character,
     .size = 4887,

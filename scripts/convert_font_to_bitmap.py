@@ -155,8 +155,7 @@ def Generate_File(font_file, size):
 
     # Output bitmap as C header file
     with open(os.path.abspath(output_dir) + '/' + output_file + ".h", "w") as f:
-        header = f"""
-#pragma once
+        header = f"""#pragma once
 
 // Include the font struct for storing the font data
 #include "FontStruct.h"
@@ -218,7 +217,7 @@ static const FontCharacter {font_name}{size}_character[] = {{
 
         struct = f"""
 // Font struct
-FontStruct {font_name}{size} = {{
+inline FontStruct {font_name}{size} = {{
     .bitmap = {font_name}{size}_bitmap,
     .characters = {font_name}{size}_character,
     .size = {size_of_font},
@@ -233,8 +232,7 @@ def Generate_Header():
 
     # Output bitmap as C header file
     with open(os.path.abspath(output_dir) + '/' + "FontStruct.h", "w") as f:
-        header = f"""
-#pragma once
+        header = f"""#pragma once
 
 // Estimated total memory usage: {total_memory_usage} bytes
 
