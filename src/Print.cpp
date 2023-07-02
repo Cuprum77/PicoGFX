@@ -32,7 +32,7 @@ void Print::print(long number, number_base_t base)
 {
     // convert the number to a string
     char buffer[CHARACTER_BUFFER_SIZE];    // largest number a long can represent is 9 223 372 036 854 775 807
-    _itoa(number, buffer, base);
+    itoa(number, buffer, base);
     // write the string
     this->print(buffer);
 }
@@ -46,7 +46,7 @@ void Print::print(unsigned long number, number_base_t base)
 {
     // convert the number to a string
     char buffer[CHARACTER_BUFFER_SIZE];    // largest number a long can represent is 9 223 372 036 854 775 807
-    _itoa(number, buffer, base);
+    itoa(number, buffer, base);
     // write the string
     this->print(buffer);
 }
@@ -94,7 +94,7 @@ void Print::println(long number, number_base_t base)
 {
     // convert the number to a string
     char buffer[CHARACTER_BUFFER_SIZE];    // largest number a long can represent is 9 223 372 036 854 775 807
-    _itoa(number, buffer, base);
+    itoa(number, buffer, base);
     // write the string
     this->println(buffer);
 }
@@ -108,7 +108,7 @@ void Print::println(unsigned long number, number_base_t base)
 {
     // convert the number to a string
     char buffer[CHARACTER_BUFFER_SIZE];    // largest number a long can represent is 9 223 372 036 854 775 807
-    _itoa(number, buffer, base);
+    itoa(number, buffer, base);
     // write the string
     this->println(buffer);
 }
@@ -167,7 +167,7 @@ unsigned int Print::getStringLength(long num, number_base_t base)
 {
     // convert the number to a string
     char buffer[CHARACTER_BUFFER_SIZE];    // largest number a long can represent is 9 223 372 036 854 775 807
-    _itoa(num, buffer, base);
+    itoa(num, buffer, base);
     return this->getPixelWidth(buffer, strlen(buffer));
 }
 
@@ -182,7 +182,7 @@ unsigned int Print::getStringLength(unsigned long num, number_base_t base)
 {
     // convert the number to a string
     char buffer[CHARACTER_BUFFER_SIZE];    // largest number a long can represent is 9 223 372 036 854 775 807
-    _itoa(num, buffer, base);
+    itoa(num, buffer, base);
     return this->getPixelWidth(buffer, strlen(buffer));
 }
 
@@ -239,7 +239,7 @@ void Print::floatToString(double num, char* buffer, unsigned int precision)
     // if precision is 0, just return the integer part
     if(precision == 0)
     {
-        _itoa((long)num, buffer, 10);
+        itoa((long)num, buffer, 10);
         return;
     }
 
