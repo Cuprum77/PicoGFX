@@ -80,5 +80,5 @@ private:
     void drawAscii(const char c);
     void floatToString(double num, char* buffer, unsigned int precision);
     void reverse(char* str, unsigned int length);
-    unsigned int getPixelWidth(const char* text, size_t length);
+    size_t getPixelWidth(const char* text, size_t length);
 };
