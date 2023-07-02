@@ -1,190 +1,69 @@
-#include "Display.hpp"
+#include "Print.hpp"
 
-#pragma region Write char
 /**
- * @brief Write a character on the display
- * @param c Character to print
- * @param size Size of the character
+ * @brief Construct a new Print object
+ * @param display Display to print on
 */
-void Display::write(char c, uchar size, uchar base)
+Print::Print(unsigned short* frameBuffer, Display_Params params)
 {
-    this->print((long)c, this->fillColor.getOppositeColor(), size, base);
+    this->frameBuffer = frameBuffer;
+    this->width = params.width;
+    this->height = params.height;
+    this->totalPixels = params.width * params.height;
+    this->color = Colors::White;
+    this->font = nullptr;
 }
 
 /**
- * @brief Write a character on the display
- * @param c Character to print
- * @param color Character color
- * @param size Size of the character
+ * @brief Set the font to use
+ * @param font Font to use
 */
-void Display::print(char c, Color color, uchar size, uchar base)
+void Print::setFont(FontStruct* font)
 {
-    this->print((long)c, color, size, base);
-}
-#pragma endregion
-
-#pragma region Write uchar
-/**
- * @brief Write a number on the display
- * @param number Number to print
- * @param size Size of the number
-*/
-void Display::print(uchar c, uchar size, uchar base)
-{
-    this->print((ulong)c, this->fillColor.getOppositeColor(), size, base);
+    this->font = font;
 }
 
 /**
  * @brief Write a number on the display
  * @param number Number to print
- * @param color Number color
  * @param size Size of the number
 */
-void Display::print(uchar c, Color color, uchar size, uchar base)
-{
-    this->print((ulong)c, color, size, base);
-}
-#pragma endregion
-
-#pragma region Write int
-/**
- * @brief Write a number on the display
- * @param number Number to print
- * @param size Size of the number
-*/
-void Display::print(int number, uchar size, uchar base)
-{
-    this->print((long)number, this->fillColor.getOppositeColor(), size, base);
-}
-
-/**
- * @brief Write a number on the display
- * @param number Number to print
- * @param color Number color
- * @param size Size of the number
-*/
-void Display::print(int number, Color color, uchar size, uchar base)
-{
-    this->print((long)number, color, size, base);
-}
-#pragma endregion
-
-#pragma region Write uint
-/**
- * @brief Write a number on the display
- * @param number Number to print
- * @param size Size of the number
-*/
-void Display::print(uint number, uchar size, uchar base)
-{
-    this->print((ulong)number, this->fillColor.getOppositeColor(), size, base);
-}
-
-/**
- * @brief Write a number on the display
- * @param number Number to print
- * @param color Number color
- * @param size Size of the number
-*/
-void Display::print(uint number, Color color, uchar size, uchar base)
-{
-    this->print((ulong)number, color, size, base);
-}
-#pragma endregion
-
-#pragma region Write long
-/**
- * @brief Write a number on the display
- * @param number Number to print
- * @param size Size of the number
-*/
-void Display::print(long number, uchar size, uchar base)
-{
-    this->print(number, this->fillColor.getOppositeColor(), size, base);
-}
-
-/**
- * @brief Write a number on the display
- * @param number Number to print
- * @param color Number color
- * @param size Size of the number
-*/
-void Display::print(long number, Color color, uchar size, uchar base)
-{
-    // set base to decimal 
-    // convert the number to a string
-    char buffer[CHARACTER_BUFFER_SIZE];
-    itoa(number, buffer, base);
-    // write the string
-    this->print(buffer, color, size);
-}
-#pragma endregion
-
-#pragma region Write ulong
-/**
- * @brief Write a number on the display
- * @param number Number to print
- * @param size Size of the number
-*/
-void Display::print(ulong number, uchar size, uchar base)
-{
-    this->print(number, this->fillColor.getOppositeColor(), size, base);
-}
-
-/**
- * @brief Write a number on the display
- * @param number Number to print
- * @param color Number color
- * @param size Size of the number
-*/
-void Display::print(ulong number, Color color, uchar size, uchar base)
+void Print::print(long number, number_base_t base)
 {
     // convert the number to a string
     char buffer[CHARACTER_BUFFER_SIZE];    // largest number a long can represent is 9 223 372 036 854 775 807
     itoa(number, buffer, base);
     // write the string
-    this->print(buffer, color, size);
+    this->print(buffer);
 }
-#pragma endregion
 
-#pragma region Write float
 /**
  * @brief Write a number on the display
  * @param number Number to print
- * @param precision Number of decimal places to print
  * @param size Size of the number
 */
-void Display::print(double number, uint precision, uchar size)
+void Print::print(unsigned long number, number_base_t base)
 {
-    this->print(number, this->fillColor.getOppositeColor(), precision, size);
+    // convert the number to a string
+    char buffer[CHARACTER_BUFFER_SIZE];    // largest number a long can represent is 9 223 372 036 854 775 807
+    itoa(number, buffer, base);
+    // write the string
+    this->print(buffer);
 }
 
 /**
  * @brief Write a number on the display
  * @param number Number to print
- * @param color Number color
  * @param precision Number of decimal places to print
  * @param size Size of the number
 */
-void Display::print(double number, Color color, uint precision, uchar size)
+void Print::print(double number, unsigned int precision)
 {
     // convert the number to a string
     char buffer[CHARACTER_BUFFER_SIZE] = {0};    // largest number a double can represent is 1.79769e+308
     this->floatToString(number, buffer, precision);
     // write the string
-    this->print(buffer, color, size);
-}
-#pragma endregion
-
-#pragma region Write string
-/**
- * @brief Write a character on the display
- * @param character Character to print
- * @param size Size of the character
-*/
-void Display::print(const char* text, uchar size)
-{
-    this->print(text, this->fillColor.getOppositeColor(), size);
+    this->print(buffer);
 }
 
 /**
@@ -193,290 +72,89 @@ void Display::print(const char* text, uchar size)
  * @param color Character color
  * @param size Size of the character
 */
-void Display::print(const char* text, Color color, uchar size)
+void Print::print(const char* text)
 {
-    // copy the Point to local variables
-    Point location = this->cursor;
-    // copy the Point to local variables
-    uint x = location.X();
-    uint y = location.Y();
     // get the length of the text
-    uint length = strlen(text);
+    unsigned int length = strlen(text);
 
     // loop through the text
     for(int i = 0; i < length; i++)
     {
-        // if the text is a new line, move the text to the next line
-        if (text[i] == '\n')
-        {
-            x = 0;
-            y += FONT_HEIGHT * size;
-            continue;
-        }
-        // if the text is a tab move the text to the next tab stop
-        else if (text[i] == '\t')
-        {
-            x += FONT_WIDTH * size * TAB_SIZE;
-            continue;
-        }
-        // check if the text is going to go off the screen by checking the future x Point with the width of the screen
-        else if ((x + FONT_WIDTH * size) > this->params.width)
-        {
-            // move the text to the next line
-            x = 0;
-            y += FONT_HEIGHT * size;
-        }
-        // if we overflowed the screen, begin from the top again
-        if ((y + FONT_HEIGHT * size) > this->params.height)
-        {
-            y = 0;
-        }
-
-        // increment the Point
-        x += this->drawAscii(text[i], {x, y}, size, color);
+        // draw the character
+        this->drawAscii(text[i]);
     }
-
-    // set the cursor
-    this->setCursor(Point(x, y));
-}
-
-/**
- * @brief Write a character on the display
- * @param value Boolean to print
-*/
-void Display::print(bool value, uchar size)
-{
-    this->print(value ? "true" : "false", size);
-}
-#pragma endregion
-
-#pragma region Print char
-/**
- * @brief Print a number on the display
- * @param number Number to print
- * @param size Size of the number
-*/
-void Display::println(char c, uchar size, uchar base)
-{
-    this->println((long)c, this->fillColor.getOppositeColor(), size);
 }
 
 /**
  * @brief Print a number on the display
  * @param number Number to print
- * @param color Number color
  * @param size Size of the number
 */
-void Display::println(char c, Color color, uchar size, uchar base)
-{
-    this->println((long)c, color, size);
-}
-#pragma endregion
-
-#pragma region Print uchar
-/**
- * @brief Print a number on the display
- * @param number Number to print
- * @param size Size of the number
-*/
-void Display::println(uchar number, uchar size, uchar base)
-{
-    this->println((long)number, this->fillColor.getOppositeColor(), size, base);
-}
-
-/**
- * @brief Print a number on the display
- * @param number Number to print
- * @param color Number color
- * @param size Size of the number
-*/
-void Display::println(uchar number, Color color, uchar size, uchar base)
-{
-    this->println((long)number, color, size, base);
-}
-#pragma endregion
-
-#pragma region Print int
-/**
- * @brief Print a number on the display
- * @param number Number to print
- * @param size Size of the number
-*/
-void Display::println(int number, uchar size, uchar base)
-{
-    this->println((long)number, this->fillColor.getOppositeColor(), size, base);
-}
-
-/**
- * @brief Print a number on the display
- * @param number Number to print
- * @param color Number color
- * @param size Size of the number
-*/
-void Display::println(int number, Color color, uchar size, uchar base)
-{
-    this->println((long)number, color, size, base);
-}
-#pragma endregion
-
-#pragma region Print uint
-/**
- * @brief Print a number on the display
- * @param number Number to print
- * @param size Size of the number
-*/
-void Display::println(uint number, uchar size, uchar base)
-{
-    this->println((ulong)number, this->fillColor.getOppositeColor(), size, base);
-}
-
-/**
- * @brief Print a number on the display
- * @param number Number to print
- * @param color Number color
- * @param size Size of the number
-*/
-void Display::println(uint number, Color color, uchar size, uchar base)
-{
-    this->println((ulong)number, color, size, base);
-}
-#pragma endregion
-
-#pragma region Print long
-/**
- * @brief Print a number on the display
- * @param number Number to print
- * @param size Size of the number
-*/
-void Display::println(long number, uchar size, uchar base)
-{
-    this->println(number, this->fillColor.getOppositeColor(), size, base);
-}
-
-/**
- * @brief Print a number on the display
- * @param number Number to print
- * @param color Number color
- * @param size Size of the number
-*/
-void Display::println(long number, Color color, uchar size, uchar base)
+void Print::println(long number, number_base_t base)
 {
     // convert the number to a string
     char buffer[CHARACTER_BUFFER_SIZE];    // largest number a long can represent is 9 223 372 036 854 775 807
     itoa(number, buffer, base);
     // write the string
-    this->println(buffer, color, size);
-}
-#pragma endregion
-
-#pragma region Print ulong
-/**
- * @brief Print a number on the display
- * @param number Number to print
- * @param size Size of the number
-*/
-void Display::println(ulong number, uchar size, uchar base)
-{
-    this->println(number, this->fillColor.getOppositeColor(), size, base);
+    this->println(buffer);
 }
 
 /**
  * @brief Print a number on the display
  * @param number Number to print
- * @param color Number color
  * @param size Size of the number
 */
-void Display::println(ulong number, Color color, uchar size, uchar base)
+void Print::println(unsigned long number, number_base_t base)
 {
     // convert the number to a string
     char buffer[CHARACTER_BUFFER_SIZE];    // largest number a long can represent is 9 223 372 036 854 775 807
     itoa(number, buffer, base);
     // write the string
-    this->println(buffer, color, size);
+    this->println(buffer);
 }
-#pragma endregion
 
-#pragma region Print float
 /**
  * @brief Print a number on the display
  * @param number Number to print
  * @param precision Number of decimal places to print
  * @param size Size of the number
 */
-void Display::println(double number, uint precision, uchar size)
+void Print::println(double number, unsigned int precision)
 {
-    this->println(number, this->fillColor.getOppositeColor(), precision, size);
+    // convert the number to a string
+    char buffer[CHARACTER_BUFFER_SIZE] = {0};    // largest number a double can represent is 1.79769e+308
+    this->floatToString(number, buffer, precision);
+    // write the string
+    this->println(buffer);
 }
 
 /**
- * @brief Print a number on the display
- * @param number Number to print
- * @param color Number color
- * @param precision Number of decimal places to print
- * @param size Size of the number
+ * @brief Print a character on the display
+ * @param character Character to print
+ * @param size Size of the character
 */
-void Display::println(double number, Color color, uint precision, uchar size)
+void Print::println(const char* text)
 {
-    this->print(number, color, precision, size);
+    this->print(text);
     this->print("\n");
 }
-#pragma endregion
-
-#pragma region Print string
-/**
- * @brief Print a character on the display
- * @param character Character to print
- * @param size Size of the character
-*/
-void Display::println(const char* text, uchar size)
-{
-    this->println(text, this->fillColor.getOppositeColor(), size);
-}
-
-/**
- * @brief Print a character on the display
- * @param character Character to print
- * @param color Character color
- * @param size Size of the character
-*/
-void Display::println(const char* text, Color color, uchar size)
-{
-    this->print(text, color, size);
-    this->print("\n", color, size);
-}
 
 /**
  * @brief Write a character on the display
  * @param value Boolean to print
 */
-void Display::println(bool value, uchar size)
+void Print::println(bool value)
 {
-    this->println(value ? TRUE : FALSE, size);
+    this->println(value ? TRUE : FALSE);
 }
-#pragma endregion
 
-#pragma region Print void
 /**
  * @brief Print a newline
 */
-void Display::println(void)
+void Print::println(void)
 {
     this->println("\n");
 }
-#pragma endregion
-
-#pragma region Get length of string
-/**
- * @brief Get the length of a string
- * @param num String to get the length of
- * @param size Size of the string
- * @param base Base of the number
- * @return Length of the string
-*/
-uint Display::getStringLength(char num, uchar size, uchar base)
-{
-    return this->getStringLength((long)num, size, base);
-}
 
 /**
  * @brief Get the length of a string
@@ -485,73 +163,12 @@ uint Display::getStringLength(char num, uchar size, uchar base)
  * @param base Base of the number
  * @return Length of the string
 */
-uint Display::getStringLength(uchar num, uchar size, uchar base)
-{
-    return this->getStringLength((ulong)num, size, base);
-}
-
-/**
- * @brief Get the length of a string
- * @param num String to get the length of
- * @param size Size of the string
- * @param base Base of the number
- * @return Length of the string
-*/
-uint Display::getStringLength(int num, uchar size, uchar base)
-{
-    return this->getStringLength((long)num, size, base);
-}
-
-/**
- * @brief Get the length of a string
- * @param num String to get the length of
- * @param size Size of the string
- * @param base Base of the number
- * @return Length of the string
-*/
-uint Display::getStringLength(uint num, uchar size, uchar base)
-{
-    return this->getStringLength((ulong)num, size, base);
-}
-
-/**
- * @brief Get the length of a string
- * @param num String to get the length of
- * @param size Size of the string
- * @param base Base of the number
- * @return Length of the string
-*/
-uint Display::getStringLength(short num, uchar size, uchar base)
-{
-    return this->getStringLength((long)num, size, base);
-}
-
-/**
- * @brief Get the length of a string
- * @param num String to get the length of
- * @param size Size of the string
- * @param base Base of the number
- * @return Length of the string
-*/
-uint Display::getStringLength(ushort num, uchar size, uchar base)
-{
-    return this->getStringLength((ulong)num, size, base);
-}
-
-/**
- * @brief Get the length of a string
- * @param num String to get the length of
- * @param size Size of the string
- * @param base Base of the number
- * @return Length of the string
-*/
-uint Display::getStringLength(long num, uchar size, uchar base)
+unsigned int Print::getStringLength(long num, number_base_t base)
 {
     // convert the number to a string
     char buffer[CHARACTER_BUFFER_SIZE];    // largest number a long can represent is 9 223 372 036 854 775 807
     itoa(num, buffer, base);
-    uint len = strlen(buffer);
-    return (len * size * FONT_WIDTH);
+    return this->getPixelWidth(buffer, strlen(buffer));
 }
 
 /**
@@ -561,13 +178,12 @@ uint Display::getStringLength(long num, uchar size, uchar base)
  * @param base Base of the number
  * @return Length of the string
 */
-uint Display::getStringLength(ulong num, uchar size, uchar base)
+unsigned int Print::getStringLength(unsigned long num, number_base_t base)
 {
     // convert the number to a string
     char buffer[CHARACTER_BUFFER_SIZE];    // largest number a long can represent is 9 223 372 036 854 775 807
     itoa(num, buffer, base);
-    uint len = strlen(buffer);
-    return (len * size * FONT_WIDTH);
+    return this->getPixelWidth(buffer, strlen(buffer));
 }
 
 /**
@@ -578,13 +194,12 @@ uint Display::getStringLength(ulong num, uchar size, uchar base)
  * @param base Base of the number
  * @return Length of the string
 */
-uint Display::getStringLength(double num, uchar precision, uchar size)
+unsigned int Print::getStringLength(double num, unsigned char precision)
 {
     // convert the number to a string
     char buffer[CHARACTER_BUFFER_SIZE];    // largest number a long can represent is 9 223 372 036 854 775 807
     floatToString(num, buffer, precision);
-    uint len = strlen(buffer);
-    return (len * size * FONT_WIDTH);
+    return this->getPixelWidth(buffer, strlen(buffer));
 }
 
 /**
@@ -593,9 +208,9 @@ uint Display::getStringLength(double num, uchar precision, uchar size)
  * @param size Size of the string
  * @return Length of the string
 */
-uint Display::getStringLength(const char* text, uchar size)
+unsigned int Print::getStringLength(const char* text)
 {
-    return (strlen(text) * size * FONT_WIDTH);
+    return this->getPixelWidth(text, strlen(text));
 }
 
 /**
@@ -604,16 +219,14 @@ uint Display::getStringLength(const char* text, uchar size)
  * @param size Size of the string
  * @return Length of the string
 */
-uint Display::getStringLength(bool value, uchar size)
+unsigned int Print::getStringLength(bool value)
 {
     if(value)
-        return (strlen(TRUE) * size * FONT_WIDTH);
+        return this->getPixelWidth(TRUE, strlen(TRUE));
     else
-        return (strlen(FALSE) * size * FONT_WIDTH);
+        return this->getPixelWidth(FALSE, strlen(FALSE));
 }
-#pragma endregion
 
-#pragma region Convert float to string
 /**
  * @private
  * @brief Convert float to string
@@ -621,7 +234,7 @@ uint Display::getStringLength(bool value, uchar size)
  * @param buffer Buffer to write to
  * @param precision Precision of the value
 */
-void Display::floatToString(double num, char* buffer, uint precision)
+void Print::floatToString(double num, char* buffer, unsigned int precision)
 {
     // if precision is 0, just return the integer part
     if(precision == 0)
@@ -639,7 +252,7 @@ void Display::floatToString(double num, char* buffer, uint precision)
 
 	// round the number to the precision
 	double rounding = 0.5;
-	for(uchar i = 0; i < (precision + 1); ++i)
+	for(unsigned char i = 0; i < (precision + 1); ++i)
 		rounding /= 10.0;
 	num += rounding;
 
@@ -648,7 +261,7 @@ void Display::floatToString(double num, char* buffer, uint precision)
 	double remainder = num - (double)integer;
 
     // store the number of integers for fast reversing later
-    uint integers = 0;
+    unsigned int integers = 0;
     // loop until the integer is 0 at least once
     do
     {
@@ -676,7 +289,7 @@ void Display::floatToString(double num, char* buffer, uint precision)
 	}
 }
 
-void Display::reverse(char* buffer, uint length)
+void Print::reverse(char* buffer, unsigned int length)
 {
     for(int i = 0; i < length/2; i++) {
         char temp = *(buffer + i);
@@ -684,9 +297,7 @@ void Display::reverse(char* buffer, uint length)
         *(buffer + length - i - 1) = temp;
     }
 }
-#pragma endregion
 
-#pragma region Write Ascii to display
 /**
  * @private
  * @brief Draw an ascii character on the display
@@ -694,71 +305,121 @@ void Display::reverse(char* buffer, uint length)
  * @param Point Point to draw at
  * @param size Text size
  * @param color Color to draw the character
- * @return Width of the character
 */
-uint Display::drawAscii(const char character, Point point, uint size, Color color)
+void Print::drawAscii(const char character)
 {
-    // get the relevant bitmap data which is indexed according to the ascii table
-    const uint* bitmap = FONT(character);
-
-    // if the bitmap is a null pointer, return
-    if (bitmap == nullptr)
-        return 0;
-
-    // check if size is 0
-    if (size == 0)
-        size = 1;
-
-    // make sure the font size will not overflow the buffer
-    if((FONT_WIDTH * FONT_HEIGHT) * size > sizeof(this->frameBuffer))
-        return 0;
-
-    uint bufferPosition = point.x + (point.y * this->params.width);
-    uint rowPosition = 0;
-    uint columnPosition = 0;
-    uint rowSize = FONT_WIDTH * size;
-
-    // copy the column to the buffer
-    memcpy(&this->frameBufferColumn, this->frameBuffer + bufferPosition + (columnPosition * this->params.width), rowSize * sizeof(unsigned short));
+    // check if the font is a null pointer
+    if(this->font == nullptr)
+        return;
     
-    // loop through the bitmap data
-    this->setCursor(point);
-    for(int j = 0; j < FONT_DATA; j++)
+    // get the bitmap data
+    const unsigned int* bitmap = this->font->bitmap;
+    // get the character
+    FontCharacter charData = this->font->characters[character - 0x20];
+
+    // if the bitmap is a null pointer or overflows the frame buffer, return 0
+    if (!((bitmap != nullptr) && ((charData.width * charData.height) < this->totalPixels)))
+        return;
+
+    // handle edge cases
+    if(character == 0x20) // space
     {
-        // get the current data
-        uint data = bitmap[j] * size;
+        // move the cursor by the width of the character
+        this->cursor += charData.width;
+        return;
+    }
+    else if(character == 0x0A) // new line
+    {
+        // move the cursor to the next line
+        this->cursor += (this->width - (this->cursor % this->width)) + this->width * this->font->newLineDistance;
+        return;
+    }
+    else if(character == 0x0D) // carriage return
+    {
+        // move the cursor to the beginning of the line
+        this->cursor -= (this->cursor % this->width);
+        return;
+    }
+    else if (character == 0x09) // tab
+    {
+        // move the cursor by the width of the character
+        this->cursor += (charData.width * 4);
+        return;
+    }
 
-        // if the current data is 0, we have completed our loop
-        if (data == 0)
-            break;
+    // get our current framebuffer pointer location
+    unsigned int bufferPosition = this->cursor;
+    // calculate the row size
+    unsigned int rowSize = charData.width;
 
-        for(int i = 0; i < data; i++)
+    // make sure the character is not placed off screen in the x direction, if so, move the character to the next line
+    if (((bufferPosition % this->width) + charData.width) > this->width)
+    {
+        // move the cursor to the next line
+        bufferPosition += (this->width - (this->cursor % this->width)) + this->width * this->font->newLineDistance;
+    }
+    // make sure the character is not placed off screen in the y direction, if so, return to the top
+    if (((bufferPosition / this->width) + charData.height) > this->height)
+    {
+        // move the cursor to the top of the screen
+        bufferPosition = 0;
+    }
+
+    // move the cursor by the y offset
+    bufferPosition += charData.yOffset * this->width;
+    // keep track of the current row position
+    unsigned int rowPosition = 0;
+
+    // loop constraints
+    unsigned int loopEnd = charData.length - charData.pointer;
+
+    // loop through the bitmap data
+    for (int j = 0; j < loopEnd; j++)
+    {
+        // get the distance to move the cursor
+        unsigned int data = bitmap[j + charData.pointer];
+
+        // move the pointer by the number of pixels as defined by the distance
+        for (int i = 0; i < data; i++)
         {
-            if(j & 0x1)
-                this->frameBufferColumn[rowPosition++] = color.to16bit();
-            else
-                rowPosition++;
+            // every other distance should be drawn, the first distance is always the number of pixels to skip
+            if (j & 0x1) this->frameBuffer[rowPosition + bufferPosition] = this->color;
 
-            if(rowPosition == rowSize)
+            // increment the row position
+            rowPosition++;
+
+            // if the row position is equal to the row size, we have completed a row
+            if (rowPosition >= rowSize)
             {
-                // reset the row position
                 rowPosition = 0;
-
-                // copy the column to the buffer as many times as specified by the size
-                for(int j = 0; j < size; j++)
-                {
-                    // copy the column to the buffer
-                    memcpy(&this->frameBuffer[bufferPosition + (columnPosition * this->params.width)], this->frameBufferColumn, rowSize * sizeof(unsigned short));
-                    columnPosition++;
-                }
-
-                // reset the column
-                memcpy(&this->frameBufferColumn, this->frameBuffer + bufferPosition + (columnPosition * this->params.width), rowSize * sizeof(unsigned short));
+                bufferPosition += this->width;
             }
         }
     }
 
-    // return the character width
-    return FONT_WIDTH * size;
+    // set the cursor to the end of the character
+    this->cursor += rowSize;
 }
-#pragma endregion
+
+/**
+ * @private
+ * @brief Get the length of a string in pixels with the given font
+ * @param text String to get the length of
+ * @param size Size of the string
+ * @return Length of the string in pixels
+*/
+size_t Print::getPixelWidth(const char* text, size_t size)
+{
+    // store the number of pixels
+    size_t pixels = 0;
+
+    // loop through each character in the string
+    for(int i = 0; i < size; i++)
+    {
+        FontCharacter character = this->font->characters[text[i] - 0x20];
+        pixels += character.width;
+    }
+
+    // return the number of pixels
+    return pixels;
+}

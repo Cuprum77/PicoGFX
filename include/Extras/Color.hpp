@@ -1,8 +1,5 @@
 #pragma once
 
-#include "Structs.hpp"
-#include "Display.hpp"
-
 #define MAX_COLOR_DIFF 255
 
 /**

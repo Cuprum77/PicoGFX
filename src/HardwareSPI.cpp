@@ -2,35 +2,35 @@
 
 /**
  * @brief Construct a new HardwareSPI::HardwareSPI object
- * @param spi The SPI instance to use
- * @param baudrate The baudrate to use
- * @param dc Data/Command pin
- * @param cs Chip select pin
- * @param scl Clock pin
- * @param sda Data pin
- * @param interface Which interface to use, defaults to SPI
+ * @param pins The struct containing the pins to use
+ * @param params The struct containing the parameters to use
+ * @param spi The SPI bus to use, can be ignored if using DMA or PIO
+ * @note If SPI is in use, and the instance is not specified, spi0 will be used
 */
-HardwareSPI::HardwareSPI(SPI_Interface_t interface, uint8_t sda, uint8_t scl, uint8_t cs, uint8_t dc, spi_inst_t* spi, uint baudrate)
+HardwareSPI::HardwareSPI(Display_Pins pins, Display_Params params, spi_inst_t *spi)
 {
-    this->spi = spi;
-    this->baudrate = baudrate;
-    this->scl = scl;
-    this->sda = sda;
-    this->dc = dc;
-    this->cs = cs;
+    this->scl = pins.scl;
+    this->sda = pins.sda;
+    this->dc = pins.dc;
+    this->cs = pins.cs;
 
-    switch(interface)
+    switch(params.hw_interface)
     {
         case(SPI_Interface_t::DMA_HW):
-            this->interface = SPI_Interface_t::DMA_HW;
+            this->hw_interface = SPI_Interface_t::DMA_HW;
             this->initDMA();
             break;
         case(SPI_Interface_t::PIO_HW):
-            this->interface = SPI_Interface_t::PIO_HW;
+            this->hw_interface = SPI_Interface_t::PIO_HW;
             this->initPIO();
             break;
         default:
-            this->interface = SPI_Interface_t::SPI_HW;
+            if (spi == nullptr)
+                this->spi = spi0;
+            else
+                this->spi = spi;
+            
+            this->hw_interface = SPI_Interface_t::SPI_HW;
             this->initSPI();
             break;
     }
@@ -45,7 +45,7 @@ HardwareSPI::HardwareSPI(SPI_Interface_t interface, uint8_t sda, uint8_t scl, ui
 */
 void HardwareSPI::spi_write_data(uint8_t command, const uint8_t* data, size_t length)
 {
-    switch(interface)
+    switch(hw_interface)
     {
         case(SPI_Interface_t::PIO_HW):
             pio_spi_program_wait_idle(this->pio, this->sm);
@@ -84,7 +84,7 @@ void HardwareSPI::spi_write_data(uint8_t command, const uint8_t* data, size_t le
 */
 void HardwareSPI::spi_set_data_mode(uint8_t command)
 {
-    switch(interface)
+    switch(hw_interface)
     {
         case(SPI_Interface_t::PIO_HW):
             this->spi_write_data(command, nullptr, 0);
@@ -109,7 +109,7 @@ void HardwareSPI::spi_set_data_mode(uint8_t command)
 */
 void HardwareSPI::spi_write_pixels(const uint16_t* data, size_t length)
 {
-    switch(interface)
+    switch(hw_interface)
     {
         case(SPI_Interface_t::DMA_HW):
             dma_channel_configure(
@@ -141,7 +141,7 @@ void HardwareSPI::spi_write_pixels(const uint16_t* data, size_t length)
 */
 bool HardwareSPI::dma_busy(void)
 {
-    if(this->interface != SPI_Interface_t::DMA_HW)
+    if(this->hw_interface != SPI_Interface_t::DMA_HW)
         return false;
     
     return dma_channel_is_busy(this->dma_tx);
@@ -154,7 +154,7 @@ bool HardwareSPI::dma_busy(void)
 void HardwareSPI::initSPI(void)
 {
     // enable the SPI bus
-    spi_init(this->spi, this->baudrate);
+    spi_init(this->spi, SPI_BAUDRATE);
 
     // set the pins to SPI function
     gpio_set_function(this->sda, GPIO_FUNC_SPI);

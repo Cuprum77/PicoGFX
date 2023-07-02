@@ -1,66 +1,22 @@
 #include "AdvancedGraphics.hpp"
 
-/**
- * @brief Construct a new Advanced Graphics object
-*/
-AdvancedGraphics::AdvancedGraphics(spi_inst_t* spi, Display_Pins pins, 
-    Display_Params params, display_type_t type, bool dimming, SPI_Interface_t interface) : Display(spi, pins, params, type, dimming, interface)
-{
-    this->theta = 0;
-    this->fillLookupTables();
-}
-
-// create a global instance of the args struct
-volatile GradientArgs gradArgs;
-
 // create a global instance of the lookup tables
 int rLUT[MAX_COLOR_DIFF + 1];
 int gLUT[MAX_COLOR_DIFF + 1];
 int bLUT[MAX_COLOR_DIFF + 1];
 
-
 /**
- * @brief Calculate the frame buffer on the second core
+ * @brief Construct a new Advanced Graphics object
+ * @param frameBuffer Pointer to the frame buffer
+ * @param params Display parameters
 */
-void fillGradientCore1(void)
+AdvancedGraphics::AdvancedGraphics(unsigned short* frameBuffer, Display_Params params)
 {
-    while(1)
-    {
-        // Wait for core0 to signal that it's ready to start
-        uint32_t readySignal = multicore_fifo_pop_blocking();
-        if (readySignal != 1) tight_loop_contents();
-
-        // Loop through the specified range of pixels in the buffer
-        for(int i = gradArgs.startPixel; i < gradArgs.endPixel; i++) {
-            // calculate the position along the gradient direction
-            int x = i % gradArgs.params_width;
-            int y = i / gradArgs.params_width;
-
-            // calculate the vector from the start to the current pixel
-            int vectorX = x - gradArgs.start_X;
-            int vectorY = y - gradArgs.start_Y;
-
-            // calculate the distance along the gradient direction
-            int dotProduct = (vectorX * gradArgs.deltaX + vectorY * gradArgs.deltaY);
-            int position = (dotProduct * gradArgs.maxDiff) / gradArgs.magnitudeSquared;  // Scale position to 0-100 range
-
-            // clamp the position within the valid range
-            position = (position < 0) ? 0 : (position > gradArgs.maxDiff) ? gradArgs.maxDiff : position;
-
-            // get the interpolated color components from the lookup tables and create the color
-            Color color(
-                gradArgs.rLUT[position], 
-                gradArgs.gLUT[position], 
-                gradArgs.bLUT[position]
-            );
-
-            // draw the pixel
-            gradArgs.frameBuffer[i] = color.to16bit();
-        }
-
-        // push a value to the queue to signal that this core is finished
-        multicore_fifo_push_blocking(1);
-    }
+    this->frameBuffer = frameBuffer;
+    this->params = params;
+    this->totalPixels = params.width * params.height;
+    this->theta = 0;
+    this->fillLookupTables();
 }
 
 /**
@@ -73,12 +29,13 @@ void fillGradientCore1(void)
 */
 void AdvancedGraphics::fillGradient(Color startColor, Color endColor, Point start, Point end)
 {
-    // set the cursor to the start point
-    this->setCursor({0, 0});
     // check if the start and end Points are the same
     if(start == end)
     {
-        this->fill(startColor);
+        unsigned short startColor16 = startColor.to16bit();
+        for(int i = 0; i < this->totalPixels; i++)
+            this->frameBuffer[i] = startColor16;
+
         return;
     }
 
@@ -105,37 +62,8 @@ void AdvancedGraphics::fillGradient(Color startColor, Color endColor, Point star
         bLUT[i] = ((endColor.b - startColor.b) * i) / maxDiff + startColor.b;
     }
 
-    // calculate the midpoint of the buffer
-    int midpoint = this->totalPixels / 2;
-
-    // Set up the arguments for core1_fillGradient
-    gradArgs.frameBuffer = this->frameBuffer;
-    gradArgs.startPixel = midpoint;
-    gradArgs.endPixel = this->totalPixels;
-    gradArgs.params_width = this->params.width;
-    gradArgs.params_height = this->params.height;
-    gradArgs.deltaX = deltaX;
-    gradArgs.deltaY = deltaY;
-    gradArgs.magnitudeSquared = magnitudeSquared;
-    gradArgs.maxDiff = maxDiff;
-    gradArgs.start_X = start.X();
-    gradArgs.start_Y = start.Y();
-    gradArgs.rLUT = rLUT;
-    gradArgs.gLUT = gLUT;
-    gradArgs.bLUT = bLUT;
-
-    // Launch the second core if not already running
-    if(!this->secondCore)
-    {
-        multicore_launch_core1(fillGradientCore1);
-        this->secondCore = true;
-    }
-
-    // Signal to core1 that it should start
-    multicore_fifo_push_blocking(1);
-
     // loop through each pixel in the buffer
-    for(int i = 0; i < midpoint; i++)
+    for(int i = 0; i < this->totalPixels; i++)
     {
         // calculate the position along the gradient direction
         int x = i % this->params.width;
@@ -161,15 +89,6 @@ void AdvancedGraphics::fillGradient(Color startColor, Color endColor, Point star
 
         // draw the pixel
         this->frameBuffer[i] = color.to16bit();
-    }
-
-    // wait for the second core to finish
-    while (multicore_fifo_rvalid()) {
-        uint32_t finished_signal = multicore_fifo_pop_blocking();
-        if (finished_signal == 1) {
-            // the second core is finished
-            break;
-        }
     }
 }
 

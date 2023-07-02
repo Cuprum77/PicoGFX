@@ -23,7 +23,7 @@ void Display::ST7789_Init()
     sleep_ms(10);
 
     // madctl = memory access control
-    this->ST7789_SetRotation((displayRotation_t)this->params.rotation);
+    this->ST7789_SetRotation((displayRotation_t)this->params->rotation);
 
     // set the display to memory access control
     this->setCursor({0, 0});
@@ -39,8 +39,8 @@ void Display::ST7789_Init()
 
 void Display::ST7789_SetRotation(displayRotation_t rotation)
 {
-    uint width = this->params.width;
-	uint height = this->params.height;
+    uint width = this->params->width;
+	uint height = this->params->height;
     uint maxHeight = this->maxHeight;
     uint maxWidth = this->maxWidth;
 
@@ -48,30 +48,30 @@ void Display::ST7789_SetRotation(displayRotation_t rotation)
     {
         case displayRotation_t::DEG_90:
 			this->writeData(MADCTL, (uchar)(Display_MADCTL::MX | Display_MADCTL::MV | Display_MADCTL::RGB));
-			this->params.height = width;
-			this->params.width = height;
+			this->params->height = width;
+			this->params->width = height;
             this->maxHeight = maxWidth;
             this->maxWidth = maxHeight;
             break;
         case displayRotation_t::DEG_180:
 			this->writeData(MADCTL, (uchar)(Display_MADCTL::MX | Display_MADCTL::MY | Display_MADCTL::RGB));
-			this->params.height = height;
-			this->params.width = width;
+			this->params->height = height;
+			this->params->width = width;
             this->maxHeight = maxHeight;
             this->maxWidth = maxWidth;
             break;
         case displayRotation_t::DEG_270:
 			this->writeData(MADCTL, (uchar)(Display_MADCTL::MV | Display_MADCTL::MY | Display_MADCTL::RGB));
-			this->params.height = width;
-			this->params.width = height;
+			this->params->height = width;
+			this->params->width = height;
             this->maxHeight = maxWidth;
             this->maxWidth = maxHeight;
             break;
         case displayRotation_t::DEG_0:
         default:
             this->writeData(MADCTL, (uchar)Display_MADCTL::RGB);
-			this->params.height = height;
-			this->params.width = width;
+			this->params->height = height;
+			this->params->width = width;
             this->maxHeight = maxHeight;
             this->maxWidth = maxWidth;
             break;

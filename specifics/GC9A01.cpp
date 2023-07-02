@@ -32,7 +32,7 @@ void Display::GC9A01_Init()
 	this->writeData(0x8e, (const uint8_t *) "\xFF", 1);
 	this->writeData(0x8f, (const uint8_t *) "\xFF", 1);
 	this->writeData(0xb6, (const uint8_t *) "\x00\x00", 2);
-	this->GC9A01_SetRotation((displayRotation_t)this->params.rotation);
+	this->GC9A01_SetRotation((displayRotation_t)this->params->rotation);
 	this->writeData(0x3a, (const uint8_t *) "\x55", 1);
 	this->writeData(0x90, (const uint8_t *) "\x08\x08\x08\x08", 4);
 	this->writeData(0xbd, (const uint8_t *) "\x06", 1);
@@ -78,17 +78,17 @@ void Display::GC9A01_SoftReset()
 void Display::GC9A01_HardReset()
 {
 	// Hardware reset
-	gpio_put(this->pins.rst, 1);
+	gpio_put(this->pins->rst, 1);
 	sleep_ms(50);
-	gpio_put(this->pins.rst, 0);
+	gpio_put(this->pins->rst, 0);
 	sleep_ms(50);
-	gpio_put(this->pins.rst, 1);
+	gpio_put(this->pins->rst, 1);
 }
 
 void Display::GC9A01_SetRotation(displayRotation_t rotation)
 {
-	uint width = this->params.width;
-	uint height = this->params.height;
+	uint width = this->params->width;
+	uint height = this->params->height;
 	uint maxHeight = this->maxHeight;
 	uint maxWidth = this->maxWidth;
 
@@ -96,30 +96,30 @@ void Display::GC9A01_SetRotation(displayRotation_t rotation)
     {
         case displayRotation_t::DEG_90:
 			this->writeData(MADCTL, (uchar)(Display_MADCTL::MX | Display_MADCTL::MV | Display_MADCTL::RGB));
-			this->params.height = width;
-			this->params.width = height;
+			this->params->height = width;
+			this->params->width = height;
 			this->maxHeight = maxWidth;
 			this->maxWidth = maxHeight;
             break;
         case displayRotation_t::DEG_180:
 			this->writeData(MADCTL, (uchar)(Display_MADCTL::MY | Display_MADCTL::BGR));
-			this->params.height = height;
-			this->params.width = width;
+			this->params->height = height;
+			this->params->width = width;
 			this->maxHeight = maxHeight;
 			this->maxWidth = maxWidth;
             break;
         case displayRotation_t::DEG_270:
 			this->writeData(MADCTL, (uchar)(Display_MADCTL::MV | Display_MADCTL::MY | Display_MADCTL::BGR));
-			this->params.height = width;
-			this->params.width = height;
+			this->params->height = width;
+			this->params->width = height;
 			this->maxHeight = maxWidth;
 			this->maxWidth = maxHeight;
             break;
         case displayRotation_t::DEG_0:
         default:
             this->writeData(MADCTL, (uchar)Display_MADCTL::BGR | Display_MADCTL::MX);
-			this->params.height = height;
-			this->params.width = width;
+			this->params->height = height;
+			this->params->width = width;
 			this->maxHeight = maxHeight;
 			this->maxWidth = maxWidth;
             break;

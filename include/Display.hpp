@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <string.h>
 
 #include "pico/stdlib.h"
 #include "pico/divider.h"
@@ -16,27 +15,13 @@
 #include "Color.hpp"
 #include "Enums.hpp"
 
-#include "Font.h"
-
-
 // Typedefs
 #define ulong unsigned long
 #define uint unsigned int
 #define ushort unsigned short
 #define uchar unsigned char
 
-// Typedefs for number bases
-#define BIN 2
-#define OCT 8
-#define DEC 10
-#define HEX 16
-
-// SPI
-#define SPI_BAUDRATE 125000000  // 125 MHz
-
 // Constants
-#define CHARACTER_BUFFER_SIZE 128
-
 #define min(x, y) (((x) < (y)) ? (x) : (y))
 #define max(x, y) (((x) > (y)) ? (x) : (y))
 #define sq(x) ((x) * (x))
@@ -44,127 +29,49 @@
 #define ST7789_WIDTH 240
 #define ST7789_HEIGHT 320
 #define FRAMEBUFFER_SIZE (ST7789_WIDTH * ST7789_HEIGHT)
-// String behavior
-#define TAB_SIZE 4      // how many spaces a tab is worth
-#define FALSE "false"   // string representation of false
-#define TRUE "true"     // string representation of true
 
-enum display_type_t
-{
-    ST7789,
-    GC9A01
-};
-
-class Display : HardwareSPI
+class Display
 {
 public:
-    Display(spi_inst_t* spi, Display_Pins pins, Display_Params params, display_type_t type = ST7789, 
-        bool dimming = false, SPI_Interface_t interface = SPI_Interface_t::SPI_HW);
-    bool writeReady(void) { return !this->dma_busy(); }
-    void clear(void);
-    void fill(Color color);
-    void writeBuffer(void);
-    Color getFillColor(void);
-    void drawPixel(Point point, Color color);
+    Display(HardwareSPI* spi, Display_Pins* pins, Display_Params* params);
+    bool writeReady(void) { return !this->spi->dma_busy(); }
+    void setBrightness(unsigned char brightness);
+    void setRotation(displayRotation_t rotation);
     void displayOn(void);
     void displayOff(void);
+    void clear(void);
+    void fill(Color color);
+    Color getFillColor(void);
+
+    void update(void);
+    void setPixel(Point point, Color color);
+    void setPixel(uint point, ushort color);
+    Color getPixel(Point point);
+    ushort getPixel(uint point);
+    size_t getBufferSize(void);
+
     void setCursor(Point point);
     Point getCursor(void);
     Point getCenter(void);
-    uint getWidth(void) { return this->params.width; }
-    uint getHeight(void)  { return this->params.height; }
-    void setRotation(displayRotation_t rotation);
-    void setBrightness(unsigned char brightness);
-    void setTearing(bool enable);
 
-    void fillGradientCool(Color startColor, Color endColor, Point start, Point end);
-    void drawLine(Point start, Point end, Color color = Colors::White);
-    void drawRectangle(Point start, Point end, Color color = Colors::White);
-    void drawRectangle(Rectangle rect, Color color = Colors::White);
-    void drawRectangle(Point center, uint width, uint height, Color color = Colors::White);
-    void drawFilledRectangle(Point start, Point end, Color color = Colors::White);
-    void drawCircle(Point center, uint radius, Color color = Colors::White);
-    void drawFilledCircle(Point center, uint radius, Color color = Colors::White);
-    void drawArc(Point center, uint radius, uint start_angle, uint end_angle, Color color = Colors::White);
-    void drawFilledArc(Point center, uint radius, uint start_angle, uint end_angle, uint outer_radius, uint inner_radius, Color color = Colors::White);
+    uint getWidth(void) { return this->params->width; }
+    uint getHeight(void)  { return this->params->height; }
+    ushort* getFrameBuffer(void) { return this->frameBuffer; }
 
-    void drawBitmap(const unsigned char* bitmap, uint width, uint height);
-    void drawBitmap(const unsigned short* bitmap, uint width, uint height);
-    void drawBitmap(Color* bitmap, uint width, uint height);
-
-    void write(char c, uchar size = 1, uchar base = DEC);
-    
-    void print(char num, Color color, uchar size = 1, uchar base = DEC);
-    void print(uchar c, uchar size = 1, uchar base = DEC);
-    void print(uchar num, Color color, uchar size = 1, uchar base = DEC);
-    void print(short num, uchar size = 1, uchar base = DEC);
-    void print(short num, Color color, uchar size = 1, uchar base = DEC);
-    void print(ushort num, uchar size = 1, uchar base = DEC);
-    void print(ushort num, Color color, uchar size = 1, uchar base = DEC);
-    void print(int num, uchar size = 1, uchar base = DEC);
-    void print(int num, Color color, uchar size = 1, uchar base = DEC);
-    void print(uint num, uchar size = 1, uchar base = DEC);
-    void print(uint num, Color color, uchar size = 1, uchar base = DEC);
-    void print(long num, uchar size = 1, uchar base = DEC);
-    void print(long num, Color color, uchar size = 1, uchar base = DEC);
-    void print(ulong num, uchar size = 1, uchar base = DEC);
-    void print(ulong num, Color color, uchar size = 1, uchar base = DEC);
-    void print(double num, uint precision = 2, uchar size = 1);
-    void print(double num, Color color, uint precision = 2, uchar size = 1);
-    void print(const char* text, uchar size = 1);
-    void print(const char* text, Color color, uchar size = 1);
-    void print(bool value, uchar size = 1);
-    
-    void println(char c, uchar size = 1, uchar base = DEC);
-    void println(char num, Color color, uchar size = 1, uchar base = DEC);
-    void println(uchar c, uchar size = 1, uchar base = DEC);
-    void println(uchar num, Color color, uchar size = 1, uchar base = DEC);
-    void println(int num, uchar size = 1, uchar base = DEC);
-    void println(int num, Color color, uchar size = 1, uchar base = DEC);
-    void println(uint num, uchar size = 1, uchar base = DEC);
-    void println(uint num, Color color, uchar size = 1, uchar base = DEC);
-    void println(short num, uchar size = 1, uchar base = DEC);
-    void println(short num, Color color, uchar size = 1, uchar base = DEC);
-    void println(ushort num, uchar size = 1, uchar base = DEC);
-    void println(ushort num, Color color, uchar size = 1, uchar base = DEC);
-    void println(long num, uchar size = 1, uchar base = DEC);
-    void println(long num, Color color, uchar size = 1, uchar base = DEC);
-    void println(ulong num, uchar size = 1, uchar base = DEC);
-    void println(ulong num, Color color, uchar size = 1, uchar base = DEC);
-    void println(double num, uint precision = 2, uchar size = 1);
-    void println(double num, Color color, uint precision = 2, uchar size = 1);
-    void println(const char* text, uchar size = 1);
-    void println(const char* text, Color color, uchar size = 1);
-    void println(bool value, uchar size = 1);
-    void println(void);
-
-    uint getStringLength(char num, uchar size = 1, uchar base = DEC);
-    uint getStringLength(uchar num, uchar size = 1, uchar base = DEC);
-    uint getStringLength(int num, uchar size = 1, uchar base = DEC);
-    uint getStringLength(uint num, uchar size = 1, uchar base = DEC);
-    uint getStringLength(short num, uchar size = 1, uchar base = DEC);
-    uint getStringLength(ushort num, uchar size = 1, uchar base = DEC);
-    uint getStringLength(long num, uchar size = 1, uchar base = DEC);
-    uint getStringLength(ulong num, uchar size = 1, uchar base = DEC);
-    uint getStringLength(double num, uchar precision = 2, uchar size = 1);
-    uint getStringLength(const char* text, uchar size = 1);
-    uint getStringLength(bool value, uchar size = 1);
 protected:
-    spi_inst_t* spi;
-    Display_Pins pins;
-    Display_Params params;
+    HardwareSPI* spi;
+    Display_Pins* pins;
+    Display_Params* params;
     bool dimmingEnabled = false;
     uint sliceNum;
     uint pwmChannel;
     bool dataMode = false;
-    ushort frameBufferColumn[ST7789_WIDTH + 1];
     ushort frameBuffer[FRAMEBUFFER_SIZE + 1];
     Color fillColor;
     Point cursor = {0, 0};
     bool backlight;
     display_type_t type;
     bool BGR = false;
-    bool secondCore = false;
     uint maxWidth;
     uint maxHeight;
     uint totalPixels;
@@ -187,8 +94,4 @@ protected:
     inline void columnAddressSet(uint x0, uint x1);
     inline void rowAddressSet(uint y0, uint y1);
     void writePixels(const unsigned short* data, size_t length);
-
-    uint drawAscii(const char c, Point Point, uint size, Color color);
-    void floatToString(double num, char* buffer, uint precision);
-    void reverse(char* str, uint length);
 };
