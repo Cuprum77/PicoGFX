@@ -48,7 +48,7 @@ void AdvancedGraphics::fillGradient(Color startColor, Color endColor, Point star
     int dr = abs(endColor.r - startColor.r);
     int dg = abs(endColor.g - startColor.g);
     int db = abs(endColor.b - startColor.b);
-    int maxDiff = std::max(dr, std::max(dg, db));
+    int maxDiff = max(dr, max(dg, db));
 
     // create the lookup tables based on the maximum difference
     int numPositions = maxDiff + 1;

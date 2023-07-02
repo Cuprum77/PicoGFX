@@ -4,6 +4,7 @@
 #include "Structs.hpp"
 #include <string.h>
 #include "FontStruct.h"
+#include <stdlib.h>
 
 // String behavior
 #define CHARACTER_BUFFER_SIZE 128

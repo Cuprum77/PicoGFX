@@ -3,9 +3,14 @@
 #include "Color.hpp"
 #include "Structs.hpp"
 
+// Preprocessor definitions
 #define numAngles 3600  // decides how many angles to precompute, additional zeroes for more precision
-#define halfNumAngles 1800 // half of numAngles, this has to be exactly half and precomputed to speed up calculations
+#define halfNumAngles 1800 // half of numAngles, this has to be exactly half of numAngles
 #define PI 3.1415926535897932384626433832795028841971693993751058209749445923078164062
+
+// Macros
+#define min(x, y) (((x) < (y)) ? (x) : (y))
+#define max(x, y) (((x) > (y)) ? (x) : (y))
 
 class AdvancedGraphics
 {
