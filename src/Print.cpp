@@ -408,10 +408,10 @@ void Print::drawAscii(const char character)
  * @param size Size of the string
  * @return Length of the string in pixels
 */
-unsigned int Print::getPixelWidth(const char* text, unsigned int size)
+size_t Print::getPixelWidth(const char* text, size_t size)
 {
     // store the number of pixels
-    unsigned int pixels = 0;
+    size_t pixels = 0;
 
     // loop through each character in the string
     for(int i = 0; i < size; i++)
