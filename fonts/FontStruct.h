@@ -1,15 +1,24 @@
 
 #pragma once
 
-// Estimated total memory usage: 532380 bytes
+// Estimated total memory usage: 62948 bytes
 
-// Declare a function pointer type
-typedef const unsigned int* (*FontBitmapFunctionType)(const char);
+// Struct for storing the location of the bitmap in memory
+// Offset is the number of pixels from the upper left corner
+typedef struct {
+    unsigned int pointer;
+    unsigned int length;
+    unsigned char width;
+    unsigned char height;
+    signed char xOffset;
+    signed char yOffset;
+} FontCharacter;
+
 
 // Struct for storing the font data
 typedef struct {
-    FontBitmapFunctionType function;
+    const unsigned int *bitmap;
+    const FontCharacter *characters;
     unsigned int size;
-    unsigned int width;
-    unsigned int height;
+    unsigned int newLineDistance;
 } FontStruct;

@@ -26,8 +26,9 @@ public:
     Print(unsigned short* frameBuffer, Display_Params params);
     void setColor(Color color) { this->color = color.to16bit(); }
     Color getColor(void) { return Color(this->color); }
-    void setCursor(Point point) { this->cursor = (unsigned int)(point.x) + (unsigned int)(point.y * this->params.width); }
-    Point getCursor(void) { return {(unsigned int)(this->cursor % this->params.width), (unsigned int)(this->cursor / this->params.width)}; }
+    void setCursor(Point point) { this->cursor = (unsigned int)(point.x) + (unsigned int)(point.y * this->width); }
+    void moveCursor(Point point) { this->cursor += (unsigned int)(point.x) + (unsigned int)(point.y * this->width); }
+    Point getCursor(void) { return {(unsigned int)(this->cursor % this->width), (unsigned int)(this->cursor / this->width)}; }
     void setFont(FontStruct* font);
 
     void write(char c, number_base_t base = number_base_t::DEC) { this->print((long)c, base); }
@@ -68,7 +69,8 @@ public:
     unsigned int getStringLength(bool value);
 private:
     unsigned short* frameBuffer;
-    Display_Params params;
+    unsigned int width;
+    unsigned int height;
     size_t totalPixels;
     unsigned long cursor;
     unsigned short color;
@@ -77,4 +79,5 @@ private:
     void drawAscii(const char c);
     void floatToString(double num, char* buffer, unsigned int precision);
     void reverse(char* str, unsigned int length);
+    unsigned int getPixelWidth(const char* text, size_t length);
 };

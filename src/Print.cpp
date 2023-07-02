@@ -7,8 +7,11 @@
 Print::Print(unsigned short* frameBuffer, Display_Params params)
 {
     this->frameBuffer = frameBuffer;
-    this->params = params;
+    this->width = params.width;
+    this->height = params.height;
     this->totalPixels = params.width * params.height;
+    this->color = Colors::White;
+    this->font = nullptr;
 }
 
 /**
@@ -73,36 +76,10 @@ void Print::print(const char* text)
 {
     // get the length of the text
     unsigned int length = strlen(text);
-    unsigned int x = this->cursor % this->params.width;
-    unsigned int y = this->cursor / this->params.width;
 
     // loop through the text
     for(int i = 0; i < length; i++)
     {
-        // if the text is a new line, move the text to the next line
-        if (text[i] == '\n')
-        {
-            this->cursor = this->cursor - (this->cursor % this->params.width) + this->params.width * (this->font->height );
-            continue;
-        }
-        // if the text is a tab move the text to the next tab stop
-        else if (text[i] == '\t')
-        {
-            this->cursor += this->font->width * TAB_SIZE;
-            continue;
-        }
-        // check if the text is going to go off the screen by checking the future x Point with the width of the screen
-        else if ((x + this->font->width ) > this->params.width)
-        {
-            // move the text to the next line
-            this->cursor = this->cursor - (this->cursor % this->params.width) + this->params.width * (this->font->height );
-        }
-        // if we overflowed the screen, begin from the top again
-        if ((y + this->font->height ) > this->params.height)
-        {
-            this->cursor = 0;
-        }
-
         // draw the character
         this->drawAscii(text[i]);
     }
@@ -191,8 +168,7 @@ unsigned int Print::getStringLength(long num, number_base_t base)
     // convert the number to a string
     char buffer[CHARACTER_BUFFER_SIZE];    // largest number a long can represent is 9 223 372 036 854 775 807
     itoa(num, buffer, base);
-    unsigned int len = strlen(buffer);
-    return (len  * this->font->width);
+    return this->getPixelWidth(buffer, strlen(buffer));
 }
 
 /**
@@ -207,8 +183,7 @@ unsigned int Print::getStringLength(unsigned long num, number_base_t base)
     // convert the number to a string
     char buffer[CHARACTER_BUFFER_SIZE];    // largest number a long can represent is 9 223 372 036 854 775 807
     itoa(num, buffer, base);
-    unsigned int len = strlen(buffer);
-    return (len  * this->font->width);
+    return this->getPixelWidth(buffer, strlen(buffer));
 }
 
 /**
@@ -224,8 +199,7 @@ unsigned int Print::getStringLength(double num, unsigned char precision)
     // convert the number to a string
     char buffer[CHARACTER_BUFFER_SIZE];    // largest number a long can represent is 9 223 372 036 854 775 807
     floatToString(num, buffer, precision);
-    unsigned int len = strlen(buffer);
-    return (len  * this->font->width);
+    return this->getPixelWidth(buffer, strlen(buffer));
 }
 
 /**
@@ -236,7 +210,7 @@ unsigned int Print::getStringLength(double num, unsigned char precision)
 */
 unsigned int Print::getStringLength(const char* text)
 {
-    return (strlen(text)  * this->font->width);
+    return this->getPixelWidth(text, strlen(text));
 }
 
 /**
@@ -248,9 +222,9 @@ unsigned int Print::getStringLength(const char* text)
 unsigned int Print::getStringLength(bool value)
 {
     if(value)
-        return (strlen(TRUE)  * this->font->width);
+        return this->getPixelWidth(TRUE, strlen(TRUE));
     else
-        return (strlen(FALSE)  * this->font->width);
+        return this->getPixelWidth(FALSE, strlen(FALSE));
 }
 
 /**
@@ -334,32 +308,81 @@ void Print::reverse(char* buffer, unsigned int length)
 */
 void Print::drawAscii(const char character)
 {
-    // get the relevant bitmap data which is indexed according to the ascii table
-    const unsigned int* bitmap = this->font->function(character);
+    // check if the font is a null pointer
+    if(this->font == nullptr)
+        return;
+    
+    // get the bitmap data
+    const unsigned int* bitmap = this->font->bitmap;
+    // get the character
+    FontCharacter charData = this->font->characters[character - 0x20];
 
     // if the bitmap is a null pointer or overflows the frame buffer, return 0
-    if (bitmap == nullptr || ((this->font->width * this->font->height)  > this->totalPixels))
+    if (!((bitmap != nullptr) && ((charData.width * charData.height) < this->totalPixels)))
         return;
+
+    // handle edge cases
+    if(character == 0x20) // space
+    {
+        // move the cursor by the width of the character
+        this->cursor += charData.width;
+        return;
+    }
+    else if(character == 0x0A) // new line
+    {
+        // move the cursor to the next line
+        this->cursor += (this->width - (this->cursor % this->width)) + this->width * this->font->newLineDistance;
+        return;
+    }
+    else if(character == 0x0D) // carriage return
+    {
+        // move the cursor to the beginning of the line
+        this->cursor -= (this->cursor % this->width);
+        return;
+    }
+    else if (character == 0x09) // tab
+    {
+        // move the cursor by the width of the character
+        this->cursor += (charData.width * 4);
+        return;
+    }
 
     // get our current framebuffer pointer location
     unsigned int bufferPosition = this->cursor;
+    // calculate the row size
+    unsigned int rowSize = charData.width;
+
+    // make sure the character is not placed off screen in the x direction, if so, move the character to the next line
+    if (((bufferPosition % this->width) + charData.width) > this->width)
+    {
+        // move the cursor to the next line
+        bufferPosition += (this->width - (this->cursor % this->width)) + this->width * this->font->newLineDistance;
+    }
+    // make sure the character is not placed off screen in the y direction, if so, return to the top
+    if (((bufferPosition / this->width) + charData.height) > this->height)
+    {
+        // move the cursor to the top of the screen
+        bufferPosition = 0;
+    }
+
+    // move the cursor by the y offset
+    bufferPosition += charData.yOffset * this->width;
     // keep track of the current row position
     unsigned int rowPosition = 0;
-    // calculate the row size
-    unsigned int rowSize = this->font->width ;
+
+    // loop constraints
+    unsigned int loopEnd = charData.length - charData.pointer;
 
     // loop through the bitmap data
-    for (int j = 0; j < this->font->size; j++)
+    for (int j = 0; j < loopEnd; j++)
     {
-        // get the current data, and multiply it by the size to get the number of pixels to draw
-        unsigned int data = bitmap[j] ;
-        // if the current data is 0, we have completed our loop
-        if (data == 0) break;
+        // get the distance to move the cursor
+        unsigned int data = bitmap[j + charData.pointer];
 
-        // loop through the data
+        // move the pointer by the number of pixels as defined by the distance
         for (int i = 0; i < data; i++)
         {
-            // if the index is odd, draw a pixel
+            // every other distance should be drawn, the first distance is always the number of pixels to skip
             if (j & 0x1) this->frameBuffer[rowPosition + bufferPosition] = this->color;
 
             // increment the row position
@@ -369,11 +392,34 @@ void Print::drawAscii(const char character)
             if (rowPosition >= rowSize)
             {
                 rowPosition = 0;
-                bufferPosition += this->params.width;
+                bufferPosition += this->width;
             }
         }
     }
 
     // set the cursor to the end of the character
     this->cursor += rowSize;
+}
+
+/**
+ * @private
+ * @brief Get the length of a string in pixels with the given font
+ * @param text String to get the length of
+ * @param size Size of the string
+ * @return Length of the string in pixels
+*/
+unsigned int Print::getPixelWidth(const char* text, unsigned int size)
+{
+    // store the number of pixels
+    unsigned int pixels = 0;
+
+    // loop through each character in the string
+    for(int i = 0; i < size; i++)
+    {
+        FontCharacter character = this->font->characters[text[i] - 0x20];
+        pixels += character.width;
+    }
+
+    // return the number of pixels
+    return pixels;
 }
