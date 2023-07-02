@@ -14,14 +14,14 @@ HardwareSPI::HardwareSPI(Display_Pins pins, Display_Params params, spi_inst_t *s
     this->dc = pins.dc;
     this->cs = pins.cs;
 
-    switch(params.interface)
+    switch(params.hw_interface)
     {
         case(SPI_Interface_t::DMA_HW):
-            this->interface = SPI_Interface_t::DMA_HW;
+            this->hw_interface = SPI_Interface_t::DMA_HW;
             this->initDMA();
             break;
         case(SPI_Interface_t::PIO_HW):
-            this->interface = SPI_Interface_t::PIO_HW;
+            this->hw_interface = SPI_Interface_t::PIO_HW;
             this->initPIO();
             break;
         default:
@@ -30,7 +30,7 @@ HardwareSPI::HardwareSPI(Display_Pins pins, Display_Params params, spi_inst_t *s
             else
                 this->spi = spi;
             
-            this->interface = SPI_Interface_t::SPI_HW;
+            this->hw_interface = SPI_Interface_t::SPI_HW;
             this->initSPI();
             break;
     }
@@ -45,7 +45,7 @@ HardwareSPI::HardwareSPI(Display_Pins pins, Display_Params params, spi_inst_t *s
 */
 void HardwareSPI::spi_write_data(uint8_t command, const uint8_t* data, size_t length)
 {
-    switch(interface)
+    switch(hw_interface)
     {
         case(SPI_Interface_t::PIO_HW):
             pio_spi_program_wait_idle(this->pio, this->sm);
@@ -84,7 +84,7 @@ void HardwareSPI::spi_write_data(uint8_t command, const uint8_t* data, size_t le
 */
 void HardwareSPI::spi_set_data_mode(uint8_t command)
 {
-    switch(interface)
+    switch(hw_interface)
     {
         case(SPI_Interface_t::PIO_HW):
             this->spi_write_data(command, nullptr, 0);
@@ -109,7 +109,7 @@ void HardwareSPI::spi_set_data_mode(uint8_t command)
 */
 void HardwareSPI::spi_write_pixels(const uint16_t* data, size_t length)
 {
-    switch(interface)
+    switch(hw_interface)
     {
         case(SPI_Interface_t::DMA_HW):
             dma_channel_configure(
@@ -141,7 +141,7 @@ void HardwareSPI::spi_write_pixels(const uint16_t* data, size_t length)
 */
 bool HardwareSPI::dma_busy(void)
 {
-    if(this->interface != SPI_Interface_t::DMA_HW)
+    if(this->hw_interface != SPI_Interface_t::DMA_HW)
         return false;
     
     return dma_channel_is_busy(this->dma_tx);

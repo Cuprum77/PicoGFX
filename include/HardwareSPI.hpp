@@ -35,7 +35,7 @@ public:
 
 private:
     // general stuff
-    SPI_Interface_t interface;
+    SPI_Interface_t hw_interface;
 
     // spi stuff
     spi_inst_t* spi;
