@@ -17,6 +17,7 @@ extern "C"
 extern int cosTable[NUMBER_OF_ANGLES];
 extern int sinTable[NUMBER_OF_ANGLES];
 extern int tanTable[NUMBER_OF_ANGLES];
+extern int atanTable[NUMBER_OF_ANGLES];
 
 extern int imin(int x, int y);
 extern int imax(int x, int y);
@@ -26,6 +27,7 @@ extern unsigned int ipow(unsigned int x, unsigned int y);
 extern unsigned int ifactorial(unsigned int x);
 
 extern void fillLookupTables();
+extern void pointOnCircle(unsigned int radius, unsigned int angle, int offsetX, int offsetY, unsigned int* x, unsigned int* y);
 
 #ifdef __cplusplus
 }

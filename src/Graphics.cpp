@@ -70,7 +70,6 @@ void Graphics::fillGradientCool(Color startColor, Color endColor, Point start, P
  * @param start Start Point
  * @param end End Point
  * @param color Color to draw in
- * @param thickness Thickness of the line
 */
 void Graphics::drawLine(Point start, Point end, Color color)
 {
@@ -118,6 +117,62 @@ void Graphics::drawLine(Point start, Point end, Color color)
             // increment the y Point
             error += dx;
             y0 += sy;
+        }
+    }
+}
+
+/**
+ * @brief Draw a line on the display that expands in thickness
+ * @param start Start Point
+ * @param end End Point
+ * @param startThickness Thickness at the start point
+ * @param endThickness Thickness at the end point
+ * @param color Color to draw in
+*/
+void Graphics::drawExpandingLine(Point start, Point end, unsigned int startThickness, unsigned int endThickness, Color color)
+{
+	printf("Start: %d, %d | End: %d, %d | Thicc Start: %d | Thicc End: %d |", start.x, start.y, end.x, end.y, startThickness, endThickness);
+
+    // Calculate the length and angle of the line
+    int dx = end.x - start.x;
+    int dy = end.y - start.y;
+    unsigned int length = isqrt(dx * dx + dy * dy); // integer square root
+    int index = dy / imax(dx, 1);
+    index *= ANGLE_SCALE;
+    index = iabs(index);
+    printf("Index: %d\n", index);
+    unsigned int angle = atanTable[index];
+
+    // Combine the color to 16 bit
+    unsigned short color16bit = color.to16bit();
+
+    // Loop over the length of the line
+    for (unsigned int i = 0; i <= length; i++)
+    {
+        // Interpolate the thickness of the line at this point
+        int thickness = startThickness + i * (endThickness - startThickness) / length;
+
+        // Loop over the thickness of the line
+        for (int j = -thickness / 2; j <= thickness / 2; j++)
+        {
+            // Calculate the position of the pixel
+            unsigned int x = start.x + i * cosTable[angle] / FIXED_POINT_SCALE;
+            unsigned int y = start.y + i * sinTable[angle] / FIXED_POINT_SCALE;
+
+            // Calculate the offset of the pixel within the thickness of the line
+            unsigned int index = (unsigned int)((angle + 900) % NUMBER_OF_ANGLES);
+            unsigned int offsetX = j;
+            offsetX *= sinTable[index];
+            offsetX /= FIXED_POINT_SCALE;
+            unsigned int offsetY = j;
+            offsetY *= cosTable[index];
+            offsetY /= FIXED_POINT_SCALE;
+
+            // Set the pixel in the frame buffer, if it's within bounds
+            if (x + offsetX >= 0 && x + offsetX < this->params.width && y + offsetY >= 0 && y + offsetY < this->params.height)
+            {
+                this->frameBuffer[(x + offsetX) + (y + offsetY) * this->params.width] = color16bit;
+            }
         }
     }
 }
@@ -296,7 +351,7 @@ void Graphics::drawFilledCircle(Point center, unsigned int radius, Color color)
 
 /**
  * @brief Draw an arc to the display
- * @param center Center Point
+ * @param center Center point
  * @param radius Radius of the arc
  * @param start_angle Start angle of the arc
  * @param end_angle End angle of the arc
@@ -321,38 +376,75 @@ void Graphics::drawArc(Point center, unsigned int radius, unsigned int start_ang
 
 	// convert the color to 16 bit
     unsigned short color16bit = color.to16bit();
-    unsigned int scale = ANGLE_SCALE;
 
     // loop through the angles
-    for (unsigned int angle = start_angle; angle < end_angle; angle++) 
+    for (int angle = start_angle; angle < end_angle; angle++) 
     {
-        unsigned int _angle = (angle % NUMBER_OF_ANGLES) * scale;
-        unsigned int x = center.x + ((radius * cosTable[_angle]) / FIXED_POINT_SCALE);
-        unsigned int y = center.y - ((radius * sinTable[_angle]) / FIXED_POINT_SCALE);
+		// Get the coordinates of the pixel
+        unsigned int x = 0;
+        unsigned int y = 0;
+		pointOnCircle(radius, angle, center.x, center.y, &x, &y);
 
 		// avoid overflowing the buffer
-        if (x >= 0 && x < imageWidth && y >= 0 && y < imageHeight) {
+        if (x >= 0 && x < imageWidth && y >= 0 && y < imageHeight)
             this->frameBuffer[x + y * imageWidth] = color16bit;
-        }
     }
 }
 
 /**
- * @brief Draw a filled arc to the display
- * @param center Center Point
- * @param radius Radius of the arc
- * @param start_angle Start angle of the arc
- * @param end_angle End angle of the arc
- * @param outer_radius External radius of the arc
- * @param inner_radius Internal radius of the arc
- * @param color Color to draw in
- * @note This will fill the void between the two radii
-*/
-void Graphics::drawFilledArc(Point center, unsigned int radius, unsigned int start_angle, unsigned int end_angle, unsigned int outer_radius, unsigned int inner_radius, Color color)
+ * @brief Draw two arcs and fill the gap between them
+ * @param center Center point
+ * @param innerRadius Radius for the inner most arc
+ * @param outerRadius Radius for the outer most arc
+ * @param startAngle Angle in degrees for both arcs
+ * @param endAngle Angle in degrees for both arcs
+ * @color Color to draw the arc in
+ */
+void Graphics::drawFilledDualArc(Point center, unsigned int innerRadius, unsigned int outerRadius, unsigned int startAngle, unsigned int endAngle, Color color)
 {
-    
-}
+    unsigned int imageWidth = params.width;
+    unsigned int imageHeight = params.height;
 
+    // Swap angles if start_angle is greater than end_angle
+    if (endAngle < startAngle)
+    {
+        unsigned int temp = endAngle;
+        endAngle = startAngle;
+        startAngle = temp;
+    }
+
+    // clamp the input variables to be between 0 and 360
+    startAngle = imin(startAngle, 360);
+    endAngle = imin(endAngle, 360);
+
+    // convert the color to 16 bit
+    unsigned short color16bit = color.to16bit();
+
+    // Loop through the angles
+    for (int angle = startAngle; angle < endAngle; angle++)
+    {
+        // Get the coordinates of the inner pixel
+        unsigned int angleXInner = 0;
+        unsigned int angleYInner = 0;
+        pointOnCircle(innerRadius, angle, center.x, center.y, &angleXInner, &angleYInner);
+
+        // Get the coordinates of the outer pixel
+        unsigned int angleXOuter = 0;
+        unsigned int angleYOuter = 0;
+        pointOnCircle(outerRadius, angle, center.x, center.y, &angleXOuter, &angleYOuter);
+
+        // Create the start and end points for the line
+        Point start = { angleXInner, angleYInner };
+        Point end = { angleXOuter, angleYOuter };
+
+        // Calculate the thickness at the start and end of the line
+        unsigned int startThickness = 1; // or calculate based on your needs
+        unsigned int endThickness = 5; // or calculate based on your needs
+
+        // Draw the expanding line
+        drawExpandingLine(start, end, startThickness, endThickness, color);
+    }
+}
 
 /**
  * @brief Draw a 16 bit bitmap on the display
