@@ -1,4 +1,4 @@
-#include "AdvancedGraphics.hpp"
+#include "Gradients.hpp"
 
 // create a global instance of the lookup tables
 int rLUT[MAX_COLOR_DIFF + 1];
@@ -10,13 +10,12 @@ int bLUT[MAX_COLOR_DIFF + 1];
  * @param frameBuffer Pointer to the frame buffer
  * @param params Display parameters
 */
-AdvancedGraphics::AdvancedGraphics(unsigned short* frameBuffer, Display_Params params)
+Gradients::Gradients(unsigned short* frameBuffer, Display_Params params)
 {
     this->frameBuffer = frameBuffer;
     this->params = params;
     this->totalPixels = params.width * params.height;
     this->theta = 0;
-    this->fillLookupTables();
 }
 
 /**
@@ -27,7 +26,7 @@ AdvancedGraphics::AdvancedGraphics(unsigned short* frameBuffer, Display_Params p
  * @param end End Point
  * @note The start and end points are only used to find the direction of the gradient, it will still fill the entire display!
 */
-void AdvancedGraphics::fillGradient(Color startColor, Color endColor, Point start, Point end)
+void Gradients::fillGradient(Color startColor, Color endColor, Point start, Point end)
 {
     // check if the start and end Points are the same
     if(start == end)
@@ -45,10 +44,10 @@ void AdvancedGraphics::fillGradient(Color startColor, Color endColor, Point star
     int magnitudeSquared = (deltaX * deltaX + deltaY * deltaY);
 
     // find the maximum difference between the color components
-    int dr = abs(endColor.r - startColor.r);
-    int dg = abs(endColor.g - startColor.g);
-    int db = abs(endColor.b - startColor.b);
-    int maxDiff = max(dr, max(dg, db));
+    int dr = iabs(endColor.r - startColor.r);
+    int dg = iabs(endColor.g - startColor.g);
+    int db = iabs(endColor.b - startColor.b);
+    int maxDiff = imax(dr, imax(dg, db));
 
     // create the lookup tables based on the maximum difference
     int numPositions = maxDiff + 1;
@@ -100,21 +99,21 @@ void AdvancedGraphics::fillGradient(Color startColor, Color endColor, Point star
  * @param start The color to start the gradient with
  * @param end The color to end the gradient with
 */
-void AdvancedGraphics::drawRotCircleGradient(Point center, int radius, int rotationSpeed, Color start, Color end)
+void Gradients::drawRotCircleGradient(Point center, int radius, int rotationSpeed, Color start, Color end)
 {
     this->theta += rotationSpeed;
-    this->theta = this->theta % numAngles;
+    this->theta = this->theta % NUMBER_OF_ANGLES;
 
-    int cosTheta = fixedPointCosTable[theta];
-    int sinTheta = fixedPointSinTable[theta];
+    int cosTheta = cosTable[theta];
+    int sinTheta = sinTable[theta];
 
     Point rotGradStart = Point(
-        center.x - (radius * cosTheta) / fixedPointScale,
-        center.y - (radius * sinTheta) / fixedPointScale
+        center.x - (radius * cosTheta) / FIXED_POINT_SCALE,
+        center.y - (radius * sinTheta) / FIXED_POINT_SCALE
     );
     Point rotGradEnd = Point(
-        center.x + (radius * cosTheta) / fixedPointScale,
-        center.y + (radius * sinTheta) / fixedPointScale
+        center.x + (radius * cosTheta) / FIXED_POINT_SCALE,
+        center.y + (radius * sinTheta) / FIXED_POINT_SCALE
     );
 
     this->fillGradient(start, end, rotGradStart, rotGradEnd);
@@ -129,10 +128,10 @@ void AdvancedGraphics::drawRotCircleGradient(Point center, int radius, int rotat
  * @param start The color to start the gradient with
  * @param end The color to end the gradient with
 */
-void AdvancedGraphics::drawRotRectGradient(Point center, int width, int height, int rotationSpeed, Color start, Color end)
+void Gradients::drawRotRectGradient(Point center, int width, int height, int rotationSpeed, Color start, Color end)
 {
     this->theta += rotationSpeed;
-    this->theta = this->theta % numAngles;
+    this->theta = this->theta % NUMBER_OF_ANGLES;
     Point rotGradStart, rotGradEnd;
 
     // follow the quadrants of the unit circle
@@ -164,25 +163,4 @@ void AdvancedGraphics::drawRotRectGradient(Point center, int width, int height, 
     );
 
     this->fillGradient(start, end, rotGradStart, rotGradEnd);
-}
-
-/**
- * @private
- * @brief Fill the lookup tables for the sine and cosine functions
-*/
-void AdvancedGraphics::fillLookupTables()
-{
-    for (int angle = 0; angle < numAngles; ++angle)
-    {
-        // Convert angle to radians
-        double radians = angle * PI / halfNumAngles;
-
-        // Calculate cosine and sine using math functions
-        double cosValue = cos(radians);
-        double sinValue = sin(radians);
-
-        // Convert to fixed-point representation
-        fixedPointCosTable[angle] = static_cast<int>(cosValue * fixedPointScale);
-        fixedPointSinTable[angle] = static_cast<int>(sinValue * fixedPointScale);
-    }
 }

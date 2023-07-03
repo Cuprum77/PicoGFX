@@ -4,24 +4,26 @@
 #include "Display.hpp"
 #include "Graphics.hpp"
 #include "Print.hpp"
-#include "AdvancedGraphics.hpp"
+#include "Gradients.hpp"
 
 class PicoGFX {
 public:
-    PicoGFX(Display* display, Print* print, Graphics* graphics, AdvancedGraphics* advancedGraphics) :
+    PicoGFX(Display* display, Print* print, Graphics* graphics, Gradients* gradients) :
         display(display),
         print(print),
         graphics(graphics),
-        advancedGraphics(advancedGraphics) {}
+        gradients(gradients) {
+        fillLookupTables();
+    }
 
     Display& getDisplay();
     Print& getPrint();
     Graphics& getGraphics();
-    AdvancedGraphics& getAdvancedGraphics();
+    Gradients& getGradients();
 
 private:
     Display* display;
     Print* print;
     Graphics* graphics;
-    AdvancedGraphics* advancedGraphics;
+    Gradients* gradients;
 };

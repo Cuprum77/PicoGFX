@@ -1,7 +1,8 @@
 #pragma once
 
-#include "Color.hpp"
-#include "Structs.hpp"
+#include "Color.h"
+#include "Structs.h"
+#include "Shapes.h"
 #include <string.h>
 #include "FontStruct.h"
 #include <stdlib.h>

@@ -1,5 +1,10 @@
 #pragma once
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+    
 #define MAX_COLOR_DIFF 255
 
 /**
@@ -248,3 +253,7 @@ struct Color
         return Color(this->r < color.r ? this->r : color.r, this->g < color.g ? this->g : color.g, this->b < color.b ? this->b : color.b);
     }
 };
+
+#ifdef __cplusplus
+}
+#endif

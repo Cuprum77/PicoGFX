@@ -1,4 +1,5 @@
 #include "Graphics.hpp"
+#include <stdio.h>
 
 /**
  * @brief Construct a new Graphics object
@@ -40,7 +41,7 @@ void Graphics::fillGradientCool(Color startColor, Color endColor, Point start, P
     // calculate the direction of the gradient
     unsigned int deltaX = end.X() - start.X();
     unsigned int deltaY = end.Y() - start.Y();
-    unsigned int magnitude = sqrt((deltaX * deltaX) + (deltaY * deltaY));
+    unsigned int magnitude = isqrt((deltaX * deltaX) + (deltaY * deltaY));
     float gradX = deltaX / magnitude;
     float gradY = deltaY / magnitude;
 
@@ -83,9 +84,9 @@ void Graphics::drawLine(Point start, Point end, Color color)
     unsigned int y1 = end.Y();
 
     // get the difference between the x and y Points
-    int dx = abs((int)end.X() - (int)start.X());
+    int dx = iabs((int)end.X() - (int)start.X());
     int sx = start.X() < end.X() ? 1 : -1;
-    int dy = -abs((int)end.Y() - (int)start.Y());
+    int dy = -(int)iabs((int)end.Y() - (int)start.Y());
     int sy = start.Y() < end.Y() ? 1 : -1;
     // calculate the error
     int error = dx + dy;
@@ -303,48 +304,36 @@ void Graphics::drawFilledCircle(Point center, unsigned int radius, Color color)
 */
 void Graphics::drawArc(Point center, unsigned int radius, unsigned int start_angle, unsigned int end_angle, Color color)
 {
-    // Uses Bresenham's circle algorithm
-    // https://en.wikipedia.org/wiki/Midpoint_circle_algorithm
+    unsigned int imageWidth = params.width;
+    unsigned int imageHeight = params.height;
 
-    // lock the angles to 0 - 360
-    unsigned int _start_angle = start_angle % 360;
-    unsigned int _end_angle = end_angle % 360;
-
-    // if the start angle is greater than the end angle
-    if(_start_angle > _end_angle)
+	// Swap angles if start_angle is greater than end_angle
+    if (end_angle < start_angle) 
     {
-        // swap the angles
-        _start_angle ^= _end_angle;
-        _end_angle ^= _start_angle;
-        _start_angle ^= _end_angle;
+        unsigned int temp = end_angle;
+        end_angle = start_angle;
+        start_angle = temp;
     }
 
-    // calculate the start and end points
-    Point start = {(unsigned int)(center.X() + radius * cos(_start_angle * PI / 180)), (unsigned int)(center.Y() + radius * sin(_start_angle * PI / 180))};
-    Point end = {(unsigned int)(center.X() + radius * cos(_end_angle * PI / 180)), (unsigned int)(center.Y() + radius * sin(_end_angle * PI / 180))};
+	// clamp the input variables to be between 0 and 3600
+	start_angle = imin(start_angle, NUMBER_OF_ANGLES);
+	end_angle = imin(end_angle, NUMBER_OF_ANGLES);
 
-    // move Points into local variables
-    int xc = center.X();
-    int yc = center.Y();
-    int x = radius;
-    int y = 0;
-    int error = 3 - 2 * x;
+	// convert the color to 16 bit
+    unsigned short color16bit = color.to16bit();
+    unsigned int scale = ANGLE_SCALE;
 
-    // loop through the radius
-    while (x <= y) {
-        // Plot the points within the desired arc range
-        if ((x >= _start_angle && x <= _end_angle) || (y >= _start_angle && y <= _end_angle)) 
-        {
+    // loop through the angles
+    for (unsigned int angle = start_angle; angle < end_angle; angle++) 
+    {
+        unsigned int _angle = (angle % NUMBER_OF_ANGLES) * scale;
+        unsigned int x = center.x + ((radius * cosTable[_angle]) / FIXED_POINT_SCALE);
+        unsigned int y = center.y - ((radius * sinTable[_angle]) / FIXED_POINT_SCALE);
+
+		// avoid overflowing the buffer
+        if (x >= 0 && x < imageWidth && y >= 0 && y < imageHeight) {
+            this->frameBuffer[x + y * imageWidth] = color16bit;
         }
-  
-        if (error < 0)
-            error += (4 * x) + 6;
-        else {
-            error += (4 * (x - y)) + 10;
-            y--;
-        }
-  
-        x++;
     }
 }
 
