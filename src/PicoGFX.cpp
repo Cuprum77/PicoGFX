@@ -31,7 +31,7 @@ Graphics& PicoGFX::getGraphics()
  * @brief Get the AdvancedGraphics object
  * @return AdvancedGraphics&
 */
-AdvancedGraphics& PicoGFX::getAdvancedGraphics()
+Gradients& PicoGFX::getGradients()
 {
-    return *advancedGraphics;
+    return *gradients;
 }

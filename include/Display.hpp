@@ -11,9 +11,9 @@
 
 #include "HardwareSPI.hpp"
 #include "Commands.hpp"
-#include "Structs.hpp"
-#include "Color.hpp"
-#include "Enums.hpp"
+#include "Structs.h"
+#include "Shapes.h"
+#include "Color.h"
 
 // Typedefs
 #define ulong unsigned long

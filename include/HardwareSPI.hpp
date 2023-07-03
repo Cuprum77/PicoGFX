@@ -10,7 +10,7 @@
 
 #include "pio_spi.pio.h"
 #include "Commands.hpp"
-#include "Structs.hpp"
+#include "Structs.h"
 
 #define SERIAL_CLK_DIV 1.0f
 #define SPI_BAUDRATE 125000000  // 125 MHz

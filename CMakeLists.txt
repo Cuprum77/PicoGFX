@@ -10,8 +10,10 @@ add_library(${PROJECT_NAME}
     src/Display.cpp
     src/Print.cpp
     src/Graphics.cpp
-    src/AdvancedGraphics.cpp
+    src/Gradients.cpp
+    src/Dials.cpp
     src/PicoGFX.cpp
+    src/GfxMath.c
     Specifics/ST7789.cpp
     Specifics/GC9A01.cpp
 )
