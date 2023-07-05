@@ -26,7 +26,6 @@ void Print::setFont(FontStruct* font)
 /**
  * @brief Write a number on the display
  * @param number Number to print
- * @param size Size of the number
 */
 void Print::print(long number, number_base_t base)
 {
@@ -40,7 +39,6 @@ void Print::print(long number, number_base_t base)
 /**
  * @brief Write a number on the display
  * @param number Number to print
- * @param size Size of the number
 */
 void Print::print(unsigned long number, number_base_t base)
 {
@@ -55,7 +53,6 @@ void Print::print(unsigned long number, number_base_t base)
  * @brief Write a number on the display
  * @param number Number to print
  * @param precision Number of decimal places to print
- * @param size Size of the number
 */
 void Print::print(double number, unsigned int precision)
 {
@@ -69,8 +66,6 @@ void Print::print(double number, unsigned int precision)
 /**
  * @brief Write a character on the display
  * @param character Character to print
- * @param color Character color
- * @param size Size of the character
 */
 void Print::print(const char* text)
 {
@@ -83,6 +78,15 @@ void Print::print(const char* text)
         // draw the character
         this->drawAscii(text[i]);
     }
+}
+
+/**
+ * @brief Print a boolean on the display
+ * @param bool Boolean to print
+ */
+void Print::print(bool value)
+{
+	this->print(value ? "true" : "false");
 }
 
 /**
@@ -117,7 +121,6 @@ void Print::println(unsigned long number, number_base_t base)
  * @brief Print a number on the display
  * @param number Number to print
  * @param precision Number of decimal places to print
- * @param size Size of the number
 */
 void Print::println(double number, unsigned int precision)
 {
@@ -131,7 +134,6 @@ void Print::println(double number, unsigned int precision)
 /**
  * @brief Print a character on the display
  * @param character Character to print
- * @param size Size of the character
 */
 void Print::println(const char* text)
 {
@@ -420,7 +422,6 @@ size_t Print::getPixelWidth(const char* text, size_t size)
     // loop through each character in the string
     for(int i = 0; i < size; i++)
     {
-		printf("%d, %c, %d\n", text[i], text[i], text[i] - 0x20);
         FontCharacter character = this->font->characters[text[i] - 0x20];
         pixels += character.width;
     }
