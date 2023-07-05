@@ -14,7 +14,7 @@ public:
     void drawLine(Point start, Point end, Color color = Colors::White);
     void drawExpandingLine(Point start, Point end, unsigned int startThickness, unsigned int endThickness, Color color = Colors::White);
     void drawRectangle(Point start, Point end, Color color = Colors::White);
-    void drawRectangle(Rectangle rect, Color color = Colors::White);
+    void drawRectangle(Rect rect, Color color = Colors::White);
     void drawRectangle(Point center, unsigned int width, unsigned int height, Color color = Colors::White);
     void drawFilledRectangle(Point start, Point end, Color color = Colors::White);
     void drawCircle(Point center, unsigned int radius, Color color = Colors::White);

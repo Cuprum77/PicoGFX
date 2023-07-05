@@ -3,9 +3,11 @@
 #include "Color.h"
 #include "Structs.h"
 #include "Shapes.h"
-#include <string.h>
 #include "FontStruct.h"
+
 #include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
 // String behavior
 #define CHARACTER_BUFFER_SIZE 128

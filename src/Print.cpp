@@ -167,7 +167,8 @@ unsigned int Print::getStringLength(long num, number_base_t base)
 {
     // convert the number to a string
     char buffer[CHARACTER_BUFFER_SIZE];    // largest number a long can represent is 9 223 372 036 854 775 807
-    itoa(num, buffer, base);
+	sprintf(buffer, "%ld", num);
+    printf("buffer: %s\n", buffer);
     return this->getPixelWidth(buffer, strlen(buffer));
 }
 
@@ -182,7 +183,8 @@ unsigned int Print::getStringLength(unsigned long num, number_base_t base)
 {
     // convert the number to a string
     char buffer[CHARACTER_BUFFER_SIZE];    // largest number a long can represent is 9 223 372 036 854 775 807
-    itoa(num, buffer, base);
+	sprintf(buffer, "%lu", num);
+	printf("buffer: %s\n", buffer);
     return this->getPixelWidth(buffer, strlen(buffer));
 }
 
@@ -198,7 +200,8 @@ unsigned int Print::getStringLength(double num, unsigned char precision)
 {
     // convert the number to a string
     char buffer[CHARACTER_BUFFER_SIZE];    // largest number a long can represent is 9 223 372 036 854 775 807
-    floatToString(num, buffer, precision);
+	sprintf(buffer, "%.*f", precision, num);
+    printf("buffer: %s\n", buffer);
     return this->getPixelWidth(buffer, strlen(buffer));
 }
 
@@ -210,6 +213,7 @@ unsigned int Print::getStringLength(double num, unsigned char precision)
 */
 unsigned int Print::getStringLength(const char* text)
 {
+    printf("buffer: %s\n", text);
     return this->getPixelWidth(text, strlen(text));
 }
 
@@ -416,6 +420,7 @@ size_t Print::getPixelWidth(const char* text, size_t size)
     // loop through each character in the string
     for(int i = 0; i < size; i++)
     {
+		printf("%d, %c, %d\n", text[i], text[i], text[i] - 0x20);
         FontCharacter character = this->font->characters[text[i] - 0x20];
         pixels += character.width;
     }

@@ -143,7 +143,7 @@ struct Point
     }
 };
 
-struct Rectangle
+struct Rect
 {
 private:
     Point x;
@@ -159,9 +159,9 @@ private:
 
 public:
     /**
-     * @brief Construct a new empty Rectangle object
+     * @brief Construct a new empty Rect object
     */
-    Rectangle()
+    Rect()
     {
         this->x = Point();
         this->y = Point();
@@ -174,16 +174,16 @@ public:
     }
 
     /**
-     * @brief Construct a new Rectangle object
-     * @param corner1 Upper left corner of the rectangle
-     * @param corner2 Lower right corner of the rectangle
+     * @brief Construct a new Rect object
+     * @param corner1 Upper left corner of the Rect
+     * @param corner2 Lower right corner of the Rect
     */
-    Rectangle(Point corner1, Point corner2)
+    Rect(Point corner1, Point corner2)
     {
-        // Set the corners of the rectangle
+        // Set the corners of the Rect
         this->x = Point(corner1.X(), corner2.Y());
         this->y = Point(corner2.X(), corner1.Y());
-        // Set the other variables of the rectangle
+        // Set the other variables of the Rect
         this->width = corner2.X() - corner1.X();
         this->height = corner2.Y() - corner1.Y();
         this->bottom = this->y.Y();
@@ -193,18 +193,18 @@ public:
     }
 
     /**
-     * @brief Construct a new Rectangle object
-     * @param center Center of the rectangle
-     * @param width Width of the rectangle
-     * @param height Height of the rectangle
-     * @note The rectangle is constructed with the center as the center of the rectangle
+     * @brief Construct a new Rect object
+     * @param center Center of the Rect
+     * @param width Width of the Rect
+     * @param height Height of the Rect
+     * @note The Rect is constructed with the center as the center of the Rect
     */
-    Rectangle(Point center, unsigned int width, unsigned int height)
+    Rect(Point center, unsigned int width, unsigned int height)
     {
-        // Calculate the corners of the rectangle
+        // Calculate the corners of the Rect
         this->x = Point(center.X() - (width / 2), center.Y() - (height / 2));
         this->y = Point(center.X() + (width / 2), center.Y() + (height / 2));
-        // Set the other variables of the rectangle
+        // Set the other variables of the Rect
         this->width = width;
         this->height = height;
         this->bottom = this->y.Y();
@@ -214,7 +214,7 @@ public:
     }
 
     /**
-     * @brief Get the center of the rectangle
+     * @brief Get the center of the Rect
      * @return Point
     */
     Point GetCenter()
@@ -226,7 +226,7 @@ public:
     }
 
     /**
-     * @brief Get the first corner of the rectangle
+     * @brief Get the first corner of the Rect
      * @return Point
     */
     Point X()
@@ -235,7 +235,7 @@ public:
     }
 
     /**
-     * @brief Get the second corner of the rectangle
+     * @brief Get the second corner of the Rect
      * @return Point
     */
     Point Y()
@@ -244,7 +244,7 @@ public:
     }
 
     /**
-     * @brief Get the width of the rectangle
+     * @brief Get the width of the Rect
      * @return unsigned int
     */
     unsigned int Width()
@@ -253,7 +253,7 @@ public:
     }
 
     /**
-     * @brief Get the height of the rectangle
+     * @brief Get the height of the Rect
      * @return unsigned int
     */
     unsigned int Height()
@@ -262,8 +262,8 @@ public:
     }
 
     /**
-     * @brief Get the bottom of the rectangle
-     * @return unsigned int that is the Y coordinate of the bottom of the rectangle
+     * @brief Get the bottom of the Rect
+     * @return unsigned int that is the Y coordinate of the bottom of the Rect
     */
     unsigned int Bottom()
     {
@@ -271,8 +271,8 @@ public:
     }
 
     /**
-     * @brief Get the left of the rectangle
-     * @return unsigned int that is the X coordinate of the left of the rectangle
+     * @brief Get the left of the Rect
+     * @return unsigned int that is the X coordinate of the left of the Rect
     */
     unsigned int Left()
     {
@@ -280,8 +280,8 @@ public:
     }
 
     /**
-     * @brief Get the right of the rectangle
-     * @return unsigned int that is the X coordinate of the right of the rectangle
+     * @brief Get the right of the Rect
+     * @return unsigned int that is the X coordinate of the right of the Rect
     */
     unsigned int Right()
     {
@@ -289,8 +289,8 @@ public:
     }
 
     /**
-     * @brief Get the top of the rectangle
-     * @return unsigned int that is the Y coordinate of the top of the rectangle
+     * @brief Get the top of the Rect
+     * @return unsigned int that is the Y coordinate of the top of the Rect
     */
     unsigned int Top()
     {

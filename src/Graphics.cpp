@@ -131,8 +131,6 @@ void Graphics::drawLine(Point start, Point end, Color color)
 */
 void Graphics::drawExpandingLine(Point start, Point end, unsigned int startThickness, unsigned int endThickness, Color color)
 {
-	printf("Start: %d, %d | End: %d, %d | Thicc Start: %d | Thicc End: %d |", start.x, start.y, end.x, end.y, startThickness, endThickness);
-
     // Calculate the length and angle of the line
     int dx = end.x - start.x;
     int dy = end.y - start.y;
@@ -199,7 +197,7 @@ void Graphics::drawRectangle(Point start, Point end, Color color)
  * @param color Color to draw in
  * @param thickness Thickness of the line
 */
-void Graphics::drawRectangle(Rectangle rect, Color color)
+void Graphics::drawRectangle(Rect rect, Color color)
 {
     // draw the rectangle
     this->drawRectangle(rect.X(), rect.Y(), color);
