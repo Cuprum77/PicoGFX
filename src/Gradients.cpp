@@ -1,9 +1,8 @@
 #include "Gradients.hpp"
+#include <stdio.h>
 
 // create a global instance of the lookup tables
-int rLUT[MAX_COLOR_DIFF + 1];
-int gLUT[MAX_COLOR_DIFF + 1];
-int bLUT[MAX_COLOR_DIFF + 1];
+unsigned short colorLUT[MAX_COLOR_DIFF + 1];
 
 /**
  * @brief Construct a new Advanced Graphics object
@@ -56,44 +55,35 @@ void Gradients::fillGradient(Color startColor, Color endColor, Point start, Poin
     for(int i = 0; i < numPositions; i++)
     {
         // interpolate the color components based on the position and add them to the lookup tables
-        rLUT[i] = ((endColor.r - startColor.r) * i) / maxDiff + startColor.r;
-        gLUT[i] = ((endColor.g - startColor.g) * i) / maxDiff + startColor.g;
-        bLUT[i] = ((endColor.b - startColor.b) * i) / maxDiff + startColor.b;
+        unsigned char r = (((endColor.r - startColor.r) * i) / maxDiff + startColor.r) & 0x1f;
+        unsigned char g = (((endColor.g - startColor.g) * i) / maxDiff + startColor.g) & 0x3f;
+        unsigned char b = (((endColor.b - startColor.b) * i) / maxDiff + startColor.b) & 0x1f;
+		colorLUT[i] = (r << 11) | (g << 5) | b;
     }
 
     // precalculate the divisor
-    int widthInverse = (FIXED_POINT_SCALE_HIGH_RES + this->params.width >> 1) / this->params.width;  // add this->params.width / 2 for rounding
     int magnitudeInverse = (FIXED_POINT_SCALE_HIGH_RES + magnitudeSquared >> 1) / magnitudeSquared;  // add magnitudeSquared / 2 for rounding
 
     // loop through each pixel in the buffer
-    int x = 0;
-    for(int i = 0; i < this->totalPixels; i++)
+    for(int x = 0; x < this->params.width; x++)
     {
-        // calculate the position along the gradient direction
-        x++;
-        if (x == this->params.width) x = 0;
-        int y = (i * widthInverse) >> FIXED_POINT_SCALE_HIGH_RES_BITS;
+        for (int y = 0; y < this->params.height; y++)
+        {
+            // calculate the vector from the start to the current pixel
+            int vectorX = x - start.X();
+            int vectorY = y - start.Y();
 
-        // calculate the vector from the start to the current pixel
-        int vectorX = x - start.X();
-        int vectorY = y - start.Y();
+            // calculate the distance along the gradient direction
+            int dotProduct = (vectorX * deltaX + vectorY * deltaY);
+            int position = ((dotProduct * maxDiff) * magnitudeInverse) >> FIXED_POINT_SCALE_HIGH_RES_BITS;
+            //int position = (dotProduct * maxDiff) / magnitudeSquared;
 
-        // calculate the distance along the gradient direction
-        int dotProduct = (vectorX * deltaX + vectorY * deltaY);
-        int position = (dotProduct * maxDiff * magnitudeInverse) >> FIXED_POINT_SCALE_HIGH_RES_BITS;  // Scale position to 0-100 range
+            // clamp the position within the valid range
+            position = (position < 0) ? 0 : (position > maxDiff) ? maxDiff : position;
 
-        // clamp the position within the valid range
-        position = (position < 0) ? 0 : (position > maxDiff) ? maxDiff : position;
-
-        // get the interpolated color components from the lookup tables and create the color
-        Color color(
-            rLUT[position], 
-            gLUT[position], 
-            bLUT[position]
-        );
-
-        // draw the pixel
-        this->frameBuffer[i] = color.to16bit();
+            // draw the pixel
+			this->frameBuffer[x + y * this->params.width] = colorLUT[position];
+        }
     }
 }
 
