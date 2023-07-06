@@ -50,7 +50,7 @@ void Gradients::fillGradient(Color startColor, Color endColor, Point start, Poin
     int maxDiff = imax(dr, imax(dg, db));
 
     // create the lookup tables based on the maximum difference
-    int numPositions = maxDiff + 1;
+    unsigned int numPositions = maxDiff + 1;
 
     // loop through each position in the gradient
     for(int i = 0; i < numPositions; i++)
@@ -62,15 +62,17 @@ void Gradients::fillGradient(Color startColor, Color endColor, Point start, Poin
     }
 
     // precalculate the divisor
-    int scaledReciprocal = (FIXED_POINT_SCALE_HIGH_RES + (this->params.width >> 1)) / this->params.width;
-
+    int widthInverse = (FIXED_POINT_SCALE_HIGH_RES + this->params.width >> 1) / this->params.width;  // add this->params.width / 2 for rounding
+    int magnitudeInverse = (FIXED_POINT_SCALE_HIGH_RES + magnitudeSquared >> 1) / magnitudeSquared;  // add magnitudeSquared / 2 for rounding
 
     // loop through each pixel in the buffer
+    int x = 0;
     for(int i = 0; i < this->totalPixels; i++)
     {
         // calculate the position along the gradient direction
-        int x = i % this->params.width;
-        int y = (i * scaledReciprocal) >> FIXED_POINT_SCALE_HIGH_RES_BITS;
+        x++;
+        if (x == this->params.width) x = 0;
+        int y = (i * widthInverse) >> FIXED_POINT_SCALE_HIGH_RES_BITS;
 
         // calculate the vector from the start to the current pixel
         int vectorX = x - start.X();
@@ -78,7 +80,7 @@ void Gradients::fillGradient(Color startColor, Color endColor, Point start, Poin
 
         // calculate the distance along the gradient direction
         int dotProduct = (vectorX * deltaX + vectorY * deltaY);
-        int position = (dotProduct * maxDiff) / magnitudeSquared;  // Scale position to 0-100 range
+        int position = (dotProduct * maxDiff * magnitudeInverse) >> FIXED_POINT_SCALE_HIGH_RES_BITS;  // Scale position to 0-100 range
 
         // clamp the position within the valid range
         position = (position < 0) ? 0 : (position > maxDiff) ? maxDiff : position;
