@@ -61,12 +61,16 @@ void Gradients::fillGradient(Color startColor, Color endColor, Point start, Poin
         bLUT[i] = ((endColor.b - startColor.b) * i) / maxDiff + startColor.b;
     }
 
+    // precalculate the divisor
+    int scaledReciprocal = (FIXED_POINT_SCALE_HIGH_RES + (this->params.width >> 1)) / this->params.width;
+
+
     // loop through each pixel in the buffer
     for(int i = 0; i < this->totalPixels; i++)
     {
         // calculate the position along the gradient direction
         int x = i % this->params.width;
-        int y = i / this->params.width;
+        int y = (i * scaledReciprocal) >> FIXED_POINT_SCALE_HIGH_RES_BITS;
 
         // calculate the vector from the start to the current pixel
         int vectorX = x - start.X();
