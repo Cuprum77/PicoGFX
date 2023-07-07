@@ -95,10 +95,19 @@ void Display::fill(Color color)
 /**
  * @brief Print the frame buffer to the display
 */
-void Display::update(void)
+void Display::update(bool framecounter)
 {
-    this->setCursor({0, 0});
+    this->setCursor({ 0, 0 });
     this->writePixels(this->frameBuffer, this->totalPixels);
+    if (!framecounter) return;
+
+    this->framecounter++;
+    if ((time_us_64() - this->timer) >= 1000000)
+    {
+        this->timer = time_us_64();
+        this->frames = this->framecounter;
+        this->framecounter = 0;
+    }
 }
 
 /**

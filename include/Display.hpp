@@ -59,7 +59,7 @@ public:
     void fill(Color color);
     Color getFillColor(void);
 
-    void update(void);
+    void update(bool framecounter = false);
     void setPixel(Point point, Color color);
     void setPixel(uint point, ushort color);
     Color getPixel(Point point);
@@ -70,6 +70,7 @@ public:
     Point getCursor(void);
     Point getCenter(void);
 
+    int getFrameCounter() { return this->frames; }
     uint getWidth(void) { return this->params->width; }
     uint getHeight(void)  { return this->params->height; }
     ushort* getFrameBuffer(void) { return this->frameBuffer; }
@@ -91,6 +92,11 @@ protected:
     uint maxWidth;
     uint maxHeight;
     uint totalPixels;
+
+    // timer for the framerate calculation
+    int framecounter = 0;
+    int frames = 0;
+    unsigned long timer = 0;
 
     void ST7789_Init(void);
     void ST7789_SetRotation(displayRotation_t rotation);
