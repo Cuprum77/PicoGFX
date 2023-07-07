@@ -31,6 +31,8 @@ extern unsigned int ifactorial(unsigned int x);
 extern void fillLookupTables();
 extern void pointOnCircle(unsigned int radius, unsigned int angle, int offsetX, int offsetY, unsigned int* x, unsigned int* y);
 
+extern int lerp(int v0, int v1, int t);
+
 #ifdef __cplusplus
 }
 #endif

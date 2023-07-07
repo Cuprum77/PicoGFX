@@ -13,6 +13,8 @@ public:
     void fillGradientCool(Color startColor, Color endColor, Point start, Point end);
     void drawLine(Point start, Point end, Color color = Colors::White);
     void drawExpandingLine(Point start, Point end, unsigned int startThickness, unsigned int endThickness, Color color = Colors::White);
+	void drawTriangle(Point p1, Point p2, Point p3, Color color = Colors::White);
+	void drawTriangleFilled(Point p1, Point p2, Point p3, Color color = Colors::White);
     void drawRectangle(Point start, Point end, Color color = Colors::White);
     void drawRectangle(Rect rect, Color color = Colors::White);
     void drawRectangle(Point center, unsigned int width, unsigned int height, Color color = Colors::White);

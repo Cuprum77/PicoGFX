@@ -111,7 +111,6 @@ struct Point
         return isqrt(ipow(this->x - other.x, 2) + ipow(this->y - other.y, 2));
     }
 
-
     bool operator==(const Point& other)
     {
         return this->x == other.x && this->y == other.y;
@@ -297,6 +296,13 @@ public:
         return top;
     }
 };
+
+inline void swap(Point& a, Point& b)
+{
+	Point temp = a;
+	a = b;
+	b = temp;
+}
 
 #ifdef __cplusplus
 }

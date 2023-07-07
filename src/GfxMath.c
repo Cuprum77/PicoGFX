@@ -92,3 +92,8 @@ void pointOnCircle(unsigned int radius, unsigned int angle, int offsetX, int off
 	*x = iabs(angleX);
 	*y = iabs(angleY);
 }
+
+int lerp(int v0, int v1, int t)
+{
+	return (1 - t) * v0 + t * v1;
+}

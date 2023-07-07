@@ -176,6 +176,69 @@ void Graphics::drawExpandingLine(Point start, Point end, unsigned int startThick
 }
 
 /**
+ * @brief Draw a triangle on the display
+ * @param p1 First point
+ * @param p2 Second point
+ * @param p3 Third point
+ * @param color Color to draw in
+*/
+void Graphics::drawTriangle(Point p1, Point p2, Point p3, Color color)
+{
+	// Draw the three lines of the triangle
+	this->drawLine(p1, p2, color);
+	this->drawLine(p2, p3, color);
+	this->drawLine(p3, p1, color);
+}
+
+/**
+ * @brief Draw a filled triangle on the display
+ * @param p1 First point
+ * @param p2 Second point
+ * @param p3 Third point
+ * @param color Color to draw in
+*/
+void Graphics::drawTriangleFilled(Point p1, Point p2, Point p3, Color color)
+{
+    // calculate the bounding box of the triangle
+    int minX = imin(imin(p1.x, p2.x), p3.x);
+    int maxX = imax(imax(p1.x, p2.x), p3.x);
+    int minY = imin(imin(p1.y, p2.y), p3.y);
+    int maxY = imax(imax(p1.y, p2.y), p3.y);
+
+    // convert the color to unsigned short
+    unsigned short color16 = color.to16bit();
+
+    // iterate over each row within the bounding box
+    for (int y = minY; y <= maxY; y++)
+    {
+		// find the start x by interpolating between p1 and p2
+		int divisor = (p2.y - p1.y) == 0 ? 1 : p2.y - p1.y;
+		int startX = p1.x + (y - p1.y) * (p2.x - p1.x) / divisor;
+		// find the end x by interpolating between p2 and p3
+		divisor = (p3.y - p2.y) == 0 ? 1 : p3.y - p2.y;
+		int endX = p2.x + (y - p2.y) * (p3.x - p2.x) / divisor;
+
+        // ensure startX <= endX
+        if (startX > endX)
+        {
+            int temp = startX;
+            startX = endX;
+            endX = temp;
+        }
+
+		// clamp the start and end points the screen
+        startX = imax(startX, 0);
+		endX = imin(endX, this->params.width);
+
+        // fill the pixels between the intersection points
+        for (int x = startX; x <= endX; x++)
+        {
+            this->frameBuffer[x + y * this->params.width] = color16;
+        }
+    }
+}
+
+/**
  * @brief Draw a rectangle on the display
  * @param start Start Point
  * @param end End Point
