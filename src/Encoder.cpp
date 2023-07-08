@@ -40,7 +40,11 @@ void Encoder::Encode(metadata_t* metadata, unsigned short* frameBuffer, unsigned
 void Encoder::Decode(metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer, bool partial)
 {
 	// fetch the metadata, only if not using partial decoding
+<<<<<<< HEAD
 	if (!partial)
+=======
+	if(!partial)
+>>>>>>> 76ee05fd613100907ab5e5078ec5e5a7f37a575a
 		this->StripMetadata(metadata, stream);
 
 	switch (metadata->type)
@@ -415,7 +419,11 @@ void Encoder::DecodeMonochrome(metadata_t* metadata, unsigned char* stream, unsi
 	{
 		// get each pixel
 		unsigned char pixel = 0;
+<<<<<<< HEAD
 		if (!partial)
+=======
+		if(!partial)
+>>>>>>> 76ee05fd613100907ab5e5078ec5e5a7f37a575a
 			pixel = stream[METADATA_BYTES + i];
 		else
 			pixel = stream[i];
@@ -443,7 +451,11 @@ void Encoder::DecodeMonochromeRLE(metadata_t* metadata, unsigned char* stream, u
 		unsigned int count = 0;
 		unsigned char pixel = 0;
 
+<<<<<<< HEAD
 		if (!partial)
+=======
+		if(!partial)
+>>>>>>> 76ee05fd613100907ab5e5078ec5e5a7f37a575a
 		{
 			count = stream[METADATA_BYTES + streamIndex] >> 0x01;
 			pixel = stream[METADATA_BYTES + streamIndex++] & 0x1;
@@ -470,7 +482,11 @@ void Encoder::DecodeRunLengthEncoding(metadata_t* metadata, unsigned char* strea
 		unsigned int count = 0;
 		unsigned short pixel = 0;
 
+<<<<<<< HEAD
 		if (!partial)
+=======
+		if(!partial)
+>>>>>>> 76ee05fd613100907ab5e5078ec5e5a7f37a575a
 		{
 			count = stream[METADATA_BYTES + streamIndex++];
 			pixel = (stream[METADATA_BYTES + streamIndex++] << 0x8) | stream[METADATA_BYTES + streamIndex++];
@@ -549,11 +565,19 @@ void Encoder::DecodeReducedColor(metadata_t* metadata, unsigned char* stream, un
 		// build up the pixel based on the stream buffer
 		unsigned char pixel = 0;
 
+<<<<<<< HEAD
 		if (!partial)
 			pixel = stream[METADATA_BYTES + i];
 		else
 			pixel = stream[i];
 
+=======
+		if(!partial)
+			pixel = stream[METADATA_BYTES + i];
+		else
+			pixel = stream[i];
+		
+>>>>>>> 76ee05fd613100907ab5e5078ec5e5a7f37a575a
 		// extract the rgb values
 		unsigned char r = (pixel >> 5) & 0x7;
 		unsigned char g = (pixel >> 2) & 0x7;
@@ -579,7 +603,11 @@ void Encoder::DecodeReducedColorRLE(metadata_t* metadata, unsigned char* stream,
 
 	for (int streamIndex = 0; streamIndex < metadata->totalBytes;)
 	{
+<<<<<<< HEAD
 		if (!partial)
+=======
+		if(!partial)
+>>>>>>> 76ee05fd613100907ab5e5078ec5e5a7f37a575a
 		{
 			count = stream[METADATA_BYTES + streamIndex++];
 			pixel = stream[METADATA_BYTES + streamIndex++];
@@ -616,7 +644,11 @@ void Encoder::DecodeRaw(metadata_t* metadata, unsigned char* stream, unsigned sh
 	for (int i = 0; i < metadata->totalBytes; i++)
 	{
 		// build up the pixel based on the stream buffer
+<<<<<<< HEAD
 		if (!partial)
+=======
+		if(!partial)
+>>>>>>> 76ee05fd613100907ab5e5078ec5e5a7f37a575a
 			outputBuffer[i] = (stream[METADATA_BYTES + (i * 2 + 0)] << 0x8) | stream[METADATA_BYTES + (i * 2 + 1)];
 		else
 			outputBuffer[i] = (stream[i * 2 + 0] << 0x8) | stream[i * 2 + 1];
