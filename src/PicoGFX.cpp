@@ -35,3 +35,12 @@ Gradients& PicoGFX::getGradients()
 {
     return *gradients;
 }
+
+/**
+ * @brief Get the AdvancedGraphics object
+ * @return AdvancedGraphics&
+*/
+Encoder& PicoGFX::getEncoder()
+{
+    return *encoder;
+}

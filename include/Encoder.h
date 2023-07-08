@@ -13,22 +13,24 @@ enum encoding_type_t
 	RAW,
 };
 
-#define METADATA_BYTES 0x9 // Should be 9 bytes
+#define METADATA_BYTES 0xc // Should be 12 bytes
 struct metadata_t
 {
 	unsigned char type;			        // 1 byte
+	unsigned char rotation;				// 1 byte
+	unsigned short chunkSize;			// 2 bytes
 	unsigned short width;		        // 2 bytes
 	unsigned short height;		        // 2 bytes
 	unsigned int totalBytes;	        // 4 bytes
 	unsigned char colorDepth;			// Not included in file, only for encoding
-    unsigned short monochromeCutoff;    // Not included in file, only for encoding
+	unsigned short monochromeCutoff;    // Not included in file, only for encoding
 };
 
 class Encoder
 {
 public:
 	void Encode(metadata_t* metadata, unsigned short* frameBuffer, unsigned char* outputBuffer);
-	void Decode(metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer);
+	void Decode(metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer, bool partial = false);
 
 private:
 	void EncodeMonochrome(metadata_t* metadata, unsigned short* frameBuffer, unsigned char* outputBuffer);
@@ -40,12 +42,12 @@ private:
 	void EncodeRaw(metadata_t* metadata, unsigned short* frameBuffer, unsigned char* outputBuffer);
 	void AddMetadata(metadata_t* metadata, unsigned char* outputBuffer);
 
-	void DecodeMonochrome(metadata_t* metadata, unsigned char* stream, unsigned short* outputBuffer);
-	void DecodeMonochromeRLE(metadata_t* metadata, unsigned char* stream, unsigned short* outputBuffer);
-	void DecodeRunLengthEncoding(metadata_t* metadata, unsigned char* stream, unsigned short* outputBuffer);
-	void DecodeLossy(metadata_t* metadata, unsigned char* stream, unsigned short* outputBuffer);
-	void DecodeReducedColor(metadata_t* metadata, unsigned char* stream, unsigned short* outputBuffer);
-	void DecodeReducedColorRLE(metadata_t* metadata, unsigned char* stream, unsigned short* outputBuffer);
-	void DecodeRaw(metadata_t* metadata, unsigned char* stream, unsigned short* outputBuffer);
+	void DecodeMonochrome(metadata_t* metadata, unsigned char* stream, unsigned short* outputBuffer, bool partial = false);
+	void DecodeMonochromeRLE(metadata_t* metadata, unsigned char* stream, unsigned short* outputBuffer, bool partial = false);
+	void DecodeRunLengthEncoding(metadata_t* metadata, unsigned char* stream, unsigned short* outputBuffer, bool partial = false);
+	void DecodeLossy(metadata_t* metadata, unsigned char* stream, unsigned short* outputBuffer, bool partial = false);
+	void DecodeReducedColor(metadata_t* metadata, unsigned char* stream, unsigned short* outputBuffer, bool partial = false);
+	void DecodeReducedColorRLE(metadata_t* metadata, unsigned char* stream, unsigned short* outputBuffer, bool partial = false);
+	void DecodeRaw(metadata_t* metadata, unsigned char* stream, unsigned short* outputBuffer, bool partial = false);
 	void StripMetadata(metadata_t* metadata, unsigned char* stream);
 };

@@ -25,9 +25,9 @@ Display::Display(HardwareSPI* spi, Display_Pins* pins, Display_Params* params)
 
     // set up the backlight pin depending on the dimming setting
     this->backlight = this->pins->bl != -1;
-    if(this->backlight)
+    if (this->backlight)
     {
-        if(params->dimming)
+        if (params->dimming)
         {
             // enable dimming
             this->dimmingEnabled = true;
@@ -56,13 +56,13 @@ Display::Display(HardwareSPI* spi, Display_Pins* pins, Display_Params* params)
 
     if (this->type == display_type_t::GC9A01)
         this->GC9A01_Init();
-    else if(this->type == display_type_t::ST7789)
+    else if (this->type == display_type_t::ST7789)
         this->ST7789_Init();
 
     // clear the display
     this->clear();
     // turn on the display
-    this->writeData(DISPON, (const uint8_t *) NULL, 0);
+    this->writeData(DISPON, (const uint8_t*)NULL, 0);
 }
 
 /**
@@ -83,13 +83,13 @@ void Display::fill(Color color)
     // convert color to 16 bit
     unsigned short color16 = color.to16bit();
     // set the cursor position to the top left
-    this->setCursor({0, 0});
+    this->setCursor({ 0, 0 });
     // fill the frame buffer
-    for(int i = 0; i < this->totalPixels; i++)
+    for (int i = 0; i < this->totalPixels; i++)
         this->frameBuffer[i] = color16;
     // set the fill color variable
     this->fillColor = color;
-    this->setCursor({0, 0});
+    this->setCursor({ 0, 0 });
 }
 
 /**
@@ -196,12 +196,12 @@ void Display::setCursor(Point point)
 {
     // set the pixel x address
     this->columnAddressSet(
-        point.X() + this->params->columnOffset1, 
+        point.X() + this->params->columnOffset1,
         (this->params->width - 1) + this->params->columnOffset2
     );
     // set the pixel y address
     this->rowAddressSet(
-        point.Y() + this->params->rowOffset1, 
+        point.Y() + this->params->rowOffset1,
         (this->params->height - 1) + this->params->rowOffset2
     );
     // set the internal cursor position
@@ -239,7 +239,7 @@ void Display::setRotation(displayRotation_t rotation)
     // set the rotation based on the display type
     if (this->type == display_type_t::GC9A01)
         this->GC9A01_SetRotation(rotation);
-    else if(this->type == display_type_t::ST7789)
+    else if (this->type == display_type_t::ST7789)
         this->ST7789_SetRotation(rotation);
 }
 
@@ -247,9 +247,9 @@ void Display::setRotation(displayRotation_t rotation)
  * @brief Set the backlight brightness
  * @param brightness Brightness (0-255) if dimming is enabled, brightness (0-1) if dimming is disabled
 */
-void Display::setBrightness(uchar brightness)
+void Display::setBrightness(unsigned char brightness)
 {
-    if(!this->backlight)
+    if (!this->backlight)
         return;
 
     // check if dimming is enabled
@@ -275,7 +275,7 @@ void Display::setBrightness(uchar brightness)
  * @param data Data to send
  * @param length Length of the data
 */
-void Display::writeData(uchar command, const uchar* data, size_t length)
+void Display::writeData(unsigned char command, const unsigned char* data, size_t length)
 {
     // set the data mode
     this->dataMode = false;
@@ -292,15 +292,15 @@ void Display::writeData(uchar command, const uchar* data, size_t length)
 inline void Display::columnAddressSet(uint x0, uint x1)
 {
     // deny out of bounds
-    if(x0 >= x1 || x1 >= this->maxWidth)
+    if (x0 >= x1 || x1 >= this->maxWidth)
         return;
 
     // pack the data
-    uchar data[4] = { 
-        (uchar)(x0 >> 8), 
-        (uchar)(x0 & 0xff), 
-        (uchar)(x1 >> 8), 
-        (uchar)(x1 & 0xff) 
+    unsigned char data[4] = {
+        (unsigned char)(x0 >> 8),
+        (unsigned char)(x0 & 0xff),
+        (unsigned char)(x1 >> 8),
+        (unsigned char)(x1 & 0xff)
     };
 
     // write the data
@@ -316,17 +316,17 @@ inline void Display::columnAddressSet(uint x0, uint x1)
 inline void Display::rowAddressSet(uint y0, uint y1)
 {
     // deny out of bounds
-    if(y0 >= y1 || y1 >= this->maxHeight)
+    if (y0 >= y1 || y1 >= this->maxHeight)
         return;
 
     // pack the data
-    uchar data[4] = { 
-        (uchar)(y0 >> 8), 
-        (uchar)(y0 & 0xff), 
-        (uchar)(y1 >> 8), 
-        (uchar)(y1 & 0xff) 
+    unsigned char data[4] = {
+        (unsigned char)(y0 >> 8),
+        (unsigned char)(y0 & 0xff),
+        (unsigned char)(y1 >> 8),
+        (unsigned char)(y1 & 0xff)
     };
-    
+
     // write the data
     this->writeData(Display_Commands::RASET, data, sizeof(data));
 }
@@ -341,7 +341,7 @@ inline void Display::rowAddressSet(uint y0, uint y1)
 void Display::writePixels(const unsigned short* data, size_t length)
 {
     // check if the data mode is set
-    if(!this->dataMode)
+    if (!this->dataMode)
     {
         // set the data mode
         this->spi->spi_set_data_mode(Display_Commands::RAMWR);
