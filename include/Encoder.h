@@ -28,7 +28,7 @@ class Encoder
 {
 public:
 	void Encode(metadata_t* metadata, unsigned short* frameBuffer, unsigned char* outputBuffer);
-	void Decode(metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer);
+	void Decode(metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer, bool partial = false);
 
 private:
 	void EncodeMonochrome(metadata_t* metadata, unsigned short* frameBuffer, unsigned char* outputBuffer);
@@ -40,12 +40,12 @@ private:
 	void EncodeRaw(metadata_t* metadata, unsigned short* frameBuffer, unsigned char* outputBuffer);
 	void AddMetadata(metadata_t* metadata, unsigned char* outputBuffer);
 
-	void DecodeMonochrome(metadata_t* metadata, unsigned char* stream, unsigned short* outputBuffer);
-	void DecodeMonochromeRLE(metadata_t* metadata, unsigned char* stream, unsigned short* outputBuffer);
-	void DecodeRunLengthEncoding(metadata_t* metadata, unsigned char* stream, unsigned short* outputBuffer);
-	void DecodeLossy(metadata_t* metadata, unsigned char* stream, unsigned short* outputBuffer);
-	void DecodeReducedColor(metadata_t* metadata, unsigned char* stream, unsigned short* outputBuffer);
-	void DecodeReducedColorRLE(metadata_t* metadata, unsigned char* stream, unsigned short* outputBuffer);
-	void DecodeRaw(metadata_t* metadata, unsigned char* stream, unsigned short* outputBuffer);
+	void DecodeMonochrome(metadata_t* metadata, unsigned char* stream, unsigned short* outputBuffer, bool partial = false);
+	void DecodeMonochromeRLE(metadata_t* metadata, unsigned char* stream, unsigned short* outputBuffer, bool partial = false);
+	void DecodeRunLengthEncoding(metadata_t* metadata, unsigned char* stream, unsigned short* outputBuffer, bool partial = false);
+	void DecodeLossy(metadata_t* metadata, unsigned char* stream, unsigned short* outputBuffer, bool partial = false);
+	void DecodeReducedColor(metadata_t* metadata, unsigned char* stream, unsigned short* outputBuffer, bool partial = false);
+	void DecodeReducedColorRLE(metadata_t* metadata, unsigned char* stream, unsigned short* outputBuffer, bool partial = false);
+	void DecodeRaw(metadata_t* metadata, unsigned char* stream, unsigned short* outputBuffer, bool partial = false);
 	void StripMetadata(metadata_t* metadata, unsigned char* stream);
 };

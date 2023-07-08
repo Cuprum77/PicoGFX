@@ -247,7 +247,7 @@ void Display::setRotation(displayRotation_t rotation)
  * @brief Set the backlight brightness
  * @param brightness Brightness (0-255) if dimming is enabled, brightness (0-1) if dimming is disabled
 */
-void Display::setBrightness(uchar brightness)
+void Display::setBrightness(unsigned char brightness)
 {
     if(!this->backlight)
         return;
@@ -275,7 +275,7 @@ void Display::setBrightness(uchar brightness)
  * @param data Data to send
  * @param length Length of the data
 */
-void Display::writeData(uchar command, const uchar* data, size_t length)
+void Display::writeData(unsigned char command, const unsigned char* data, size_t length)
 {
     // set the data mode
     this->dataMode = false;
@@ -296,11 +296,11 @@ inline void Display::columnAddressSet(uint x0, uint x1)
         return;
 
     // pack the data
-    uchar data[4] = { 
-        (uchar)(x0 >> 8), 
-        (uchar)(x0 & 0xff), 
-        (uchar)(x1 >> 8), 
-        (uchar)(x1 & 0xff) 
+    unsigned char data[4] = { 
+        (unsigned char)(x0 >> 8), 
+        (unsigned char)(x0 & 0xff), 
+        (unsigned char)(x1 >> 8), 
+        (unsigned char)(x1 & 0xff) 
     };
 
     // write the data
@@ -320,11 +320,11 @@ inline void Display::rowAddressSet(uint y0, uint y1)
         return;
 
     // pack the data
-    uchar data[4] = { 
-        (uchar)(y0 >> 8), 
-        (uchar)(y0 & 0xff), 
-        (uchar)(y1 >> 8), 
-        (uchar)(y1 & 0xff) 
+    unsigned char data[4] = { 
+        (unsigned char)(y0 >> 8), 
+        (unsigned char)(y0 & 0xff), 
+        (unsigned char)(y1 >> 8), 
+        (unsigned char)(y1 & 0xff) 
     };
     
     // write the data

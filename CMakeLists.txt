@@ -14,6 +14,7 @@ add_library(${PROJECT_NAME}
     src/Dials.cpp
     src/PicoGFX.cpp
     src/GfxMath.c
+    src/Encoder.cpp
     Specifics/ST7789.cpp
     Specifics/GC9A01.cpp
 )

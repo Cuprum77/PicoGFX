@@ -18,7 +18,7 @@ void Display::ST7789_Init()
     // set the display to interface pixel format
     // 0x5 << 4 = 65k of rgb interface
     // 0x5 = 16 bits per pixel
-    uchar pixelFormat = 0x5 << 4 | 0x5;
+    unsigned char pixelFormat = 0x5 << 4 | 0x5;
     this->writeData(Display_Commands::COLMOD, &pixelFormat, 1);
     sleep_ms(10);
 
@@ -47,21 +47,21 @@ void Display::ST7789_SetRotation(displayRotation_t rotation)
 	switch(rotation)
     {
         case displayRotation_t::DEG_90:
-			this->writeData(MADCTL, (uchar)(Display_MADCTL::MX | Display_MADCTL::MV | Display_MADCTL::RGB));
+			this->writeData(MADCTL, (unsigned char)(Display_MADCTL::MX | Display_MADCTL::MV | Display_MADCTL::RGB));
 			this->params->height = width;
 			this->params->width = height;
             this->maxHeight = maxWidth;
             this->maxWidth = maxHeight;
             break;
         case displayRotation_t::DEG_180:
-			this->writeData(MADCTL, (uchar)(Display_MADCTL::MX | Display_MADCTL::MY | Display_MADCTL::RGB));
+			this->writeData(MADCTL, (unsigned char)(Display_MADCTL::MX | Display_MADCTL::MY | Display_MADCTL::RGB));
 			this->params->height = height;
 			this->params->width = width;
             this->maxHeight = maxHeight;
             this->maxWidth = maxWidth;
             break;
         case displayRotation_t::DEG_270:
-			this->writeData(MADCTL, (uchar)(Display_MADCTL::MV | Display_MADCTL::MY | Display_MADCTL::RGB));
+			this->writeData(MADCTL, (unsigned char)(Display_MADCTL::MV | Display_MADCTL::MY | Display_MADCTL::RGB));
 			this->params->height = width;
 			this->params->width = height;
             this->maxHeight = maxWidth;
@@ -69,7 +69,7 @@ void Display::ST7789_SetRotation(displayRotation_t rotation)
             break;
         case displayRotation_t::DEG_0:
         default:
-            this->writeData(MADCTL, (uchar)Display_MADCTL::RGB);
+            this->writeData(MADCTL, (unsigned char)Display_MADCTL::RGB);
 			this->params->height = height;
 			this->params->width = width;
             this->maxHeight = maxHeight;
