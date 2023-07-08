@@ -39,10 +39,10 @@ void Display::ST7789_Init()
 
 void Display::ST7789_SetRotation(displayRotation_t rotation)
 {
-    uint width = this->params->width;
-	uint height = this->params->height;
-    uint maxHeight = this->maxHeight;
-    uint maxWidth = this->maxWidth;
+    unsigned int width = this->params->width;
+    unsigned int height = this->params->height;
+    unsigned int maxHeight = this->maxHeight;
+    unsigned int maxWidth = this->maxWidth;
 
 	switch(rotation)
     {
