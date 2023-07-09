@@ -13,7 +13,8 @@ enum encoding_type_t
 	RAW,
 };
 
-#define METADATA_BYTES sizeof(stream_metadata_t)
+// This has to be manually set, as the precompiler is a bit dumb
+#define METADATA_BYTES 9
 struct stream_metadata_t
 {
 	unsigned char type;			// 1 byte
