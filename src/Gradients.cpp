@@ -76,7 +76,6 @@ void Gradients::fillGradient(Color startColor, Color endColor, Point start, Poin
             // calculate the distance along the gradient direction
             int dotProduct = (vectorX * deltaX + vectorY * deltaY);
             int position = ((dotProduct * maxDiff) * magnitudeInverse) >> FIXED_POINT_SCALE_HIGH_RES_BITS;
-            //int position = (dotProduct * maxDiff) / magnitudeSquared;
 
             // clamp the position within the valid range
             position = (position < 0) ? 0 : (position > maxDiff) ? maxDiff : position;

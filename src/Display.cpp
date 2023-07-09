@@ -236,6 +236,9 @@ Point Display::getCenter()
 */
 void Display::setRotation(displayRotation_t rotation)
 {
+    // save the rotation
+    this->params->rotation = (int)rotation;
+
     // set the rotation based on the display type
     if (this->type == display_type_t::GC9A01)
         this->GC9A01_SetRotation(rotation);

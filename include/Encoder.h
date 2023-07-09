@@ -17,10 +17,8 @@ enum encoding_type_t
 struct stream_metadata_t
 {
 	unsigned char type;			// 1 byte
-	unsigned char rotation;		// 1 byte
 	unsigned short width;		// 2 bytes
 	unsigned short height;		// 2 bytes
-	unsigned short chunkSize;	// 2 bytes
 	unsigned int totalBytes;	// 4 bytes
 };
 
@@ -34,7 +32,7 @@ class Encoder
 {
 public:
 	void Encode(stream_metadata_t* metadata, stream_config_t config, unsigned short* frameBuffer, unsigned char* stream);
-	void Decode(stream_metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer);
+	unsigned int Decode(stream_metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer);
 
 	void AddMetadata(stream_metadata_t* metadata, unsigned char* stream);
 	void StripMetadata(stream_metadata_t* metadata, unsigned char* stream);
@@ -48,13 +46,13 @@ private:
 	void EncodeReducedColorRLE(stream_metadata_t* metadata, unsigned short* frameBuffer, unsigned char* stream);
 	void EncodeRaw(stream_metadata_t* metadata, unsigned short* frameBuffer, unsigned char* stream);
 
-	void DecodeMonochrome(stream_metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer);
-	void DecodeMonochromeRLE(stream_metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer);
-	void DecodeRunLengthEncoding(stream_metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer);
-	void DecodeLossy(stream_metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer);
-	void DecodeReducedColor(stream_metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer);
-	void DecodeReducedColorRLE(stream_metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer);
-	void DecodeRaw(stream_metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer);
+	unsigned int DecodeMonochrome(stream_metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer);
+	unsigned int DecodeMonochromeRLE(stream_metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer);
+	unsigned int DecodeRunLengthEncoding(stream_metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer);
+	unsigned int DecodeLossy(stream_metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer);
+	unsigned int DecodeReducedColor(stream_metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer);
+	unsigned int DecodeReducedColorRLE(stream_metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer);
+	unsigned int DecodeRaw(stream_metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer);
 
 	void MonochromeDither(stream_metadata_t* metadata, unsigned short* frameBuffer, unsigned short strength);
 };

@@ -34,74 +34,68 @@ void Encoder::Encode(stream_metadata_t* metadata, stream_config_t config, unsign
 	}
 }
 
-void Encoder::Decode(stream_metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer)
+unsigned int Encoder::Decode(stream_metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer)
 {
 	switch (metadata->type)
 	{
 	case encoding_type_t::MONOCHROME:
-		this->DecodeMonochrome(metadata, stream, frameBuffer);
-		break;
+		return this->DecodeMonochrome(metadata, stream, frameBuffer);
 	case encoding_type_t::MONOCHROME_RLE:
-		this->DecodeMonochromeRLE(metadata, stream, frameBuffer);
-		break;
+		return this->DecodeMonochromeRLE(metadata, stream, frameBuffer);
 	case encoding_type_t::RUN_LENGHT_ENCODING:
-		this->DecodeRunLengthEncoding(metadata, stream, frameBuffer);
-		break;
+		return this->DecodeRunLengthEncoding(metadata, stream, frameBuffer);
 	case encoding_type_t::LOSSY:
-		this->DecodeLossy(metadata, stream, frameBuffer);
-		break;
+		return this->DecodeLossy(metadata, stream, frameBuffer);
 	case encoding_type_t::REDUCED_COLOR:
-		this->DecodeReducedColor(metadata, stream, frameBuffer);
-		break;
+		return this->DecodeReducedColor(metadata, stream, frameBuffer);
 	case encoding_type_t::REDUCED_COLOR_RLE:
-		this->DecodeReducedColorRLE(metadata, stream, frameBuffer);
-		break;
+		return this->DecodeReducedColorRLE(metadata, stream, frameBuffer);
 	case encoding_type_t::RAW:
-		this->DecodeRaw(metadata, stream, frameBuffer);
-		break;
-	default:
-		break;
+		default:
+		return this->DecodeRaw(metadata, stream, frameBuffer);
 	}
 }
 
 void Encoder::AddMetadata(stream_metadata_t* metadata, unsigned char* stream)
 {
+	// create an index to easily move data around if needed
+	int index = 0;
+
 	// Add the metadata to the beginning of the stream
-	stream[0] = metadata->type;	// add type
-	stream[1] = metadata->rotation;	// add rotation
+	stream[index++] = metadata->type;	// add type
 
 	// Add the width and height to the stream buffer
-	stream[2] = (metadata->width >> 0x8) & 0xff;
-	stream[3] = metadata->width & 0xff;
-	stream[4] = (metadata->height >> 0x8) & 0xff;
-	stream[5] = metadata->height & 0xff;
-
-	// Add the chunk size to the stream buffer
-	stream[6] = (metadata->chunkSize >> 0x8) & 0xff;
-	stream[7] = metadata->chunkSize & 0xff;
+	stream[index++] = (metadata->width >> 0x8) & 0xff;
+	stream[index++] = metadata->width & 0xff;
+	stream[index++] = (metadata->height >> 0x8) & 0xff;
+	stream[index++] = metadata->height & 0xff;
 
 	// Add the total bytes to the stream buffer
-	stream[8] = (metadata->totalBytes >> 0x18) & 0xff;
-	stream[9] = (metadata->totalBytes >> 0x10) & 0xff;
-	stream[10] = (metadata->totalBytes >> 0x8) & 0xff;
-	stream[11] = metadata->totalBytes & 0xff;
+	stream[index++] = (metadata->totalBytes >> 0x18) & 0xff;
+	stream[index++] = (metadata->totalBytes >> 0x10) & 0xff;
+	stream[index++] = (metadata->totalBytes >> 0x8) & 0xff;
+	stream[index++] = metadata->totalBytes & 0xff;
 }
 
 void Encoder::StripMetadata(stream_metadata_t* metadata, unsigned char* stream)
 {
+	// create an index to easily move data around if needed
+	int index = 0;
+
 	// add the type of stream and the rotation
-	metadata->type = stream[0];
-	metadata->rotation = stream[1];
+	metadata->type = stream[index++];
 
 	// add the width and height
-	metadata->width = (stream[2] << 0x8) | stream[3];
-	metadata->height = (stream[4] << 0x8) | stream[5];
-
-	// add the chunk size
-	metadata->chunkSize = (stream[6] << 0x8) | stream[7];
+	metadata->width = (stream[index++] << 0x8);
+	metadata->width |= stream[index++];
+	metadata->height = (stream[index++] << 0x8);
+	metadata->height |= stream[index++];
 
 	// add the total bytes
-	metadata->totalBytes = (stream[8] << 0x18) | (stream[9] << 0x10) | (stream[10] << 0x8) | stream[11];
+	metadata->totalBytes = (stream[index++] << 0x18);
+	metadata->totalBytes |= (stream[index++] << 0x10);
+	metadata->totalBytes |= (stream[index++] << 0x8);
+	metadata->totalBytes |= stream[index++];
 }
 
 
@@ -430,9 +424,10 @@ void Encoder::EncodeRaw(stream_metadata_t* metadata, unsigned short* frameBuffer
 }
 
 
-void Encoder::DecodeMonochrome(stream_metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer)
+unsigned int Encoder::DecodeMonochrome(stream_metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer)
 {
 	// Here we reverse what the monochrome encoder did
+	unsigned int framebufferIndex = 0;
 
 	// copy the framebuffer to the display
 	for (int i = 0; i < metadata->totalBytes; i++)
@@ -442,18 +437,16 @@ void Encoder::DecodeMonochrome(stream_metadata_t* metadata, unsigned char* strea
 		pixel = stream[i];
 
 		// copy each bit of the pixel to the output
-		frameBuffer[i * 8 + 0] = (pixel & 0x80) ? 0xffff : 0x0000;
-		frameBuffer[i * 8 + 1] = (pixel & 0x40) ? 0xffff : 0x0000;
-		frameBuffer[i * 8 + 2] = (pixel & 0x20) ? 0xffff : 0x0000;
-		frameBuffer[i * 8 + 3] = (pixel & 0x10) ? 0xffff : 0x0000;
-		frameBuffer[i * 8 + 4] = (pixel & 0x08) ? 0xffff : 0x0000;
-		frameBuffer[i * 8 + 5] = (pixel & 0x04) ? 0xffff : 0x0000;
-		frameBuffer[i * 8 + 6] = (pixel & 0x02) ? 0xffff : 0x0000;
-		frameBuffer[i * 8 + 7] = (pixel & 0x01) ? 0xffff : 0x0000;
+		for(int j = 0; j < 8; j++)
+			frameBuffer[i * 8 + j] = (pixel & (0x1 << (7 - j))) ? 0xffff : 0x0000;
+
+		framebufferIndex += 8;
 	}
+
+	return framebufferIndex;
 }
 
-void Encoder::DecodeMonochromeRLE(stream_metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer)
+unsigned int Encoder::DecodeMonochromeRLE(stream_metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer)
 {
 	unsigned int outputBufferIndex = 0;
 
@@ -468,9 +461,11 @@ void Encoder::DecodeMonochromeRLE(stream_metadata_t* metadata, unsigned char* st
 		for (int i = 0; i < count; i++)
 			frameBuffer[outputBufferIndex++] = pixel ? 0xffff : 0x0000;
 	}
+
+	return outputBufferIndex;
 }
 
-void Encoder::DecodeRunLengthEncoding(stream_metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer)
+unsigned int Encoder::DecodeRunLengthEncoding(stream_metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer)
 {
 	unsigned int outputBufferIndex = 0;
 
@@ -484,9 +479,11 @@ void Encoder::DecodeRunLengthEncoding(stream_metadata_t* metadata, unsigned char
 		for (int i = 0; i < count; i++)
 			frameBuffer[outputBufferIndex++] = pixel;
 	}
+
+	return outputBufferIndex;
 }
 
-void Encoder::DecodeLossy(stream_metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer)
+unsigned int Encoder::DecodeLossy(stream_metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer)
 {
 	int r, g, b;
 	int y, cb, cr;
@@ -536,17 +533,20 @@ void Encoder::DecodeLossy(stream_metadata_t* metadata, unsigned char* stream, un
 			frameBuffer[pixelIndex++] = pixel;
 		}
 	}
+
+	return pixelIndex;
 }
 
-void Encoder::DecodeReducedColor(stream_metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer)
+unsigned int Encoder::DecodeReducedColor(stream_metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer)
 {
 	// Here we reverse what the reduced color encoder does
+	unsigned int pixelIndex = 0;
 
 	// loop through each pixel in the framebuffer
-	for (int i = 0; i < metadata->totalBytes; i++)
+	for (; pixelIndex < metadata->totalBytes; pixelIndex++)
 	{
 		// build up the pixel based on the stream buffer
-		unsigned char pixel = stream[i];
+		unsigned char pixel = stream[pixelIndex];
 
 		// extract the rgb values
 		unsigned char r = (pixel >> 5) & 0x7;
@@ -560,11 +560,13 @@ void Encoder::DecodeReducedColor(stream_metadata_t* metadata, unsigned char* str
 
 		// reassemble the pixel
 		unsigned short newPixel = (r << 0xb) | (g << 0x6) | b;
-		frameBuffer[i] = newPixel;
+		frameBuffer[pixelIndex] = newPixel;
 	}
+
+	return pixelIndex;
 }
 
-void Encoder::DecodeReducedColorRLE(stream_metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer)
+unsigned int Encoder::DecodeReducedColorRLE(stream_metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer)
 {
 	unsigned char pixel;
 	unsigned char count;
@@ -592,18 +594,21 @@ void Encoder::DecodeReducedColorRLE(stream_metadata_t* metadata, unsigned char* 
 		for (int i = 0; i < count; i++)
 			frameBuffer[pixelIndex++] = newPixel;
 	}
+
+	return pixelIndex;
 }
 
-void Encoder::DecodeRaw(stream_metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer)
+unsigned int Encoder::DecodeRaw(stream_metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer)
 {
 	// Here we reverse what the raw encoder does
+	unsigned int pixelIndex = 0;
 
 	// loop through each pixel in the framebuffer
-	for (int i = 0; i < metadata->totalBytes; i++)
-	{
+	for (; pixelIndex < metadata->totalBytes; pixelIndex++)
 		// build up the pixel based on the stream buffer
-		frameBuffer[i] = (stream[i * 2 + 0] << 0x8) | stream[i * 2 + 1];
-	}
+		frameBuffer[pixelIndex] = (stream[pixelIndex * 2 + 0] << 0x8) | stream[pixelIndex * 2 + 1];
+
+	return pixelIndex;
 }
 
 

@@ -35,6 +35,7 @@ public:
     bool writeReady(void) { return !this->spi->dma_busy(); }
     void setBrightness(unsigned char brightness);
     void setRotation(displayRotation_t rotation);
+    int getRotation(void) { return this->params->rotation; }
     void displayOn(void);
     void displayOff(void);
     void clear(void);
