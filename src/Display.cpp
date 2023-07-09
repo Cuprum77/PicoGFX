@@ -296,19 +296,11 @@ inline void Display::columnAddressSet(uint x0, uint x1)
         return;
 
     // pack the data
-<<<<<<< HEAD
     unsigned char data[4] = {
         (unsigned char)(x0 >> 8),
         (unsigned char)(x0 & 0xff),
         (unsigned char)(x1 >> 8),
         (unsigned char)(x1 & 0xff)
-=======
-    unsigned char data[4] = { 
-        (unsigned char)(x0 >> 8), 
-        (unsigned char)(x0 & 0xff), 
-        (unsigned char)(x1 >> 8), 
-        (unsigned char)(x1 & 0xff) 
->>>>>>> 76ee05fd613100907ab5e5078ec5e5a7f37a575a
     };
 
     // write the data
@@ -328,19 +320,11 @@ inline void Display::rowAddressSet(uint y0, uint y1)
         return;
 
     // pack the data
-<<<<<<< HEAD
     unsigned char data[4] = {
         (unsigned char)(y0 >> 8),
         (unsigned char)(y0 & 0xff),
         (unsigned char)(y1 >> 8),
         (unsigned char)(y1 & 0xff)
-=======
-    unsigned char data[4] = { 
-        (unsigned char)(y0 >> 8), 
-        (unsigned char)(y0 & 0xff), 
-        (unsigned char)(y1 >> 8), 
-        (unsigned char)(y1 & 0xff) 
->>>>>>> 76ee05fd613100907ab5e5078ec5e5a7f37a575a
     };
 
     // write the data
