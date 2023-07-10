@@ -2,6 +2,8 @@
 
 #include <GfxMath.h>
 
+#define ENDIANNESS 0 // 0 = little endian, 1 = big endian
+
 enum encoding_type_t
 {
 	MONOCHROME,

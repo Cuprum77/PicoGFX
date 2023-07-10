@@ -471,7 +471,14 @@ unsigned int Encoder::DecodeRunLengthEncoding(stream_metadata_t* metadata, unsig
 	{
 		// get the count and pixel value from the stream with an offset
 		unsigned int count = stream[streamIndex++];
-		unsigned short pixel = (stream[streamIndex++] << 0x8) | stream[streamIndex++];
+
+#if ENDIANNESS
+		unsigned short pixel = (stream[streamIndex++] << 0x8);
+		pixel |= stream[streamIndex++];
+#else
+		unsigned short pixel = stream[streamIndex++];
+		pixel |= (stream[streamIndex++] << 0x8);
+#endif
 
 		// reverse the run length encoding
 		for (int i = 0; i < count; i++)
@@ -603,8 +610,16 @@ unsigned int Encoder::DecodeRaw(stream_metadata_t* metadata, unsigned char* stre
 
 	// loop through each pixel in the framebuffer
 	for (unsigned int streamIndex = 0; streamIndex < metadata->totalBytes;)
+	{
 		// build up the pixel based on the stream buffer
-		frameBuffer[pixelIndex++] = (stream[streamIndex++] << 0x8) | stream[streamIndex++];
+#if ENDIANNESS
+		frameBuffer[pixelIndex++] = (stream[streamIndex++] << 0x8);
+		frameBuffer[pixelIndex++] |= stream[streamIndex++];
+#else
+		frameBuffer[pixelIndex++] = stream[streamIndex++];
+		frameBuffer[pixelIndex++] |= (stream[streamIndex++] << 0x8);
+#endif
+	}
 
 	return pixelIndex;
 }
