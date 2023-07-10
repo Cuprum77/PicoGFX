@@ -29,6 +29,7 @@ struct stream_config_t
 {
 	unsigned short monochromeCutoff;
 	bool monochromeDithering;
+	bool isReceiverBigEndian;
 };
 
 class Encoder
@@ -43,11 +44,11 @@ public:
 private:
 	void EncodeMonochrome(stream_metadata_t* metadata, stream_config_t config, unsigned short* frameBuffer, unsigned char* stream);
 	void EncodeMonochromeRLE(stream_metadata_t* metadata, stream_config_t config, unsigned short* frameBuffer, unsigned char* stream);
-	void EncodeRunLengthEncoding(stream_metadata_t* metadata, unsigned short* frameBuffer, unsigned char* stream);
-	void EncodeLossy(stream_metadata_t* metadata, unsigned short* frameBuffer, unsigned char* stream);
-	void EncodeReducedColor(stream_metadata_t* metadata, unsigned short* frameBuffer, unsigned char* stream);
-	void EncodeReducedColorRLE(stream_metadata_t* metadata, unsigned short* frameBuffer, unsigned char* stream);
-	void EncodeRaw(stream_metadata_t* metadata, unsigned short* frameBuffer, unsigned char* stream);
+	void EncodeRunLengthEncoding(stream_metadata_t* metadata, stream_config_t config, unsigned short* frameBuffer, unsigned char* stream);
+	void EncodeLossy(stream_metadata_t* metadata, stream_config_t config, unsigned short* frameBuffer, unsigned char* stream);
+	void EncodeReducedColor(stream_metadata_t* metadata, stream_config_t config, unsigned short* frameBuffer, unsigned char* stream);
+	void EncodeReducedColorRLE(stream_metadata_t* metadata, stream_config_t config, unsigned short* frameBuffer, unsigned char* stream);
+	void EncodeRaw(stream_metadata_t* metadata, stream_config_t config, unsigned short* frameBuffer, unsigned char* stream);
 
 	unsigned int DecodeMonochrome(stream_metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer);
 	unsigned int DecodeMonochromeRLE(stream_metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer);
