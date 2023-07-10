@@ -628,11 +628,11 @@ unsigned int Encoder::DecodeRaw(stream_metadata_t* metadata, unsigned char* stre
 	unsigned int pixelIndex = 0;
 
 	// loop through each pixel in the framebuffer
-	for (unsigned int streamIndex = 0; streamIndex < metadata->totalBytes;)
+	for (; pixelIndex < metadata->totalBytes;)
 	{
 		// build up the pixel based on the stream buffer
-		frameBuffer[pixelIndex++] = (stream[streamIndex++] << 0x8);
-		frameBuffer[pixelIndex++] |= stream[streamIndex++];
+		frameBuffer[pixelIndex] = (stream[pixelIndex++] << 0x8);
+		frameBuffer[pixelIndex] |= stream[pixelIndex++];
 	}
 
 	return pixelIndex;
