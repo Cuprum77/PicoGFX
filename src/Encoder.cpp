@@ -514,15 +514,14 @@ unsigned int Encoder::DecodeLossy(stream_metadata_t* metadata, unsigned char* st
 	int pixelIndex = 0, streamIndex = 0;
 	int lastY = 0, lastCB = 128, lastCR = 128; // Initialize chroma to mid-range.
 
-	unsigned int framebufferSize = metadata->width * metadata->height;
-	while (pixelIndex < framebufferSize)
+	for (; streamIndex < metadata->totalBytes;) // Loop through all pixels in the frame
 	{
 		unsigned int count = stream[streamIndex++];
 		y = stream[streamIndex++];
 		cb = stream[streamIndex++];
 		cr = stream[streamIndex++];
 
-		for (unsigned int i = 0; i < count * 2 && pixelIndex < framebufferSize; i++)
+		for (unsigned int i = 0; i < count * 2; i++)
 		{
 			// Duplicate the chroma values for every other pixel
 			if (i % 2 == 0)
@@ -628,11 +627,11 @@ unsigned int Encoder::DecodeRaw(stream_metadata_t* metadata, unsigned char* stre
 	unsigned int pixelIndex = 0;
 
 	// loop through each pixel in the framebuffer
-	for (; pixelIndex < metadata->totalBytes;)
+	for (unsigned int streamIndex = 0; streamIndex < metadata->totalBytes;)
 	{
 		// build up the pixel based on the stream buffer
-		frameBuffer[pixelIndex] = (stream[pixelIndex++] << 0x8);
-		frameBuffer[pixelIndex] |= stream[pixelIndex++];
+		frameBuffer[pixelIndex] = (stream[streamIndex++] << 0x8);
+		frameBuffer[pixelIndex++] |= stream[streamIndex++];
 	}
 
 	return pixelIndex;
