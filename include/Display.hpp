@@ -39,8 +39,6 @@ public:
     void displayOn(void);
     void displayOff(void);
     void clear(void);
-    void fill(Color color);
-    Color getFillColor(void);
 
     void update(bool framecounter = false);
     void setPixel(Point point, Color color);
@@ -67,7 +65,6 @@ protected:
     unsigned int pwmChannel;
     bool dataMode = false;
     unsigned short frameBuffer[FRAMEBUFFER_SIZE + 1];
-    Color fillColor;
     Point cursor = {0, 0};
     bool backlight;
     display_type_t type;

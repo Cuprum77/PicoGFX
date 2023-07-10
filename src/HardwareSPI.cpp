@@ -195,8 +195,8 @@ void HardwareSPI::initPIO(void)
 {
     // create the first spi state machine
     this->pio = pio0;
-    this->sm = 0;
-    this->offset = pio_add_program(pio, &pio_spi_program);
+    this->sm = pio_claim_unused_sm(this->pio, true);
+    this->offset = pio_add_program(this->pio, &pio_spi_program);
     float clk_divider = (float)clock_get_hz(clk_sys) / (float)this->hw_params.baudrate;
     pio_spi_program_init(this->pio, this->sm, this->offset, this->sda, this->scl, clk_divider);
 

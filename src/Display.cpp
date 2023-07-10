@@ -70,25 +70,11 @@ Display::Display(HardwareSPI* spi, Display_Pins* pins, Display_Params* params)
 */
 void Display::clear()
 {
-    this->fill(Colors::Black);
-    this->update();
-}
-
-/**
- * @brief Fill the display with a color
- * @param color Color to fill with
-*/
-void Display::fill(Color color)
-{
-    // convert color to 16 bit
-    unsigned short color16 = color.to16bit();
     // set the cursor position to the top left
     this->setCursor({ 0, 0 });
     // fill the frame buffer
     for (int i = 0; i < this->totalPixels; i++)
-        this->frameBuffer[i] = color16;
-    // set the fill color variable
-    this->fillColor = color;
+        this->frameBuffer[i] = 0x0000;
     this->setCursor({ 0, 0 });
 }
 
@@ -108,15 +94,6 @@ void Display::update(bool framecounter)
         this->frames = this->framecounter;
         this->framecounter = 0;
     }
-}
-
-/**
- * @brief Return the current fill color
- * @return Current fill color
-*/
-Color Display::getFillColor()
-{
-    return this->fillColor;
 }
 
 /**

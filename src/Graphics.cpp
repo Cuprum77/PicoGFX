@@ -14,6 +14,19 @@ Graphics::Graphics(unsigned short* frameBuffer, Display_Params params)
 }
 
 /**
+ * @brief Fill the display with a color
+ * @param color Color to fill with
+*/
+void Graphics::fill(Color color)
+{
+    // convert color to 16 bit
+    unsigned short color16 = color.to16bit();
+    // fill the frame buffer
+    for (int i = 0; i < this->totalPixels; i++)
+        this->frameBuffer[i] = color16;
+}
+
+/**
  * @brief Fill the display with a color gradient
  * @param startColor Color to start with
  * @param endColor Color to end with

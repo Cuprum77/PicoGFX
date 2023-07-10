@@ -10,6 +10,7 @@ class Graphics
 public:
     Graphics(unsigned short* frameBuffer, Display_Params params);
 
+    void fill(Color color);
     void fillGradientCool(Color startColor, Color endColor, Point start, Point end);
     void drawLine(Point start, Point end, Color color = Colors::White);
     void drawExpandingLine(Point start, Point end, unsigned int startThickness, unsigned int endThickness, Color color = Colors::White);
