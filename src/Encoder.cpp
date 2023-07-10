@@ -406,17 +406,15 @@ void Encoder::EncodeRaw(stream_metadata_t* metadata, unsigned short* frameBuffer
 
 	// calculate the output this is the size of the display in pixels
 	int calculatedSize = metadata->width * metadata->height;
+	unsigned int streamIndex = 0;
 
 	// loop through each pixel in the framebuffer
-	for (int i = 0; i < calculatedSize; i++)
+	for (int pixelIndex = 0; pixelIndex < calculatedSize;)
 	{
-		unsigned short pixel = frameBuffer[i];
+		unsigned short pixel = frameBuffer[pixelIndex++];
 
-		unsigned char highPixel = (pixel >> 0x8) & 0xff;
-		unsigned char lowPixel = pixel & 0xff;
-
-		stream[METADATA_BYTES + (i * 2 + 0)] = highPixel;
-		stream[METADATA_BYTES + (i * 2 + 1)] = lowPixel;
+		stream[METADATA_BYTES + streamIndex++] = (pixel >> 0x8) & 0xff;
+		stream[METADATA_BYTES + streamIndex++] = pixel & 0xff;
 	}
 
 	// place the calculated size into the output size variable, but multiply by two to account for 2 bytes per pixel
@@ -604,9 +602,9 @@ unsigned int Encoder::DecodeRaw(stream_metadata_t* metadata, unsigned char* stre
 	unsigned int pixelIndex = 0;
 
 	// loop through each pixel in the framebuffer
-	for (; pixelIndex < metadata->totalBytes; pixelIndex++)
+	for (unsigned int streamIndex = 0; streamIndex < metadata->totalBytes;)
 		// build up the pixel based on the stream buffer
-		frameBuffer[pixelIndex] = (stream[pixelIndex * 2 + 0] << 0x8) | stream[pixelIndex * 2 + 1];
+		frameBuffer[pixelIndex++] = (stream[streamIndex++] << 0x8) | stream[streamIndex++];
 
 	return pixelIndex;
 }
