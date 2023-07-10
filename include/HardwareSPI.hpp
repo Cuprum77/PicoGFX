@@ -27,7 +27,7 @@ struct Hardware_Params
 class HardwareSPI
 {
 public:
-    HardwareSPI(Display_Pins pins, Hardware_Params hw_params, Display_Params params);
+    HardwareSPI(Display_Pins pins, Hardware_Params hw_params);
     void init(void);
 
     void spi_write_data(uint8_t command, const uint8_t* data, size_t length);

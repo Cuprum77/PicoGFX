@@ -4,16 +4,16 @@
  * @brief Constructor for HardwareSPI
  * @param pins The struct containing the pins to use
  * @param hw_params The struct containing the hardware parameters to use
- * @param params The struct containing the parameters to use
  * @param spi The SPI bus to use, can be ignored if using DMA or PIO
  * @note If SPI is in use, and the instance is not specified, spi0 will be used
 */
-HardwareSPI::HardwareSPI(Display_Pins pins, Hardware_Params hw_params, Display_Params params)
+HardwareSPI::HardwareSPI(Display_Pins pins, Hardware_Params hw_params)
 {
     this->scl = pins.scl;
     this->sda = pins.sda;
     this->dc = pins.dc;
     this->cs = pins.cs;
+    this->hw_params = hw_params;
 }
 
 /**
