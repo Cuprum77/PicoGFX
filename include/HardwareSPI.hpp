@@ -20,7 +20,7 @@ typedef struct pio_spi_inst {
 struct Hardware_Params
 {
     SPI_Interface_t hw_interface;
-    spi_inst_t* spi;
+    spi_inst_t* spi_instance;
     unsigned int baudrate;
 };
 
