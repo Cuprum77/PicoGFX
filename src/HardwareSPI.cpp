@@ -1,7 +1,7 @@
 #include "HardwareSPI.hpp"
 
 /**
- * @brief Construct a new HardwareSPI::HardwareSPI object
+ * @brief Constructor for HardwareSPI
  * @param pins The struct containing the pins to use
  * @param hw_params The struct containing the hardware parameters to use
  * @param params The struct containing the parameters to use
@@ -14,7 +14,13 @@ HardwareSPI::HardwareSPI(Display_Pins pins, Hardware_Params hw_params, Display_P
     this->sda = pins.sda;
     this->dc = pins.dc;
     this->cs = pins.cs;
+}
 
+/**
+ * @brief Initialize the hardware interface
+*/
+void HardwareSPI::init()
+{
     switch(hw_params.hw_interface)
     {
         case(SPI_Interface_t::DMA_HW):

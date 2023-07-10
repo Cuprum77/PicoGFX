@@ -1,7 +1,7 @@
 #include <Display.hpp>
 
 /**
- * @brief Display constructor
+ * @brief Display initialization
  * @param spi SPI bus
  * @param pins Pins
  * @param params Display parameters
@@ -53,7 +53,13 @@ Display::Display(HardwareSPI* spi, Display_Pins* pins, Display_Params* params)
             gpio_put(this->pins->bl, 1);
         }
     }
+}
 
+/**
+ * @brief Display initialization
+*/
+void Display::init()
+{
     if (this->type == display_type_t::GC9A01)
         this->GC9A01_Init();
     else if (this->type == display_type_t::ST7789)
@@ -76,6 +82,7 @@ void Display::clear()
     for (int i = 0; i < this->totalPixels; i++)
         this->frameBuffer[i] = 0x0000;
     this->setCursor({ 0, 0 });
+    this->update();
 }
 
 /**

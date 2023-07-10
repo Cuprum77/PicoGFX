@@ -32,6 +32,7 @@ class Display
 {
 public:
     Display(HardwareSPI* spi, Display_Pins* pins, Display_Params* params);
+    void init(void);
     bool writeReady(void) { return !this->spi->dma_busy(); }
     void setBrightness(unsigned char brightness);
     void setRotation(displayRotation_t rotation);
