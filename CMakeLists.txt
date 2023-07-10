@@ -23,8 +23,7 @@ add_library(sub::Display ALIAS ${PROJECT_NAME})
 
 target_include_directories(${PROJECT_NAME}
     PUBLIC ${PROJECT_SOURCE_DIR}/include
-    PUBLIC ${PROJECT_SOURCE_DIR}/include/Extras
-    PUBLIC ${PROJECT_SOURCE_DIR}/Fonts
+    PUBLIC ${PROJECT_SOURCE_DIR}/fonts
 )
 
 pico_generate_pio_header(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/include/pio_spi.pio)

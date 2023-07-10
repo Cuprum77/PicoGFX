@@ -30,7 +30,6 @@ struct Display_Pins
 
 struct Display_Params
 {
-    SPI_Interface_t hw_interface;
     display_type_t type;
     bool dimming;
     unsigned int height;
