@@ -319,7 +319,7 @@ void Encoder::EncodeReducedColor(stream_metadata_t* metadata, unsigned short* fr
 
 		// extract the color components
 		unsigned char r = (pixel >> 0xb) & 0x1f;
-		unsigned char g = (pixel >> 0x6) & 0x3f;
+		unsigned char g = (pixel >> 0x5) & 0x3f;
 		unsigned char b = pixel & 0x1f;
 
 		// convert the RGB565 format to a RGB332
@@ -348,7 +348,7 @@ void Encoder::EncodeReducedColorRLE(stream_metadata_t* metadata, unsigned short*
 
 		// extract the color components
 		unsigned char r = (pixel >> 0xb) & 0x1f;
-		unsigned char g = (pixel >> 0x6) & 0x3f;
+		unsigned char g = (pixel >> 0x5) & 0x3f;
 		unsigned char b = pixel & 0x1f;
 
 		// convert the RGB565 format to a RGB332
@@ -557,7 +557,7 @@ unsigned int Encoder::DecodeReducedColor(stream_metadata_t* metadata, unsigned c
 		b = (b << 0x3) | (b << 0x1) | (b >> 0x1);
 
 		// reassemble the pixel
-		unsigned short newPixel = (r << 0xb) | (g << 0x6) | b;
+		unsigned short newPixel = (r << 0xb) | (g << 0x5) | b;
 		frameBuffer[pixelIndex] = newPixel;
 	}
 
@@ -587,7 +587,7 @@ unsigned int Encoder::DecodeReducedColorRLE(stream_metadata_t* metadata, unsigne
 		b = (b << 0x3) | (b << 0x1) | (b >> 0x1);
 
 		// reassemble the pixel
-		newPixel = (r << 0xb) | (g << 0x6) | b;
+		newPixel = (r << 0xb) | (g << 0x5) | b;
 
 		for (int i = 0; i < count; i++)
 			frameBuffer[pixelIndex++] = newPixel;
