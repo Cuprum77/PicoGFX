@@ -20,14 +20,6 @@
 #define ST7789_HEIGHT 320
 #define FRAMEBUFFER_SIZE (ST7789_WIDTH * ST7789_HEIGHT)
 
-typedef enum
-{
-    DEG_0 = 0,
-    DEG_90 = 1,
-    DEG_180 = 2,
-    DEG_270 = 3
-} displayRotation_t;
-
 class Display
 {
 public:
@@ -35,7 +27,7 @@ public:
     void init(void);
     bool writeReady(void) { return !this->spi->dma_busy(); }
     void setBrightness(unsigned char brightness);
-    void setRotation(displayRotation_t rotation);
+    void setRotation(int rotation);
     int getRotation(void) { return this->params->rotation; }
     void displayOn(void);
     void displayOff(void);
@@ -80,12 +72,12 @@ protected:
     unsigned long timer = 0;
 
     void ST7789_Init(void);
-    void ST7789_SetRotation(displayRotation_t rotation);
+    void ST7789_SetRotation(int rotation);
 
     void GC9A01_Init(void);
     void GC9A01_SoftReset(void);
     void GC9A01_HardReset(void);
-    void GC9A01_SetRotation(displayRotation_t rotation);
+    void GC9A01_SetRotation(int rotation);
 
     void writeData(Display_Commands command, 
         const unsigned char* data, size_t length) { writeData((unsigned char)command, data, length); }
