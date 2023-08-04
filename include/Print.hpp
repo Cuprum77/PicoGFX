@@ -8,22 +8,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
-#include <string.h>
 
 // String behavior
 #define CHARACTER_BUFFER_SIZE 128 // max number of characters that can be printed at once
-#define TAB_SIZE 4      // how many spaces a tab is worth
-#define FALSE "false"   // string representation of false
-#define TRUE "true"     // string representation of true
-
-// Typedefs for number bases
-typedef enum
-{
-    BIN = 2,
-    OCT = 8,
-    DEC = 10,
-    HEX = 16
-} number_base_t;
+#define TAB_SIZE 4  // how many spaces a tab is worth
 
 class Print
 {
@@ -40,11 +28,14 @@ public:
     unsigned int getStringWidth(const char* format, ...);
     unsigned int getStringHeight(const char* format, ...);
 private:
+    // Display variables
     unsigned short* frameBuffer;
-    char characterBuffer[CHARACTER_BUFFER_SIZE];
     unsigned int width;
     unsigned int height;
     size_t totalPixels;
+
+    // Print variables
+    char characterBuffer[CHARACTER_BUFFER_SIZE];
     unsigned long cursor;
     unsigned short color;
     FontStruct* font;

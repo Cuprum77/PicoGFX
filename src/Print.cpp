@@ -77,6 +77,8 @@ void Print::print(const char* format, ...)
     // Generate the string
     va_list args;
     va_start(args, format);
+    // Use vsprintf to get the size of the string
+    // This is extremely slow, and needs to be replaced with a faster, but less robust solution
     int size = vsprintf(this->characterBuffer, format, args);
     va_end(args);
 
@@ -144,77 +146,6 @@ unsigned int Print::getStringHeight(const char* format, ...)
 
 /**
  * @private
- * @brief Convert float to string
- * @param value Value to convert
- * @param buffer Buffer to write to
- * @param precision Precision of the value
-*/
-void Print::floatToString(double num, char* buffer, unsigned int precision)
-{
-    // if precision is 0, just return the integer part
-    if(precision == 0)
-    {
-        itoa((long)num, buffer, 10);
-        return;
-    }
-
-    // print the sign if the number is negative
-	if(num < 0.0)
-	{
-		*buffer++ = '-';
-		num = -num;
-	}
-
-	// round the number to the precision
-	double rounding = 0.5;
-	for(unsigned char i = 0; i < (precision + 1); ++i)
-		rounding /= 10.0;
-	num += rounding;
-
-	// print the integer part
-	unsigned long integer = (unsigned long)num;
-	double remainder = num - (double)integer;
-
-    // store the number of integers for fast reversing later
-    unsigned int integers = 0;
-    // loop until the integer is 0 at least once
-    do
-    {
-        // add the first digit to the buffer
-        *buffer++ = '0' + (integer % 10);
-        integer /= 10;
-        integers++;
-    } while(integer > 0);
-
-    // reverse the buffer to get the correct order
-    this->reverse(buffer - integers, integers);
-
-	// print the decimal point
-	if(precision > 0)
-		*buffer++ = '.';
-
-	// print the decimal part
-	while(precision-- > 0)
-	{
-		remainder *= 10.0;
-		int digit = int(remainder);
-        *buffer++ = '0' + digit;
-		remainder -= digit;
-        integers++;
-	}
-}
-
-void Print::reverse(char* buffer, unsigned int length)
-{
-    for(int i = 0; i < length/2; i++) {
-        char temp = *(buffer + i);
-        *(buffer + i) = *(buffer + length - i - 1);
-        *(buffer + length - i - 1) = temp;
-    }
-}
-
-/**
- * @private
  * @brief Draw an ascii character on the display
  * @param character Character to draw
  * @param Point Point to draw at
@@ -258,7 +189,7 @@ void Print::drawAscii(const char character)
     else if (character == 0x09) // tab
     {
         // move the cursor by the width of the character
-        this->cursor += (charData.width * 4);
+        this->cursor += (charData.width * TAB_SIZE);
         return;
     }
 
@@ -314,4 +245,75 @@ void Print::drawAscii(const char character)
 
     // set the cursor to the end of the character
     this->cursor += rowSize;
+}
+
+/**
+ * @private
+ * @brief Convert float to string
+ * @param value Value to convert
+ * @param buffer Buffer to write to
+ * @param precision Precision of the value
+*/
+void Print::floatToString(double num, char* buffer, unsigned int precision)
+{
+    // if precision is 0, just return the integer part
+    if (precision == 0)
+    {
+        itoa((long)num, buffer, 10);
+        return;
+    }
+
+    // print the sign if the number is negative
+    if (num < 0.0)
+    {
+        *buffer++ = '-';
+        num = -num;
+    }
+
+    // round the number to the precision
+    double rounding = 0.5;
+    for (unsigned char i = 0; i < (precision + 1); ++i)
+        rounding /= 10.0;
+    num += rounding;
+
+    // print the integer part
+    unsigned long integer = (unsigned long)num;
+    double remainder = num - (double)integer;
+
+    // store the number of integers for fast reversing later
+    unsigned int integers = 0;
+    // loop until the integer is 0 at least once
+    do
+    {
+        // add the first digit to the buffer
+        *buffer++ = '0' + (integer % 10);
+        integer /= 10;
+        integers++;
+    } while (integer > 0);
+
+    // reverse the buffer to get the correct order
+    this->reverse(buffer - integers, integers);
+
+    // print the decimal point
+    if (precision > 0)
+        *buffer++ = '.';
+
+    // print the decimal part
+    while (precision-- > 0)
+    {
+        remainder *= 10.0;
+        int digit = int(remainder);
+        *buffer++ = '0' + digit;
+        remainder -= digit;
+        integers++;
+    }
+}
+
+void Print::reverse(char* buffer, unsigned int length)
+{
+    for (int i = 0; i < length / 2; i++) {
+        char temp = *(buffer + i);
+        *(buffer + i) = *(buffer + length - i - 1);
+        *(buffer + length - i - 1) = temp;
+    }
 }
