@@ -95,6 +95,12 @@ void Graphics::drawLine(Point start, Point end, Color color)
     unsigned int x1 = end.X();
     unsigned int y1 = end.Y();
 
+    // Clamp the x and y Points
+    if(x0 > this->params.width) x0 = this->params.width - 1;
+    if(y0 > this->params.height) y0 = this->params.height - 1;
+    if(x1 > this->params.width) x1 = this->params.width - 1;
+    if(y1 > this->params.height) y1 = this->params.height - 1;
+
     // get the difference between the x and y Points
     int dx = iabs((int)end.X() - (int)start.X());
     int sx = start.X() < end.X() ? 1 : -1;
@@ -105,10 +111,6 @@ void Graphics::drawLine(Point start, Point end, Color color)
     
     while(true)
     {
-        // Clamp the x and y Points
-        if(x0 >= this->params.width) x0 = this->params.width - 1;
-        if(y0 >= this->params.height) y0 = this->params.height - 1;
-
         // set the pixel in the frame buffer
         this->frameBuffer[x0 + y0 * this->params.width] = color.to16bit();
 
@@ -148,9 +150,6 @@ void Graphics::drawLine(Point start, Point end, Color color)
 */
 void Graphics::drawWedge(Point start, Point end, unsigned int startThickness, unsigned int endThickness, Color color)
 {
-    // To get a functional prototype, this function will simply draw as many lines as needed to get the desired thickness
-    // This needs to be optimized later
-
     // We need to calculate the offset of the line both for the start and end points
     int startThicknessHalf = startThickness >> 1; // Divide by 2
     int endThicknessHalf = endThickness >> 1; // Divide by 2
