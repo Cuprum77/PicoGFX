@@ -15,6 +15,51 @@ Print::Print(unsigned short* frameBuffer, Display_Params params)
 }
 
 /**
+ * @brief Set the color to use
+ * @param color Color to use
+*/
+void Print::setColor(Color color)
+{
+	this->color = color.to16bit();
+}
+
+/**
+ * @brief Get the color in use
+*/
+Color Print::getColor(void)
+{
+	return Color(this->color);
+}
+
+/**
+ * @brief Set the cursor position
+ * @param point Point to set the cursor to
+*/
+void Print::setCursor(Point point)
+{
+    this->cursor = (unsigned long)(point.x + point.y * this->width);
+}
+
+/**
+ * @brief Move the cursor position
+ * @param x X position to modify the cursor by
+ * @param y Y position to modify the cursor by
+*/
+void Print::moveCursor(int x, int y)
+{
+    this->cursor += (unsigned long)(x + y * this->width);
+}
+
+/**
+ * @brief Get the cursor position
+ * @returns Cursor position
+*/
+Point Print::getCursor(void)
+{
+    return { (unsigned int)(this->cursor % this->width), (unsigned int)(this->cursor / this->width) };
+}
+
+/**
  * @brief Set the font to use
  * @param font Font to use
 */
@@ -24,213 +69,77 @@ void Print::setFont(FontStruct* font)
 }
 
 /**
- * @brief Write a number on the display
- * @param number Number to print
+ * @brief Print to the display
+ * @note This behaves like printf
 */
-void Print::print(long number, number_base_t base)
+void Print::print(const char* format, ...)
 {
-    // convert the number to a string
-    char buffer[CHARACTER_BUFFER_SIZE];    // largest number a long can represent is 9 223 372 036 854 775 807
-    itoa(number, buffer, base);
-    // write the string
-    this->print(buffer);
-}
+    // Generate the string
+    va_list args;
+    va_start(args, format);
+    int size = vsprintf(this->characterBuffer, format, args);
+    va_end(args);
 
-/**
- * @brief Write a number on the display
- * @param number Number to print
-*/
-void Print::print(unsigned long number, number_base_t base)
-{
-    // convert the number to a string
-    char buffer[CHARACTER_BUFFER_SIZE];    // largest number a long can represent is 9 223 372 036 854 775 807
-    itoa(number, buffer, base);
-    // write the string
-    this->print(buffer);
-}
-
-/**
- * @brief Write a number on the display
- * @param number Number to print
- * @param precision Number of decimal places to print
-*/
-void Print::print(double number, unsigned int precision)
-{
-    // convert the number to a string
-    char buffer[CHARACTER_BUFFER_SIZE] = {0};    // largest number a double can represent is 1.79769e+308
-    this->floatToString(number, buffer, precision);
-    // write the string
-    this->print(buffer);
-}
-
-/**
- * @brief Write a character on the display
- * @param character Character to print
-*/
-void Print::print(const char* text)
-{
-    // get the length of the text
-    unsigned int length = strlen(text);
-
-    // loop through the text
-    for(int i = 0; i < length; i++)
+    // loop through each character in the string
+    for (int i = 0; i < size; i++)
     {
         // draw the character
-        this->drawAscii(text[i]);
+        this->drawAscii(this->characterBuffer[i]);
     }
 }
 
 /**
- * @brief Print a boolean on the display
- * @param bool Boolean to print
- */
-void Print::print(bool value)
+ * @brief Get the width of a string in pixels
+ * @note This behaves like printf
+ * @returns Width of the string in pixels
+*/
+unsigned int Print::getStringWidth(const char* format, ...)
 {
-	this->print(value ? "true" : "false");
+    // Generate the string
+    va_list args;
+    va_start(args, format);
+    int size = vsprintf(this->characterBuffer, format, args);
+    va_end(args);
+
+    // store the number of pixels
+    size_t pixels = 0;
+
+    // loop through each character in the string
+    for (int i = 0; i < size; i++)
+    {
+        FontCharacter character = this->font->characters[this->characterBuffer[i] - 0x20];
+        pixels += character.width;
+    }
+
+    // return the number of pixels
+    return pixels;
 }
 
 /**
- * @brief Print a number on the display
- * @param number Number to print
- * @param size Size of the number
+ * @brief Get the height of a string in pixels
+ * @note This behaves like printf
+ * @returns Height of the string in pixels
 */
-void Print::println(long number, number_base_t base)
+unsigned int Print::getStringHeight(const char* format, ...)
 {
-    // convert the number to a string
-    char buffer[CHARACTER_BUFFER_SIZE];    // largest number a long can represent is 9 223 372 036 854 775 807
-    itoa(number, buffer, base);
-    // write the string
-    this->println(buffer);
-}
+    // Generate the string
+    va_list args;
+    va_start(args, format);
+    int size = vsprintf(this->characterBuffer, format, args);
+    va_end(args);
 
-/**
- * @brief Print a number on the display
- * @param number Number to print
- * @param size Size of the number
-*/
-void Print::println(unsigned long number, number_base_t base)
-{
-    // convert the number to a string
-    char buffer[CHARACTER_BUFFER_SIZE];    // largest number a long can represent is 9 223 372 036 854 775 807
-    itoa(number, buffer, base);
-    // write the string
-    this->println(buffer);
-}
+    // store the number of pixels
+    size_t pixels = 0;
 
-/**
- * @brief Print a number on the display
- * @param number Number to print
- * @param precision Number of decimal places to print
-*/
-void Print::println(double number, unsigned int precision)
-{
-    // convert the number to a string
-    char buffer[CHARACTER_BUFFER_SIZE] = {0};    // largest number a double can represent is 1.79769e+308
-    this->floatToString(number, buffer, precision);
-    // write the string
-    this->println(buffer);
-}
+    // loop through each character in the string
+    for (int i = 0; i < size; i++)
+    {
+        FontCharacter character = this->font->characters[this->characterBuffer[i] - 0x20];
+        pixels += character.height;
+    }
 
-/**
- * @brief Print a character on the display
- * @param character Character to print
-*/
-void Print::println(const char* text)
-{
-    this->print(text);
-    this->print("\n");
-}
-
-/**
- * @brief Write a character on the display
- * @param value Boolean to print
-*/
-void Print::println(bool value)
-{
-    this->println(value ? TRUE : FALSE);
-}
-
-/**
- * @brief Print a newline
-*/
-void Print::println(void)
-{
-    this->println("\n");
-}
-
-/**
- * @brief Get the length of a string
- * @param num String to get the length of
- * @param size Size of the string
- * @param base Base of the number
- * @return Length of the string
-*/
-unsigned int Print::getStringLength(long num, number_base_t base)
-{
-    // convert the number to a string
-    char buffer[CHARACTER_BUFFER_SIZE];    // largest number a long can represent is 9 223 372 036 854 775 807
-	sprintf(buffer, "%ld", num);
-    printf("buffer: %s\n", buffer);
-    return this->getPixelWidth(buffer, strlen(buffer));
-}
-
-/**
- * @brief Get the length of a string
- * @param num String to get the length of
- * @param size Size of the string
- * @param base Base of the number
- * @return Length of the string
-*/
-unsigned int Print::getStringLength(unsigned long num, number_base_t base)
-{
-    // convert the number to a string
-    char buffer[CHARACTER_BUFFER_SIZE];    // largest number a long can represent is 9 223 372 036 854 775 807
-	sprintf(buffer, "%lu", num);
-	printf("buffer: %s\n", buffer);
-    return this->getPixelWidth(buffer, strlen(buffer));
-}
-
-/**
- * @brief Get the length of a string
- * @param num String to get the length of
- * @param precision Number of decimal places to print
- * @param size Size of the string
- * @param base Base of the number
- * @return Length of the string
-*/
-unsigned int Print::getStringLength(double num, unsigned char precision)
-{
-    // convert the number to a string
-    char buffer[CHARACTER_BUFFER_SIZE];    // largest number a long can represent is 9 223 372 036 854 775 807
-	sprintf(buffer, "%.*f", precision, num);
-    printf("buffer: %s\n", buffer);
-    return this->getPixelWidth(buffer, strlen(buffer));
-}
-
-/**
- * @brief Get the length of a string
- * @param text String to get the length of
- * @param size Size of the string
- * @return Length of the string
-*/
-unsigned int Print::getStringLength(const char* text)
-{
-    printf("buffer: %s\n", text);
-    return this->getPixelWidth(text, strlen(text));
-}
-
-/**
- * @brief Get the length of a string
- * @param value String to get the length of
- * @param size Size of the string
- * @return Length of the string
-*/
-unsigned int Print::getStringLength(bool value)
-{
-    if(value)
-        return this->getPixelWidth(TRUE, strlen(TRUE));
-    else
-        return this->getPixelWidth(FALSE, strlen(FALSE));
+    // return the number of pixels
+    return pixels;
 }
 
 /**
@@ -405,27 +314,4 @@ void Print::drawAscii(const char character)
 
     // set the cursor to the end of the character
     this->cursor += rowSize;
-}
-
-/**
- * @private
- * @brief Get the length of a string in pixels with the given font
- * @param text String to get the length of
- * @param size Size of the string
- * @return Length of the string in pixels
-*/
-size_t Print::getPixelWidth(const char* text, size_t size)
-{
-    // store the number of pixels
-    size_t pixels = 0;
-
-    // loop through each character in the string
-    for(int i = 0; i < size; i++)
-    {
-        FontCharacter character = this->font->characters[text[i] - 0x20];
-        pixels += character.width;
-    }
-
-    // return the number of pixels
-    return pixels;
 }
