@@ -105,6 +105,10 @@ void Graphics::drawLine(Point start, Point end, Color color)
     
     while(true)
     {
+        // Clamp the x and y Points
+        if(x0 >= this->params.width) x0 = this->params.width - 1;
+        if(y0 >= this->params.height) y0 = this->params.height - 1;
+
         // set the pixel in the frame buffer
         this->frameBuffer[x0 + y0 * this->params.width] = color.to16bit();
 
@@ -142,49 +146,68 @@ void Graphics::drawLine(Point start, Point end, Color color)
  * @param endThickness Thickness at the end point
  * @param color Color to draw in
 */
-void Graphics::drawExpandingLine(Point start, Point end, unsigned int startThickness, unsigned int endThickness, Color color)
+void Graphics::drawWedge(Point start, Point end, unsigned int startThickness, unsigned int endThickness, Color color)
 {
-    // Calculate the length and angle of the line
-    int dx = end.x - start.x;
-    int dy = end.y - start.y;
-    unsigned int length = isqrt(dx * dx + dy * dy); // integer square root
-    int index = dy / imax(dx, 1);
-    index *= ANGLE_SCALE;
-    index = iabs(index);
-    printf("Index: %d\n", index);
-    unsigned int angle = atanTable[index];
+    // To get a functional prototype, this function will simply draw as many lines as needed to get the desired thickness
+    // This needs to be optimized later
 
-    // Combine the color to 16 bit
-    unsigned short color16bit = color.to16bit();
+    // We need to calculate the offset of the line both for the start and end points
+    int startThicknessHalf = startThickness >> 1; // Divide by 2
+    int endThicknessHalf = endThickness >> 1; // Divide by 2
 
-    // Loop over the length of the line
-    for (unsigned int i = 0; i <= length; i++)
+    // Make sure the thickness is at least 1
+    if(startThicknessHalf == 0) startThicknessHalf = 1;
+    if(endThicknessHalf == 0) endThicknessHalf = 1;
+    
+    // Set I to be the inverse of the thickness half to get the offset
+    int i = -startThicknessHalf;
+    // If however the thickness is 1, we should change the variables so we can still draw the line
+    if (startThickness <= 1)
     {
-        // Interpolate the thickness of the line at this point
-        int thickness = startThickness + i * (endThickness - startThickness) / length;
+        i = 0;
+        startThicknessHalf = 1;
+    }
 
-        // Loop over the thickness of the line
-        for (int j = -thickness / 2; j <= thickness / 2; j++)
-        {
-            // Calculate the position of the pixel
-            unsigned int x = start.x + i * cosTable[angle] / FIXED_POINT_SCALE;
-            unsigned int y = start.y + i * sinTable[angle] / FIXED_POINT_SCALE;
+    // Itterate through the start thickness
+    for (int i = -startThicknessHalf; i < startThicknessHalf; i++)
+    {
+        // Find the normal vector at the start point
+        int nxA = start.X() - end.X();
+        int nyA = start.Y() - end.Y();
+        // Offset the normal vector to be at the correct position
+        nxA += i;
+		nyA += i;
 
-            // Calculate the offset of the pixel within the thickness of the line
-            unsigned int index = (unsigned int)((angle + 900) % NUMBER_OF_ANGLES);
-            unsigned int offsetX = j;
-            offsetX *= sinTable[index];
-            offsetX /= FIXED_POINT_SCALE;
-            unsigned int offsetY = j;
-            offsetY *= cosTable[index];
-            offsetY /= FIXED_POINT_SCALE;
+        // Do the exact same thing for the end thickness
+        int j = -endThicknessHalf;
+        // If however the thickness is 1, we should change the variables so we can still draw the line
+        if (endThickness <= 1)
+		{
+			j = 0;
+			endThicknessHalf = 1;
+		}
+		// Itterate through the end thickness
+		for (int j = -endThicknessHalf; j < endThicknessHalf; j++)
+		{
+            // Find the normal vector at the end point
+			int nxB = end.X() - start.X();
+			int nyB = end.Y() - start.Y();
+			// Offset the normal vector to be at the correct position
+			nxB += j;
+			nyB += j;
 
-            // Set the pixel in the frame buffer, if it's within bounds
-            if (x + offsetX >= 0 && x + offsetX < this->params.width && y + offsetY >= 0 && y + offsetY < this->params.height)
-            {
-                this->frameBuffer[(x + offsetX) + (y + offsetY) * this->params.width] = color16bit;
-            }
-        }
+            int startX = start.X() + nxA;
+            int startY = start.Y() + nyA;
+            int endX = end.X() + nxB;
+            int endY = end.Y() + nyB;
+
+            // Verify that these coordinates are within the bounds of the display
+            if(startX < 0 || startX > this->params.width || startY < 0 || startY > this->params.height) continue;
+            if(endX < 0 || endX > this->params.width || endY < 0 || endY > this->params.height) continue;
+
+			// Draw the line
+			this->drawLine(Point(start.X() + nxA, start.Y() + nyA), Point(end.X() + nxB, end.Y() + nyB), color);
+		}
     }
 }
 
@@ -311,16 +334,88 @@ void Graphics::drawFilledRectangle(Point start, Point end, Color color)
     // calculate the size of the rectangle
     unsigned int width = end.X() - start.X();
     unsigned int height = end.Y() - start.Y();
-    
+
     // loop through the height
-    for(int i = 0; i < height; i++)
+    for (int i = 0; i < height; i++)
     {
         // loop through the width
-        for(int j = 0; j < width; j++)
+        for (int j = 0; j < width; j++)
         {
             // write the pixel
             this->frameBuffer[(start.X() + j) + (start.Y() + i) * this->params.width] = color16;
         }
+    }
+}
+
+void Graphics::drawPolygon(Point* points, size_t numberOfPoints, Color color)
+{
+    // Make sure theres at least 3 points
+    if (numberOfPoints < 3) return;
+
+    // Draw the lines between the points
+    for (int i = 0; i < numberOfPoints - 1; i++)
+		// Draw the line
+		this->drawLine(points[i], points[i + 1], color);
+
+    // Draw the last line
+	this->drawLine(points[numberOfPoints - 1], points[0], color);
+}
+
+void Graphics::drawFilledPolygon(Point* points, size_t numberOfPoints, Color color)
+{
+    // Make sure theres at least 3 points
+    if (numberOfPoints < 3) return;
+
+    // Set the min and max values to the absolute max and min
+    int minX = 0xffffffff;
+    int maxX = 0;
+    int minY = 0xffffffff;
+    int maxY = 0;
+
+    // Get the unsigned short version of the color
+    unsigned short color16 = color.to16bit();
+
+    // Calculate the bounding box of the polygon by first finding the min and max x and y values
+    for (int i = 0; i < numberOfPoints; i++)
+    {
+        // Check if the x value is less than the min x value
+        if(points[i].x < minX) minX = points[i].x;
+        // Check if the x value is greater than the max x value
+        if(points[i].x > maxX) maxX = points[i].x;
+        // Check if the y value is less than the min y value
+        if(points[i].y < minY) minY = points[i].y;
+        // Check if the y value is greater than the max y value
+		if(points[i].y > maxY) maxY = points[i].y;
+    }
+
+    // Implement a scanline algorithm to fill in the polygon
+    for (int y = minY; y <= maxY; y++) {
+        int xStart = maxX;
+        int xEnd = minX;
+
+        // Iterate over the edges of the polygon, finding intersections with the scanline
+        for (int i = 0; i < numberOfPoints; i++) {
+            int nextIndex = i + 1;
+            // Manually handle the wrap-around condition
+            if (nextIndex == numberOfPoints) nextIndex = 0;
+
+            int deltaY = points[nextIndex].y - points[i].y;
+            // Check if the scanline intersects with this edge
+            if ((points[i].y <= y && points[nextIndex].y > y) || (points[nextIndex].y <= y && points[i].y > y))
+            {
+                // Compute the x coordinate of the intersection, avoiding division by zero
+                int x = points[i].x;
+                if (deltaY != 0) {
+                    x += (y - points[i].y) * (points[nextIndex].x - points[i].x) / deltaY;
+                }
+                if (x < xStart) xStart = x;
+                if (x > xEnd) xEnd = x;
+            }
+        }
+
+        // Fill in the pixels between the start and end intersections
+        for (int x = xStart; x < xEnd; x++)
+            this->frameBuffer[x + y * this->params.width] = color16;
     }
 }
 
@@ -474,49 +569,37 @@ void Graphics::drawArc(Point center, unsigned int radius, unsigned int start_ang
  * @param endAngle Angle in degrees for both arcs
  * @color Color to draw the arc in
  */
-void Graphics::drawFilledDualArc(Point center, unsigned int innerRadius, unsigned int outerRadius, unsigned int startAngle, unsigned int endAngle, Color color)
+void Graphics::drawFilledDualArc(Point center, int innerRadius, int outerRadius, int startAngle, int endAngle, Color color)
 {
-    unsigned int imageWidth = params.width;
-    unsigned int imageHeight = params.height;
+    // Transform angles from [-180, 180] to [0, 360)
+    if (startAngle < 0) startAngle += 360;
+    if (endAngle < 0) endAngle += 360;
+    if (endAngle < startAngle) endAngle += 360;
 
-    // Swap angles if start_angle is greater than end_angle
-    if (endAngle < startAngle)
+    unsigned short color16 = color.to16bit();
+
+    for (int angleLUT = startAngle * 10; angleLUT <= endAngle * 10; angleLUT++)
     {
-        unsigned int temp = endAngle;
-        endAngle = startAngle;
-        startAngle = temp;
-    }
+        // Handle the angle wrap at 3600 manually
+        int wrappedAngleLUT = angleLUT;
+        if (wrappedAngleLUT >= 3600) wrappedAngleLUT -= 3600;
 
-    // clamp the input variables to be between 0 and 360
-    startAngle = imin(startAngle, 360);
-    endAngle = imin(endAngle, 360);
+        int cosValue = cosTable[wrappedAngleLUT];
+        int sinValue = sinTable[wrappedAngleLUT];
 
-    // convert the color to 16 bit
-    unsigned short color16bit = color.to16bit();
+        for (int radius = innerRadius; radius <= outerRadius; radius++)
+        {
+            int x = cosValue * radius;
+            x >>= FIXED_POINT_SCALE_BITS;
+            x += center.x;
 
-    // Loop through the angles
-    for (int angle = startAngle; angle < endAngle; angle++)
-    {
-        // Get the coordinates of the inner pixel
-        unsigned int angleXInner = 0;
-        unsigned int angleYInner = 0;
-        pointOnCircle(innerRadius, angle, center.x, center.y, &angleXInner, &angleYInner);
+            int y = sinValue * radius;
+            y >>= FIXED_POINT_SCALE_BITS;
+            y += center.y;
 
-        // Get the coordinates of the outer pixel
-        unsigned int angleXOuter = 0;
-        unsigned int angleYOuter = 0;
-        pointOnCircle(outerRadius, angle, center.x, center.y, &angleXOuter, &angleYOuter);
-
-        // Create the start and end points for the line
-        Point start = { angleXInner, angleYInner };
-        Point end = { angleXOuter, angleYOuter };
-
-        // Calculate the thickness at the start and end of the line
-        unsigned int startThickness = 1; // or calculate based on your needs
-        unsigned int endThickness = 5; // or calculate based on your needs
-
-        // Draw the expanding line
-        drawExpandingLine(start, end, startThickness, endThickness, color);
+            if (x >= 0 && x < params.width && y >= 0 && y < params.height)
+                this->frameBuffer[x + y * params.width] = color16;
+        }
     }
 }
 
