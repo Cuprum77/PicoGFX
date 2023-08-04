@@ -11,20 +11,10 @@
 
 #include "HardwareSPI.hpp"
 #include "Commands.hpp"
-#include "Structs.hpp"
-#include "Color.hpp"
-#include "Enums.hpp"
+#include "Structs.h"
+#include "Shapes.h"
+#include "Color.h"
 
-// Typedefs
-#define ulong unsigned long
-#define uint unsigned int
-#define ushort unsigned short
-#define uchar unsigned char
-
-// Constants
-#define min(x, y) (((x) < (y)) ? (x) : (y))
-#define max(x, y) (((x) > (y)) ? (x) : (y))
-#define sq(x) ((x) * (x))
 // Limit of the ST7789 driver
 #define ST7789_WIDTH 240
 #define ST7789_HEIGHT 320
@@ -34,64 +24,69 @@ class Display
 {
 public:
     Display(HardwareSPI* spi, Display_Pins* pins, Display_Params* params);
+    void init(void);
     bool writeReady(void) { return !this->spi->dma_busy(); }
     void setBrightness(unsigned char brightness);
-    void setRotation(displayRotation_t rotation);
+    void setRotation(int rotation);
+    int getRotation(void) { return this->params->rotation; }
     void displayOn(void);
     void displayOff(void);
     void clear(void);
-    void fill(Color color);
-    Color getFillColor(void);
 
-    void update(void);
+    void update(bool framecounter = false);
     void setPixel(Point point, Color color);
-    void setPixel(uint point, ushort color);
+    void setPixel(unsigned int point, unsigned short color);
     Color getPixel(Point point);
-    ushort getPixel(uint point);
+    unsigned short getPixel(unsigned int point);
     size_t getBufferSize(void);
 
     void setCursor(Point point);
     Point getCursor(void);
     Point getCenter(void);
 
-    uint getWidth(void) { return this->params->width; }
-    uint getHeight(void)  { return this->params->height; }
-    ushort* getFrameBuffer(void) { return this->frameBuffer; }
+    int getFrameCounter() { return this->frames; }
+    unsigned int getWidth(void) { return this->params->width; }
+    unsigned int getHeight(void)  { return this->params->height; }
+    unsigned short* getFrameBuffer(void) { return this->frameBuffer; }
 
 protected:
     HardwareSPI* spi;
     Display_Pins* pins;
     Display_Params* params;
     bool dimmingEnabled = false;
-    uint sliceNum;
-    uint pwmChannel;
+    unsigned int sliceNum;
+    unsigned int pwmChannel;
     bool dataMode = false;
-    ushort frameBuffer[FRAMEBUFFER_SIZE + 1];
-    Color fillColor;
+    unsigned short frameBuffer[FRAMEBUFFER_SIZE + 1];
     Point cursor = {0, 0};
     bool backlight;
     display_type_t type;
     bool BGR = false;
-    uint maxWidth;
-    uint maxHeight;
-    uint totalPixels;
+    unsigned int maxWidth;
+    unsigned int maxHeight;
+    unsigned int totalPixels;
+
+    // timer for the framerate calculation
+    int framecounter = 0;
+    int frames = 0;
+    unsigned long timer = 0;
 
     void ST7789_Init(void);
-    void ST7789_SetRotation(displayRotation_t rotation);
+    void ST7789_SetRotation(int rotation);
 
     void GC9A01_Init(void);
     void GC9A01_SoftReset(void);
     void GC9A01_HardReset(void);
-    void GC9A01_SetRotation(displayRotation_t rotation);
+    void GC9A01_SetRotation(int rotation);
 
     void writeData(Display_Commands command, 
-        const unsigned char* data, size_t length) { writeData((uchar)command, data, length); }
-    void writeData(Display_Commands command, uchar data) { writeData((uchar)command, &data, 1); }
+        const unsigned char* data, size_t length) { writeData((unsigned char)command, data, length); }
+    void writeData(Display_Commands command, unsigned char data) { writeData((unsigned char)command, &data, 1); }
     void writeData(Display_Commands command) { writeData(command, nullptr, 0); }
-    void writeData(uchar command, const uchar* data, size_t length);
-    void writeData(uchar command, uchar data) { writeData(command, &data, 1); }
-    void writeData(uchar command) { writeData(command, nullptr, 0); }
-    inline void columnAddressSet(uint x0, uint x1);
-    inline void rowAddressSet(uint y0, uint y1);
+    void writeData(unsigned char command, const unsigned char* data, size_t length);
+    void writeData(unsigned char command, unsigned char data) { writeData(command, &data, 1); }
+    void writeData(unsigned char command) { writeData(command, nullptr, 0); }
+    inline void columnAddressSet(unsigned int x0, unsigned int x1);
+    inline void rowAddressSet(unsigned int y0, unsigned int y1);
     void writePixels(const unsigned short* data, size_t length);
 };

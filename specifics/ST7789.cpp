@@ -18,12 +18,12 @@ void Display::ST7789_Init()
     // set the display to interface pixel format
     // 0x5 << 4 = 65k of rgb interface
     // 0x5 = 16 bits per pixel
-    uchar pixelFormat = 0x5 << 4 | 0x5;
+    unsigned char pixelFormat = 0x5 << 4 | 0x5;
     this->writeData(Display_Commands::COLMOD, &pixelFormat, 1);
     sleep_ms(10);
 
     // madctl = memory access control
-    this->ST7789_SetRotation((displayRotation_t)this->params->rotation);
+    this->ST7789_SetRotation(this->params->rotation);
 
     // set the display to memory access control
     this->setCursor({0, 0});
@@ -37,43 +37,23 @@ void Display::ST7789_Init()
     sleep_ms(10);
 }
 
-void Display::ST7789_SetRotation(displayRotation_t rotation)
+void Display::ST7789_SetRotation(int rotation)
 {
-    uint width = this->params->width;
-	uint height = this->params->height;
-    uint maxHeight = this->maxHeight;
-    uint maxWidth = this->maxWidth;
+    rotation %= 4; // Normalize rotation to 0-3
 
 	switch(rotation)
     {
-        case displayRotation_t::DEG_90:
-			this->writeData(MADCTL, (uchar)(Display_MADCTL::MX | Display_MADCTL::MV | Display_MADCTL::RGB));
-			this->params->height = width;
-			this->params->width = height;
-            this->maxHeight = maxWidth;
-            this->maxWidth = maxHeight;
+        case 0:
+            this->writeData(MADCTL, (unsigned char)Display_MADCTL::RGB);
             break;
-        case displayRotation_t::DEG_180:
-			this->writeData(MADCTL, (uchar)(Display_MADCTL::MX | Display_MADCTL::MY | Display_MADCTL::RGB));
-			this->params->height = height;
-			this->params->width = width;
-            this->maxHeight = maxHeight;
-            this->maxWidth = maxWidth;
+        case 1:
+			this->writeData(MADCTL, (unsigned char)(Display_MADCTL::MX | Display_MADCTL::MV | Display_MADCTL::RGB));
             break;
-        case displayRotation_t::DEG_270:
-			this->writeData(MADCTL, (uchar)(Display_MADCTL::MV | Display_MADCTL::MY | Display_MADCTL::RGB));
-			this->params->height = width;
-			this->params->width = height;
-            this->maxHeight = maxWidth;
-            this->maxWidth = maxHeight;
+        case 2:
+			this->writeData(MADCTL, (unsigned char)(Display_MADCTL::MX | Display_MADCTL::MY | Display_MADCTL::RGB));
             break;
-        case displayRotation_t::DEG_0:
-        default:
-            this->writeData(MADCTL, (uchar)Display_MADCTL::RGB);
-			this->params->height = height;
-			this->params->width = width;
-            this->maxHeight = maxHeight;
-            this->maxWidth = maxWidth;
+        case 3:
+			this->writeData(MADCTL, (unsigned char)(Display_MADCTL::MV | Display_MADCTL::MY | Display_MADCTL::RGB));
             break;
     }
 }

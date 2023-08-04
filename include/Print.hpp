@@ -1,10 +1,13 @@
 #pragma once
 
-#include "Color.hpp"
-#include "Structs.hpp"
-#include <string.h>
+#include "Color.h"
+#include "Structs.h"
+#include "Shapes.h"
 #include "FontStruct.h"
+
 #include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
 // String behavior
 #define CHARACTER_BUFFER_SIZE 128

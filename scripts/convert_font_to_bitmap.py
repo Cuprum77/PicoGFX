@@ -154,7 +154,7 @@ def Generate_File(font_file, size):
     total_memory_usage += size_of_font
 
     # Output bitmap as C header file
-    with open(os.path.abspath(output_dir) + '/' + output_file + ".h", "w") as f:
+    with open(os.path.abspath(output_dir) + '/' + output_file + ".font", "w") as f:
         header = f"""#pragma once
 
 // Include the font struct for storing the font data

@@ -26,7 +26,6 @@ void Print::setFont(FontStruct* font)
 /**
  * @brief Write a number on the display
  * @param number Number to print
- * @param size Size of the number
 */
 void Print::print(long number, number_base_t base)
 {
@@ -40,7 +39,6 @@ void Print::print(long number, number_base_t base)
 /**
  * @brief Write a number on the display
  * @param number Number to print
- * @param size Size of the number
 */
 void Print::print(unsigned long number, number_base_t base)
 {
@@ -55,7 +53,6 @@ void Print::print(unsigned long number, number_base_t base)
  * @brief Write a number on the display
  * @param number Number to print
  * @param precision Number of decimal places to print
- * @param size Size of the number
 */
 void Print::print(double number, unsigned int precision)
 {
@@ -69,8 +66,6 @@ void Print::print(double number, unsigned int precision)
 /**
  * @brief Write a character on the display
  * @param character Character to print
- * @param color Character color
- * @param size Size of the character
 */
 void Print::print(const char* text)
 {
@@ -83,6 +78,15 @@ void Print::print(const char* text)
         // draw the character
         this->drawAscii(text[i]);
     }
+}
+
+/**
+ * @brief Print a boolean on the display
+ * @param bool Boolean to print
+ */
+void Print::print(bool value)
+{
+	this->print(value ? "true" : "false");
 }
 
 /**
@@ -117,7 +121,6 @@ void Print::println(unsigned long number, number_base_t base)
  * @brief Print a number on the display
  * @param number Number to print
  * @param precision Number of decimal places to print
- * @param size Size of the number
 */
 void Print::println(double number, unsigned int precision)
 {
@@ -131,7 +134,6 @@ void Print::println(double number, unsigned int precision)
 /**
  * @brief Print a character on the display
  * @param character Character to print
- * @param size Size of the character
 */
 void Print::println(const char* text)
 {
@@ -167,7 +169,8 @@ unsigned int Print::getStringLength(long num, number_base_t base)
 {
     // convert the number to a string
     char buffer[CHARACTER_BUFFER_SIZE];    // largest number a long can represent is 9 223 372 036 854 775 807
-    itoa(num, buffer, base);
+	sprintf(buffer, "%ld", num);
+    printf("buffer: %s\n", buffer);
     return this->getPixelWidth(buffer, strlen(buffer));
 }
 
@@ -182,7 +185,8 @@ unsigned int Print::getStringLength(unsigned long num, number_base_t base)
 {
     // convert the number to a string
     char buffer[CHARACTER_BUFFER_SIZE];    // largest number a long can represent is 9 223 372 036 854 775 807
-    itoa(num, buffer, base);
+	sprintf(buffer, "%lu", num);
+	printf("buffer: %s\n", buffer);
     return this->getPixelWidth(buffer, strlen(buffer));
 }
 
@@ -198,7 +202,8 @@ unsigned int Print::getStringLength(double num, unsigned char precision)
 {
     // convert the number to a string
     char buffer[CHARACTER_BUFFER_SIZE];    // largest number a long can represent is 9 223 372 036 854 775 807
-    floatToString(num, buffer, precision);
+	sprintf(buffer, "%.*f", precision, num);
+    printf("buffer: %s\n", buffer);
     return this->getPixelWidth(buffer, strlen(buffer));
 }
 
@@ -210,6 +215,7 @@ unsigned int Print::getStringLength(double num, unsigned char precision)
 */
 unsigned int Print::getStringLength(const char* text)
 {
+    printf("buffer: %s\n", text);
     return this->getPixelWidth(text, strlen(text));
 }
 

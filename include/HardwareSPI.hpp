@@ -2,18 +2,14 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
 #include "pico/stdlib.h"
 #include "hardware/spi.h"
 #include "hardware/dma.h"
 #include "hardware/pio.h"
-
+#include "hardware/clocks.h"
 #include "pio_spi.pio.h"
 #include "Commands.hpp"
-#include "Structs.hpp"
-
-#define SERIAL_CLK_DIV 1.0f
-#define SPI_BAUDRATE 125000000  // 125 MHz
+#include "Structs.h"
 
 typedef struct pio_spi_inst {
     PIO pio;
@@ -21,11 +17,18 @@ typedef struct pio_spi_inst {
     uint cs_pin;
 } pio_spi_inst_t;
 
+struct Hardware_Params
+{
+    SPI_Interface_t hw_interface;
+    spi_inst_t* spi_instance;
+    unsigned int baudrate;
+};
 
 class HardwareSPI
 {
 public:
-    HardwareSPI(Display_Pins pins, Display_Params params, spi_inst_t *spi = nullptr);
+    HardwareSPI(Display_Pins pins, Hardware_Params hw_params);
+    void init(void);
 
     void spi_write_data(uint8_t command, const uint8_t* data, size_t length);
     void spi_set_data_mode(uint8_t command);
@@ -35,7 +38,7 @@ public:
 
 private:
     // general stuff
-    SPI_Interface_t hw_interface;
+    Hardware_Params hw_params;
 
     // spi stuff
     spi_inst_t* spi;

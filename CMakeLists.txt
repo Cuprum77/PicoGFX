@@ -10,8 +10,11 @@ add_library(${PROJECT_NAME}
     src/Display.cpp
     src/Print.cpp
     src/Graphics.cpp
-    src/AdvancedGraphics.cpp
+    src/Gradients.cpp
+    src/Dials.cpp
     src/PicoGFX.cpp
+    src/GfxMath.c
+    src/Encoder.cpp
     Specifics/ST7789.cpp
     Specifics/GC9A01.cpp
 )
@@ -20,8 +23,7 @@ add_library(sub::Display ALIAS ${PROJECT_NAME})
 
 target_include_directories(${PROJECT_NAME}
     PUBLIC ${PROJECT_SOURCE_DIR}/include
-    PUBLIC ${PROJECT_SOURCE_DIR}/include/Extras
-    PUBLIC ${PROJECT_SOURCE_DIR}/Fonts
+    PUBLIC ${PROJECT_SOURCE_DIR}/fonts
 )
 
 pico_generate_pio_header(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/include/pio_spi.pio)
