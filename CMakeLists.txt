@@ -11,7 +11,6 @@ add_library(${PROJECT_NAME}
     src/Print.cpp
     src/Graphics.cpp
     src/Gradients.cpp
-    src/Dials.cpp
     src/PicoGFX.cpp
     src/GfxMath.c
     src/Encoder.cpp
