@@ -62,7 +62,7 @@ void Gradients::fillGradient(Color startColor, Color endColor, Point start, Poin
     }
 
     // precalculate the divisor
-    int magnitudeInverse = (FIXED_POINT_SCALE_HIGH_RES + magnitudeSquared >> 1) / magnitudeSquared;  // add magnitudeSquared / 2 for rounding
+    int magnitudeInverse = (FIXED_POINT_SCALE_HIGH_RES + (magnitudeSquared / 2)) / magnitudeSquared;
 
     // loop through each pixel in the buffer
     for(int x = 0; x < this->params.width; x++)
@@ -75,7 +75,9 @@ void Gradients::fillGradient(Color startColor, Color endColor, Point start, Poin
 
             // calculate the distance along the gradient direction
             int dotProduct = (vectorX * deltaX + vectorY * deltaY);
-            int position = ((dotProduct * maxDiff) * magnitudeInverse) >> FIXED_POINT_SCALE_HIGH_RES_BITS;
+            //int position = (dotProduct * maxDiff) / magnitudeSquared;
+            int position = ((dotProduct * maxDiff) * magnitudeInverse);
+            position >>= FIXED_POINT_SCALE_HIGH_RES_BITS;
 
             // clamp the position within the valid range
             position = (position < 0) ? 0 : (position > maxDiff) ? maxDiff : position;
