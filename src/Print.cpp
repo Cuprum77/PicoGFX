@@ -12,6 +12,8 @@ Print::Print(unsigned short* frameBuffer, Display_Params params)
     this->totalPixels = params.width * params.height;
     this->color = Colors::White;
     this->font = nullptr;
+    this->cursor = 0;
+    this->characterBuffer[0] = '\0';
 }
 
 /**
@@ -77,9 +79,7 @@ void Print::print(const char* format, ...)
     // Generate the string
     va_list args;
     va_start(args, format);
-    // Use vsprintf to get the size of the string
-    // This is extremely slow, and needs to be replaced with a faster, but less robust solution
-    int size = vsprintf(this->characterBuffer, format, args);
+    int size = vsnprintf(this->characterBuffer, CHARACTER_BUFFER_SIZE - 1, format, args);
     va_end(args);
 
     // loop through each character in the string
@@ -100,7 +100,7 @@ unsigned int Print::getStringWidth(const char* format, ...)
     // Generate the string
     va_list args;
     va_start(args, format);
-    int size = vsprintf(this->characterBuffer, format, args);
+    int size = vsnprintf(this->characterBuffer, CHARACTER_BUFFER_SIZE - 1, format, args);
     va_end(args);
 
     // store the number of pixels
@@ -109,7 +109,18 @@ unsigned int Print::getStringWidth(const char* format, ...)
     // loop through each character in the string
     for (int i = 0; i < size; i++)
     {
-        FontCharacter character = this->font->characters[this->characterBuffer[i] - 0x20];
+        // get the character
+        char c = this->characterBuffer[i];
+
+        // if the character is not printable, skip it
+        if (!(this->characterBuffer[i] > 0x20 && this->characterBuffer[i] < 0x7E))
+			continue;
+
+        // get the character index by subtracting the offset
+        c -= 0x20;
+        // get the character data
+        FontCharacter character = this->font->characters[c];
+        // add the width of the character to the total
         pixels += character.width;
     }
 
@@ -127,7 +138,7 @@ unsigned int Print::getStringHeight(const char* format, ...)
     // Generate the string
     va_list args;
     va_start(args, format);
-    int size = vsprintf(this->characterBuffer, format, args);
+    int size = vsnprintf(this->characterBuffer, CHARACTER_BUFFER_SIZE - 1, format, args);
     va_end(args);
 
     // store the number of pixels
@@ -136,8 +147,21 @@ unsigned int Print::getStringHeight(const char* format, ...)
     // loop through each character in the string
     for (int i = 0; i < size; i++)
     {
-        FontCharacter character = this->font->characters[this->characterBuffer[i] - 0x20];
-        pixels += character.height;
+        // get the character
+        char c = this->characterBuffer[i];
+
+        // if the character is not printable, skip it
+        if (!(this->characterBuffer[i] > 0x20 && this->characterBuffer[i] < 0x7E))
+            continue;
+
+        // get the character index by subtracting the offset
+        c -= 0x20;
+        // get the character data
+        FontCharacter character = this->font->characters[c];
+        // check if the height of the character is greater than the current height
+        if(character.height > pixels)
+			// set the height to the height of the character
+            pixels = character.height;
     }
 
     // return the number of pixels
@@ -157,6 +181,10 @@ void Print::drawAscii(const char character)
     // check if the font is a null pointer
     if(this->font == nullptr)
         return;
+
+    // check if the character is valid
+    if (!(character > 0x20 && character < 0x7E) && character != 0x0A && character != 0x0D && character != 0x09)
+		return;
     
     // get the bitmap data
     const unsigned int* bitmap = this->font->bitmap;
@@ -245,75 +273,4 @@ void Print::drawAscii(const char character)
 
     // set the cursor to the end of the character
     this->cursor += rowSize;
-}
-
-/**
- * @private
- * @brief Convert float to string
- * @param value Value to convert
- * @param buffer Buffer to write to
- * @param precision Precision of the value
-*/
-void Print::floatToString(double num, char* buffer, unsigned int precision)
-{
-    // if precision is 0, just return the integer part
-    if (precision == 0)
-    {
-        itoa((long)num, buffer, 10);
-        return;
-    }
-
-    // print the sign if the number is negative
-    if (num < 0.0)
-    {
-        *buffer++ = '-';
-        num = -num;
-    }
-
-    // round the number to the precision
-    double rounding = 0.5;
-    for (unsigned char i = 0; i < (precision + 1); ++i)
-        rounding /= 10.0;
-    num += rounding;
-
-    // print the integer part
-    unsigned long integer = (unsigned long)num;
-    double remainder = num - (double)integer;
-
-    // store the number of integers for fast reversing later
-    unsigned int integers = 0;
-    // loop until the integer is 0 at least once
-    do
-    {
-        // add the first digit to the buffer
-        *buffer++ = '0' + (integer % 10);
-        integer /= 10;
-        integers++;
-    } while (integer > 0);
-
-    // reverse the buffer to get the correct order
-    this->reverse(buffer - integers, integers);
-
-    // print the decimal point
-    if (precision > 0)
-        *buffer++ = '.';
-
-    // print the decimal part
-    while (precision-- > 0)
-    {
-        remainder *= 10.0;
-        int digit = int(remainder);
-        *buffer++ = '0' + digit;
-        remainder -= digit;
-        integers++;
-    }
-}
-
-void Print::reverse(char* buffer, unsigned int length)
-{
-    for (int i = 0; i < length / 2; i++) {
-        char temp = *(buffer + i);
-        *(buffer + i) = *(buffer + length - i - 1);
-        *(buffer + length - i - 1) = temp;
-    }
 }

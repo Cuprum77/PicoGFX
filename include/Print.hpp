@@ -10,7 +10,7 @@
 #include <stdarg.h>
 
 // String behavior
-#define CHARACTER_BUFFER_SIZE 128 // max number of characters that can be printed at once
+#define CHARACTER_BUFFER_SIZE 256 // max number of characters that can be printed at once
 #define TAB_SIZE 4  // how many spaces a tab is worth
 
 class Print
@@ -41,6 +41,4 @@ private:
     FontStruct* font;
 
     void drawAscii(const char c);
-    void floatToString(double num, char* buffer, unsigned int precision);
-    void reverse(char* str, unsigned int length);
 };
