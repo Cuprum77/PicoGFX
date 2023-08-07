@@ -232,7 +232,7 @@ void Graphics::drawTriangle(Point p1, Point p2, Point p3, Color color)
  * @param p3 Third point
  * @param color Color to draw in
 */
-void Graphics::drawTriangleFilled(Point p1, Point p2, Point p3, Color color)
+void Graphics::drawFilledTriangle(Point p1, Point p2, Point p3, Color color)
 {
     // calculate the bounding box of the triangle
     int minX = imin(imin(p1.x, p2.x), p3.x);
