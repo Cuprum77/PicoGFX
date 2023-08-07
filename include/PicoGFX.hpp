@@ -6,6 +6,7 @@
 #include "Print.hpp"
 #include "Gradients.hpp"
 #include "Encoder.h"
+#include "Gauge.hpp"
 
 class PicoGFX {
 public:
