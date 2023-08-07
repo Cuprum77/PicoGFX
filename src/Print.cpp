@@ -244,7 +244,7 @@ void Print::drawAscii(const char character)
         return;
 
     // check if the character is valid
-    if (!(character > 0x20 && character < 0x7E) && character != 0x0A && character != 0x0D && character != 0x09)
+    if (!(character >= 0x20 && character <= 0x7E) && character != 0x0A && character != 0x0D && character != 0x09)
 		return;
     
     // get the bitmap data
