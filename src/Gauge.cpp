@@ -158,7 +158,6 @@ void DialGauge::drawSimpleDial(int value)
 	// Divide the error by 2 if its above 1, otherwise set it to 1
 	if (error > 1) errorHalf = error >> 1;
 	else if (error == 1) errorHalf = 1;
-	printf("%d, %d, %d\n", segmentAngle, error, errorHalf);
 
 	// Draw the background
 	if(this->hasBackground)
