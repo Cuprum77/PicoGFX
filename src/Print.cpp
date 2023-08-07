@@ -71,19 +71,73 @@ void Print::setFont(FontStruct* font)
 }
 
 /**
+ * @brief Put your string into the character buffer
+ * @note This is the same as the printf function, but it puts the string into the buffer instead of printing it
+ */
+void Print::setString(const char* format, ...)
+{
+    // Generate the string and store the number of characters in the buffer
+    va_list args;
+    va_start(args, format);
+    this->charactersInBuffer = vsnprintf(this->characterBuffer, CHARACTER_BUFFER_SIZE - 1, format, args);
+    va_end(args);
+}
+
+/**
+ * @brief Get the point to center the string at
+ * @param alignment Alignment to use, defaults to Alignment_t::TotalCenter
+ * @note This sets the cursor to center the string in the buffer
+ */
+void Print::center(Alignment_t alignment)
+{
+    // Get the center of the screen
+    int centerX = this->width >> 1;
+	int centerY = this->height >> 1;
+
+    // Initialize the midpoint variables
+    int stringWidthMidpoint = 0;
+    int stringHeightMidpoint = 0;
+
+    // Initialize the cursor variables
+    unsigned long cursorX = 0;
+    unsigned long cursorY = 0;
+
+    // Set the cursor position based on the alignment
+    switch (alignment)
+    {
+    case Alignment_t::HorizontalCenter:
+        // Get the midpoint of the string
+        stringWidthMidpoint = this->getStringWidth() >> 1;
+        // Set the x position to the center, while keeping the y position the same
+        cursorY = this->getCursor().y * this->width;
+        this->cursor = (unsigned long)(centerX - stringWidthMidpoint + cursorY);
+        break;
+    case Alignment_t::VerticalCenter:
+        // Get the midpoint of the string
+        stringHeightMidpoint = this->getStringHeight() >> 1;
+        // Move only the y position, keeping the x position the same
+        cursorX = this->getCursor().x;
+        this->cursor = (unsigned long)(cursorX + (centerY - stringHeightMidpoint) * this->width);
+        break;
+    case Alignment_t::TotalCenter:
+    default:
+        // Get the midpoint of the string
+        stringWidthMidpoint = this->getStringWidth() >> 1;
+        stringHeightMidpoint = this->getStringHeight() >> 1;
+        // Set the x and y position to the center
+        this->setCursor({ centerX - stringWidthMidpoint, centerY - stringHeightMidpoint });
+        break;
+    }
+}
+
+/**
  * @brief Print to the display
  * @note This behaves like printf
 */
-void Print::print(const char* format, ...)
+void Print::print()
 {
-    // Generate the string
-    va_list args;
-    va_start(args, format);
-    int size = vsnprintf(this->characterBuffer, CHARACTER_BUFFER_SIZE - 1, format, args);
-    va_end(args);
-
     // loop through each character in the string
-    for (int i = 0; i < size; i++)
+    for (int i = 0; i < this->charactersInBuffer; i++)
     {
         // draw the character
         this->drawAscii(this->characterBuffer[i]);
@@ -92,22 +146,15 @@ void Print::print(const char* format, ...)
 
 /**
  * @brief Get the width of a string in pixels
- * @note This behaves like printf
- * @returns Width of the string in pixels
+ * @returns Width of the string in the buffer, in pixels
 */
-unsigned int Print::getStringWidth(const char* format, ...)
+unsigned int Print::getStringWidth()
 {
-    // Generate the string
-    va_list args;
-    va_start(args, format);
-    int size = vsnprintf(this->characterBuffer, CHARACTER_BUFFER_SIZE - 1, format, args);
-    va_end(args);
-
     // store the number of pixels
     size_t pixels = 0;
 
     // loop through each character in the string
-    for (int i = 0; i < size; i++)
+    for (int i = 0; i < this->charactersInBuffer; i++)
     {
         // get the character
         char c = this->characterBuffer[i];
@@ -130,22 +177,15 @@ unsigned int Print::getStringWidth(const char* format, ...)
 
 /**
  * @brief Get the height of a string in pixels
- * @note This behaves like printf
- * @returns Height of the string in pixels
+ * @returns Height of the string in the buffer, in pixels
 */
-unsigned int Print::getStringHeight(const char* format, ...)
+unsigned int Print::getStringHeight()
 {
-    // Generate the string
-    va_list args;
-    va_start(args, format);
-    int size = vsnprintf(this->characterBuffer, CHARACTER_BUFFER_SIZE - 1, format, args);
-    va_end(args);
-
     // store the number of pixels
     size_t pixels = 0;
 
     // loop through each character in the string
-    for (int i = 0; i < size; i++)
+    for (int i = 0; i < this->charactersInBuffer; i++)
     {
         // get the character
         char c = this->characterBuffer[i];
@@ -167,6 +207,27 @@ unsigned int Print::getStringHeight(const char* format, ...)
     // return the number of pixels
     return pixels;
 }
+
+/**
+ * @brief Print to the display
+ * @note This behaves like printf, and prints at the current cursor position
+*/
+void Print::print(const char* format, ...)
+{
+	// Generate the string
+	va_list args;
+	va_start(args, format);
+	this->charactersInBuffer = vsnprintf(this->characterBuffer, CHARACTER_BUFFER_SIZE - 1, format, args);
+	va_end(args);
+
+	// loop through each character in the string
+    for (int i = 0; i < this->charactersInBuffer; i++)
+    {
+		// draw the character
+		this->drawAscii(this->characterBuffer[i]);
+	}
+}
+
 
 /**
  * @private
