@@ -24,6 +24,7 @@ public:
         int maxValue, int initValue, Color* valueColors, size_t numberOfValueColors, DialGaugeType_t type);
 
     // Add extra functionality
+    void setNeedleColor(Color value);
     void attachBackgroundColor(Color value);
 
     // Update the dial value
@@ -44,6 +45,7 @@ private:
     Color* valueColors = nullptr;
     size_t numberOfValueColors = 0;
     DialGaugeType_t type = DialGaugeType_t::DialSimple;
+    Color needleColor = Colors::White;
     Color background = Colors::Black;
     bool hasBackground = false;
 

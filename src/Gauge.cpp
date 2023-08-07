@@ -37,6 +37,15 @@ DialGauge::DialGauge(Graphics* graphics, Display_Params params, Point center, in
 }
 
 /**
+ * @brief Set the color of the needle
+ * @param value Color to set the needle to
+ */
+void DialGauge::setNeedleColor(Color value)
+{
+	this->needleColor = value;
+}
+
+/**
  * @brief Set the background color of the dial
  * @param value Color to set the background to
  */
@@ -105,11 +114,11 @@ void DialGauge::drawNeedle(int value)
 	endPoint.y = this->center.y + sinValue;
 
 	// Draw the needle
-	this->graphics->drawFilledCircle(this->center, needleRadius, Colors::Black);
+	this->graphics->drawFilledCircle(this->center, needleRadius, this->needleColor);
 
 	// Draw the needle line as a line if the needleRadius is less than 4 otherwise draw it as a wedge
 	if (needleRadius < 4)
-		this->graphics->drawLine(this->center, endPoint, Colors::Black);
+		this->graphics->drawLine(this->center, endPoint, this->needleColor);
 	else
 	{
 		// Calculate the angle of the base
@@ -135,7 +144,7 @@ void DialGauge::drawNeedle(int value)
 
 		// Draw the needle
 		Point points[] = { p1, p2, endPoint };
-		this->graphics->drawFilledPolygon(points, 3, Colors::Black);
+		this->graphics->drawFilledPolygon(points, 3, this->needleColor);
 	}
 }
 
