@@ -29,6 +29,8 @@ public:
 
     void drawBitmap(const unsigned char* bitmap, unsigned int width, unsigned int height);
     void drawBitmap(const unsigned short* bitmap, unsigned int width, unsigned int height);
+
+    void antiAliasingFilter(void);
 private:
     unsigned short* frameBuffer;
     Display_Params params;

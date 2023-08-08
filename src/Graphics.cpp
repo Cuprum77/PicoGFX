@@ -630,3 +630,51 @@ void Graphics::drawBitmap(const unsigned short* bitmap, unsigned int width, unsi
         this->frameBuffer[i] = bitmap[i];
     }
 }
+
+/**
+ * @brief Apply a simple blur to the display to combat pixelation
+*/
+void Graphics::antiAliasingFilter(void)
+{
+    // Helper function to get the color difference between two pixels
+    #define COLOR_DIFF(pixel1, pixel2) ( \
+        iabs(((pixel1 & 0xF800) >> 8) - ((pixel2 & 0xF800) >> 8)) + \
+        iabs(((pixel1 & 0x07E0) >> 3) - ((pixel2 & 0x07E0) >> 3)) + \
+        iabs(((pixel1 & 0x001F) << 3) - ((pixel2 & 0x001F) << 3)) \
+    )
+
+    // Loop through all the pixels in the framebuffer
+    for (int y = 1; y < (this->params.height - 1); y++)
+    {
+        for (int x = 1; x < (this->params.width - 1); x++)
+        {
+            // Get the index of the current pixel
+            int pixelIndex = y * this->params.width + x;
+
+            // Get the surrounding pixels
+            unsigned short leftPixel = this->frameBuffer[pixelIndex - 1];
+            unsigned short rightPixel = this->frameBuffer[pixelIndex + 1];
+            unsigned short upPixel = this->frameBuffer[pixelIndex - this->params.width];
+            unsigned short downPixel = this->frameBuffer[pixelIndex + this->params.width];            
+
+            // Calculate the  difference between the left and right pixel and the up and down pixel
+            int horizontalDiff = COLOR_DIFF(leftPixel, rightPixel);
+            int verticalDiff = COLOR_DIFF(upPixel, downPixel);
+
+            // If the difference is large enough, average the colors
+            if (horizontalDiff > 16 && verticalDiff > 16)
+            {
+                // Get the sum of the colors
+                int sumR = ((leftPixel & 0xF800) + (rightPixel & 0xF800) + (upPixel & 0xF800) + (downPixel & 0xF800)) >> 8;
+                int sumG = ((leftPixel & 0x07E0) + (rightPixel & 0x07E0) + (upPixel & 0x07E0) + (downPixel & 0x07E0)) >> 3;
+                int sumB = ((leftPixel & 0x001F) + (rightPixel & 0x001F) + (upPixel & 0x001F) + (downPixel & 0x001F)) << 3;
+                // Average the colors
+                unsigned short avgR = (sumR >> 2) & 0xF8;
+                unsigned short avgG = (sumG >> 2) & 0xFC;
+                unsigned short avgB = (sumB >> 2) >> 3;
+                // Write the averaged color to the framebuffer
+                this->frameBuffer[pixelIndex] = (avgR << 8) | (avgG << 3) | avgB;
+            }
+        }
+    }
+}
