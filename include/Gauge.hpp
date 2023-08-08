@@ -1,9 +1,6 @@
 #pragma once
 
-#include <Graphics.hpp>
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdarg.h>
+#include "Graphics.hpp"
 
 // Constants
 #define GOLDEN_RATIO 618
