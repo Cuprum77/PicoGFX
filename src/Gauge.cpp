@@ -12,10 +12,11 @@
  * @param valueColors Colors to use for the dial
  * @param numberOfValueColors Number of colors to use for the dial
  * @param type Type of dial to draw
+ * @param angle Dial angle, represents how much of a circle the dial should be. Default is 230 degrees
  * @note The dial will be drawn on the frame buffer
 */
-DialGauge::DialGauge(Graphics* graphics, Display_Params params, Point center, int radius, int minValue,
-			int maxValue, int initValue, Color* valueColors, size_t numberOfValueColors, DialGaugeType_t type)
+DialGauge::DialGauge(Graphics* graphics, Display_Params params, Point center, int radius, int minValue, int maxValue, 
+	int initValue, Color* valueColors, size_t numberOfValueColors, DialGaugeType_t type, int angle)
 {
 	// Copy the display parameters to the object
 	this->graphics = graphics;
@@ -25,6 +26,8 @@ DialGauge::DialGauge(Graphics* graphics, Display_Params params, Point center, in
 
 	// Copy the dial parameters to the object
 	this->center = center;
+	this->angle = angle;
+	this->halfAngle = angle / 2;
 	this->radius = radius;
 	this->minValue = minValue;
 	this->maxValue = maxValue;
@@ -57,6 +60,32 @@ void DialGauge::attachBackgroundColor(Color value)
 }
 
 /**
+ * @brief Draw a line across the dial gauge to indicate stops/starts/set points etc
+ * @param value Value to draw the line at
+ * @param width Width of the line
+ * @param color Color to draw the line in
+ */
+void DialGauge::drawLine(int value, int width, Color color)
+{
+	// Make sure the thickness is above 0 
+	if (width <= 0) width = 1;
+	// Find the angle based of the value
+	int angle = (int)((value * this->angle) / this->maxValue) - this->halfAngle;
+	// Clamp the angle to the min and max angles
+	angle = imin(angle, this->halfAngle);
+	angle = imax(angle, -this->halfAngle);
+	// Offset the angle by 90 degrees
+	angle -= 90;
+	// Calculate the start and end points of the line by finding the point on the circle
+	Point start = this->center;
+	start = start.getPointOnCircle(this->innerRadius, angle);
+	Point end = this->center;
+	end = end.getPointOnCircle(this->radius, angle);
+	// Draw the line
+	this->graphics->drawLineAntiAliased(start, end, color);
+}
+
+/**
  * @brief Update the dial value
  * @param value New value to set the dial to
  */
@@ -71,6 +100,10 @@ void DialGauge::update(int value)
 		// Draw the needle
 		this->drawNeedle(value);
 		break;
+	case DialGaugeType_t::DialSimple2:
+		// Draw the dial
+		this->drawSimpleDial2(value);
+		break;
 	default:
 		break;
 	}
@@ -84,16 +117,13 @@ void DialGauge::update(int value)
  */
 void DialGauge::drawNeedle(int value)
 {
-	// Define the angle of the dial
-	static const int halfDialAngle = DIAL_ANGLE >> 1;
 	// Calculate the needle radius
 	int needleRadius = (int)(this->radius * 0.05);
-
 	// Calculate the angle of the needle
-	int needleAngle = (int)((value * DIAL_ANGLE) / this->maxValue) - halfDialAngle;
+	int needleAngle = (int)((value * this->angle) / this->maxValue) - this->halfAngle;
 	// Clamp the needle angle to the dial angle
-	needleAngle = imin(needleAngle, halfDialAngle);
-	needleAngle = imax(needleAngle, -halfDialAngle);
+	needleAngle = imin(needleAngle, this->halfAngle);
+	needleAngle = imax(needleAngle, -this->halfAngle);
 	// Offset it by 90 degrees to start at the top of the dial
 	needleAngle -= 90;
 	// Multiply the angle by 10 as the sin and cos tables have a resolution of 0.1 degrees
@@ -155,14 +185,12 @@ void DialGauge::drawNeedle(int value)
  */
 void DialGauge::drawSimpleDial(int value)
 {
-	// Define the angle of the dial
-	static const int halfDialAngle = DIAL_ANGLE >> 1;
-	// Calculate the inner radius of the dial using the golden ratio
-	int innerRadius = (int)(this->radius * 0.618);
+	// Calculate the inner radius of the dial by multiplying with the golden ratio
+	this->innerRadius = (int)(this->radius * 0.618);
 	// Divide the dial into segments
-	int segmentAngle = DIAL_ANGLE / this->numberOfValueColors;
+	int segmentAngle = this->angle / this->numberOfValueColors;
 	// Verify that the segmentAngle adds up to the dial angle
-	int error = DIAL_ANGLE - (segmentAngle * this->numberOfValueColors);
+	int error = this->angle - (segmentAngle * this->numberOfValueColors);
 	int errorHalf = 0;
 	// Divide the error by 2 if its above 1, otherwise set it to 1
 	if (error > 1) errorHalf = error >> 1;
@@ -179,7 +207,7 @@ void DialGauge::drawSimpleDial(int value)
 		int angle = (segmentAngle * i) + offset;
 		int angleTarget = segmentAngle;
 		// We need to offset the angle by half the dial angle in degrees, since we start at 0 degrees
-		angle -= halfDialAngle;
+		angle -= this->halfAngle;
 		// Subtract an additional 90 degrees to start at the top of the dial, this is because a circle starts at 3 o'clock
 		angle -= 90;
 		// Add the angle to the target
@@ -199,6 +227,43 @@ void DialGauge::drawSimpleDial(int value)
 			}
 		}
 		// Draw the segment
-		this->graphics->drawFilledDualArc(this->center, innerRadius, this->radius, angle, angleTarget, this->valueColors[i]);
+		this->graphics->drawFilledDualArc(this->center, this->innerRadius, this->radius, angle, angleTarget, this->valueColors[i]);
 	}
+}
+
+/**
+ * @private
+ * @brief Draw a simple dial, with a different style
+ * @param value Value to draw the dial at
+ */
+void DialGauge::drawSimpleDial2(int value)
+{
+	// Make the dial's inner radius about 85% of the outer radius
+	this->innerRadius = (int)(this->radius * 0.85);
+	int pointerThickness = (int)(this->radius * 0.05);
+
+	// We only need two colors for this dial
+	if (this->numberOfValueColors < 2) return;
+
+	// Clamp the min and max values
+	value = imin(value, this->maxValue);
+	value = imax(value, this->minValue);
+	// Find the angle of the value in relation to the dial angle, mapped to the min/max value
+	int angle = (int)((value * this->angle) / this->maxValue) - this->halfAngle;
+	// Clamp the angle to the dial angle
+	angle = imin(angle, this->halfAngle);
+	angle = imax(angle, -this->halfAngle);
+	// Offset it by 90 degrees to start at the top of the dial
+	angle -= 90;
+
+	// Calculate the actual angles we will use
+	int angle1Start = (-this->halfAngle) - 90;
+	int angle1End = angle - pointerThickness >> 1;
+	int angle2Start = angle + pointerThickness >> 1;
+	int angle2End = this->halfAngle - 90;
+
+	// Draw the dual filled arc
+	this->graphics->drawFilledDualArc(this->center, this->innerRadius, this->radius, angle1Start, angle1End, this->valueColors[0]);
+	this->graphics->drawFilledDualArc(this->center, this->innerRadius, this->radius, angle1End, angle2Start, this->valueColors[1]);
+	this->graphics->drawFilledDualArc(this->center, this->innerRadius, this->radius, angle2Start, angle2End, this->valueColors[0]);
 }
