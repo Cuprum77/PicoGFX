@@ -32,7 +32,7 @@ void Display::GC9A01_Init()
 	this->writeData(0x8e, (const uint8_t *) "\xFF", 1);
 	this->writeData(0x8f, (const uint8_t *) "\xFF", 1);
 	this->writeData(0xb6, (const uint8_t *) "\x00\x00", 2);
-	this->GC9A01_SetRotation(this->params->rotation);
+	this->setRotation(this->params->rotation);
 	this->writeData(0x3a, (const uint8_t *) "\x55", 1);
 	this->writeData(0x90, (const uint8_t *) "\x08\x08\x08\x08", 4);
 	this->writeData(0xbd, (const uint8_t *) "\x06", 1);
