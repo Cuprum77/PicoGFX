@@ -111,7 +111,7 @@ void Display::update(bool framecounter)
 void Display::setPixel(Point point, Color color)
 {
     // set the framebuffer pixel
-    this->frameBuffer[point.X() + point.Y() * this->params->width] = color.to16bit();
+    this->frameBuffer[point.x + point.y * this->params->width] = color.to16bit();
 }
 
 /**
@@ -132,7 +132,7 @@ void Display::setPixel(uint index, ushort color)
 */
 Color Display::getPixel(Point point)
 {
-    return Color(this->frameBuffer[point.X() + point.Y() * this->params->width]);
+    return Color(this->frameBuffer[point.x + point.y * this->params->width]);
 }
 
 /**
@@ -180,12 +180,12 @@ void Display::setCursor(Point point)
 {
     // set the pixel x address
     this->columnAddressSet(
-        point.X() + this->params->columnOffset1,
+        point.x + this->params->columnOffset1,
         (this->params->width - 1) + this->params->columnOffset2
     );
     // set the pixel y address
     this->rowAddressSet(
-        point.Y() + this->params->rowOffset1,
+        point.y + this->params->rowOffset1,
         (this->params->height - 1) + this->params->rowOffset2
     );
     // set the internal cursor position
