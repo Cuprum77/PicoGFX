@@ -24,6 +24,12 @@ public:
     Gradients& getGradients();
     Encoder& getEncoder();
 
+    Display* getDisplayPtr();
+    Print* getPrintPtr();
+    Graphics* getGraphicsPtr();
+    Gradients* getGradientsPtr();
+    Encoder* getEncoderPtr();
+
 private:
     Display* display;
     Print* print;
