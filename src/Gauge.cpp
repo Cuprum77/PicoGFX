@@ -3,7 +3,8 @@
 /**
  * @brief Construct a new Dials object
  * @param frameBuffer Frame buffer to draw on
- * @param params Display parameters
+ * @param screenWidth Width of the screen
+ * @param screenHeight Height of the screen
  * @param center Center of the dial
  * @param radius Radius of the dial
  * @param minValue Minimum value of the dial
@@ -105,7 +106,6 @@ void DialGauge::update(int value)
 		break;
 	}
 }
-
 
 /**
  * @private

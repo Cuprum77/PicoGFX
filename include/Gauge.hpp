@@ -18,7 +18,6 @@ public:
     // Constructor
     DialGauge(Graphics* graphics, int screenWidth, int screenHeight, Point center, int radius, 
         int minValue, int maxValue, Color* valueColors, size_t numberOfValueColors, DialGaugeType_t type, int angle = DIAL_ANGLE);
-    void init();
 
     // Add extra functionality
     void setNeedleColor(Color value);
