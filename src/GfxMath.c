@@ -1,9 +1,9 @@
 #include "GfxMath.h"
 
-__attribute__((section(".cosTable"))) int cosTable[NUMBER_OF_ANGLES];
-__attribute__((section(".sinTable"))) int sinTable[NUMBER_OF_ANGLES];
-__attribute__((section(".tanTable"))) int tanTable[NUMBER_OF_ANGLES];
-__attribute__((section(".atanTable"))) int atanTable[NUMBER_OF_ANGLES];
+int cosTable[NUMBER_OF_ANGLES];
+int sinTable[NUMBER_OF_ANGLES];
+int tanTable[NUMBER_OF_ANGLES];
+int atanTable[NUMBER_OF_ANGLES];
 
 int imin(int x, int y)
 {

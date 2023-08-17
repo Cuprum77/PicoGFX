@@ -440,7 +440,7 @@ void Graphics::drawFilledCircle(Point center, unsigned int radius, Color color)
     int error = 3 - 2 * x;
 
     // convert the color to 16 bit
-    uint16_t color16 = color.to16bit();
+    unsigned short color16 = color.to16bit();
 
     while (y <= x)
     {
