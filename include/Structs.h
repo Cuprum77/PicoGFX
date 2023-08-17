@@ -5,13 +5,6 @@ extern "C"
 {
 #endif
 
-typedef enum
-{
-    SPI_HW,
-    DMA_HW,
-    PIO_HW
-}   SPI_Interface_t;
-
 enum display_type_t
 {
     ST7789,
