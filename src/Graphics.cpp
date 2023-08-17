@@ -361,7 +361,10 @@ void Graphics::drawFilledPolygon(Point* points, size_t numberOfPoints, Color col
 
         // Fill in the pixels between the start and end intersections
         for (int x = xStart; x < xEnd; x++)
+        {
+            // Verify that index is within the bounds of the framebuffer
             this->frameBuffer[x + y * this->params.width] = color16;
+        }
     }
 }
 
@@ -426,7 +429,7 @@ void Graphics::drawCircle(Point center, unsigned int radius, Color color)
 */
 void Graphics::drawFilledCircle(Point center, unsigned int radius, Color color)
 {
-    // Uses Bresenham's circle algorithm
+    // Uses a modified Bresenham's circle algorithm
     // https://en.wikipedia.org/wiki/Midpoint_circle_algorithm
 
     // move Points into local variables
@@ -436,31 +439,53 @@ void Graphics::drawFilledCircle(Point center, unsigned int radius, Color color)
     int y = 0;
     int error = 3 - 2 * x;
 
-    // loop through the radius
-    while(x >= y)
-    {
-        // draw the pixel
-        this->drawLine({x0 + x, y0 + y}, {x0 - x, y0 + y}, color);
-        this->drawLine({x0 + y, y0 + x}, {x0 - y, y0 + x}, color);
-        this->drawLine({x0 + x, y0 - y}, {x0 - x, y0 - y}, color);
-        this->drawLine({x0 + y, y0 - x}, {x0 - y, y0 - x}, color);
+    // convert the color to 16 bit
+    uint16_t color16 = color.to16bit();
 
-        // if the error is greater than 0
-        if(error > 0)
+    while (y <= x)
+    {
+        for (int i = x0 - x; i <= x0 + x; i++)
         {
-            // decrement the x Point
+            int index1 = (y0 + y) * this->params.width + i;
+            int index2 = (y0 - y) * this->params.width + i;
+            
+            if (index1 >= 0 && index1 < this->totalPixels)
+            {
+                this->frameBuffer[index1] = color16;
+            }
+            
+            if (index2 >= 0 && index2 < this->totalPixels)
+            {
+                this->frameBuffer[index2] = color16;
+            }
+        }
+        
+        for (int i = x0 - y; i <= x0 + y; i++)
+        {
+            int index1 = (y0 + x) * this->params.width + i;
+            int index2 = (y0 - x) * this->params.width + i;
+
+            if (index1 >= 0 && index1 < this->totalPixels)
+            {
+                this->frameBuffer[index1] = color16;
+            }
+            
+            if (index2 >= 0 && index2 < this->totalPixels)
+            {
+                this->frameBuffer[index2] = color16;
+            }
+        }
+
+        y++;
+
+        // Update the error
+        if (error > 0) 
+        {
             x--;
-            // calculate the error
-            error = error + 4 * (y - x) + 10;
+            error += 4 * (y - x) + 10;
         }
         else
-        {
-            // calculate the error
-            error = error + 4 * y + 6;
-        }
-
-        // increment the y Point
-        y++;
+            error += 4 * y + 6;
     }
 }
 
