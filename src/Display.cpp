@@ -104,6 +104,37 @@ void Display::update(bool framecounter)
 }
 
 /**
+ * @brief Partially update the display with a section of the frame buffer
+ * @param start Start index
+ * @param end End index
+ * @note No checks are done to speed up the process, make sure the start and end are valid!
+*/
+void Display::update(int start, int end)
+{
+    this->writePixels(&this->frameBuffer[start], end - start);
+}
+
+/**
+ * @brief Partially update the display with a section of the frame buffer
+ * @param start Start index
+ * @param end End index
+ * @param moveCursor Move the cursor to the start position
+*/
+void Display::update(int start, int end, bool moveCursor)
+{
+    // Check if the start and end are valid
+    if (start >= end || end >= this->totalPixels)
+        return;
+
+    // Move the cursor if needed
+    if (moveCursor)
+        this->setCursor({ start % this->params->width, start / this->params->width });
+
+    // Write the pixels
+    this->writePixels(&this->frameBuffer[start], end - start);
+}
+
+/**
  * @brief Put a pixel in the framebuffer
  * @param Point Points to draw the pixel at
  * @param color Color to draw in

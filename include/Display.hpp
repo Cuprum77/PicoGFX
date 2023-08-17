@@ -34,6 +34,8 @@ public:
     void clear(void);
 
     void update(bool framecounter = false);
+    void update(int start, int end);
+    void update(int start, int end, bool moveCursor);
     void setPixel(Point point, Color color);
     void setPixel(unsigned int point, unsigned short color);
     Color getPixel(Point point);
