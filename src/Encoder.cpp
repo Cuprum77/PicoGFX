@@ -201,9 +201,9 @@ void Encoder::EncodeRunLengthEncoding(stream_metadata_t* metadata, stream_config
 			while (count > 0)
 			{
 				unsigned char thisCount = count > 255 ? 255 : count;
-				stream[METADATA_BYTES + streamIndex++] = thisCount;
 				if (config.isReceiverBigEndian)
 				{
+					stream[METADATA_BYTES + streamIndex++] = thisCount;
 					stream[METADATA_BYTES + streamIndex++] = (oldPixel >> 0x8) & 0xff;
 					stream[METADATA_BYTES + streamIndex++] = oldPixel & 0xff;
 				}
@@ -211,6 +211,7 @@ void Encoder::EncodeRunLengthEncoding(stream_metadata_t* metadata, stream_config
 				{
 					stream[METADATA_BYTES + streamIndex++] = oldPixel & 0xff;
 					stream[METADATA_BYTES + streamIndex++] = (oldPixel >> 0x8) & 0xff;
+					stream[METADATA_BYTES + streamIndex++] = thisCount;
 				}
 				// decrement count by the amount we've just encoded
 				count -= thisCount;
@@ -234,9 +235,9 @@ void Encoder::EncodeRunLengthEncoding(stream_metadata_t* metadata, stream_config
 		while (count > 0)
 		{
 			unsigned char thisCount = count > 255 ? 255 : count;
-			stream[METADATA_BYTES + streamIndex++] = thisCount;
 			if (config.isReceiverBigEndian)
 			{
+				stream[METADATA_BYTES + streamIndex++] = thisCount;
 				stream[METADATA_BYTES + streamIndex++] = (oldPixel >> 0x8) & 0xff;
 				stream[METADATA_BYTES + streamIndex++] = oldPixel & 0xff;
 			}
@@ -244,6 +245,7 @@ void Encoder::EncodeRunLengthEncoding(stream_metadata_t* metadata, stream_config
 			{
 				stream[METADATA_BYTES + streamIndex++] = oldPixel & 0xff;
 				stream[METADATA_BYTES + streamIndex++] = (oldPixel >> 0x8) & 0xff;
+				stream[METADATA_BYTES + streamIndex++] = thisCount;
 			}
 			// decrement count by the amount we've just encoded
 			count -= thisCount;
@@ -283,10 +285,20 @@ void Encoder::EncodeLossy(stream_metadata_t* metadata, stream_config_t config, u
 				while (count > 0)
 				{
 					unsigned char thisCount = count > 255 ? 255 : count;
-					stream[METADATA_BYTES + streamIndex++] = thisCount;
-					stream[METADATA_BYTES + streamIndex++] = oldY;
-					stream[METADATA_BYTES + streamIndex++] = oldCB;
-					stream[METADATA_BYTES + streamIndex++] = oldCR;
+					if (config.isReceiverBigEndian)
+					{
+						stream[METADATA_BYTES + streamIndex++] = thisCount;
+						stream[METADATA_BYTES + streamIndex++] = oldY;
+						stream[METADATA_BYTES + streamIndex++] = oldCB;
+						stream[METADATA_BYTES + streamIndex++] = oldCR;
+					}
+					else
+					{
+						stream[METADATA_BYTES + streamIndex++] = oldCR;
+						stream[METADATA_BYTES + streamIndex++] = oldCB;
+						stream[METADATA_BYTES + streamIndex++] = oldY;
+						stream[METADATA_BYTES + streamIndex++] = thisCount;
+					}
 					// decrement count by the amount we've just encoded
 					count -= thisCount;
 				}
@@ -310,10 +322,20 @@ void Encoder::EncodeLossy(stream_metadata_t* metadata, stream_config_t config, u
 		while (count > 0)
 		{
 			unsigned char thisCount = count > 255 ? 255 : count;
-			stream[METADATA_BYTES + streamIndex++] = thisCount;
-			stream[METADATA_BYTES + streamIndex++] = oldY;
-			stream[METADATA_BYTES + streamIndex++] = oldCB;
-			stream[METADATA_BYTES + streamIndex++] = oldCR;
+			if (config.isReceiverBigEndian)
+			{
+				stream[METADATA_BYTES + streamIndex++] = thisCount;
+				stream[METADATA_BYTES + streamIndex++] = oldY;
+				stream[METADATA_BYTES + streamIndex++] = oldCB;
+				stream[METADATA_BYTES + streamIndex++] = oldCR;
+			}
+			else
+			{
+				stream[METADATA_BYTES + streamIndex++] = oldCR;
+				stream[METADATA_BYTES + streamIndex++] = oldCB;
+				stream[METADATA_BYTES + streamIndex++] = oldY;
+				stream[METADATA_BYTES + streamIndex++] = thisCount;
+			}
 			// decrement count by the amount we've just encoded
 			count -= thisCount;
 		}
@@ -381,8 +403,16 @@ void Encoder::EncodeReducedColorRLE(stream_metadata_t* metadata, stream_config_t
 			while (count > 0)
 			{
 				unsigned char thisCount = count > 255 ? 255 : count;
-				stream[METADATA_BYTES + streamIndex++] = count;
-				stream[METADATA_BYTES + streamIndex++] = oldPixel;
+				if (config.isReceiverBigEndian)
+				{
+					stream[METADATA_BYTES + streamIndex++] = count;
+					stream[METADATA_BYTES + streamIndex++] = oldPixel;
+				}
+				else
+				{
+					stream[METADATA_BYTES + streamIndex++] = oldPixel;
+					stream[METADATA_BYTES + streamIndex++] = count;
+				}
 				// decrement count by the amount we've just encoded
 				count -= thisCount;
 			}
@@ -405,8 +435,16 @@ void Encoder::EncodeReducedColorRLE(stream_metadata_t* metadata, stream_config_t
 		while (count > 0)
 		{
 			unsigned char thisCount = count > 255 ? 255 : count;
-			stream[METADATA_BYTES + streamIndex++] = count;
-			stream[METADATA_BYTES + streamIndex++] = oldPixel;
+			if (config.isReceiverBigEndian)
+			{
+				stream[METADATA_BYTES + streamIndex++] = count;
+				stream[METADATA_BYTES + streamIndex++] = oldPixel;
+			}
+			else
+			{
+				stream[METADATA_BYTES + streamIndex++] = oldPixel;
+				stream[METADATA_BYTES + streamIndex++] = count;
+			}
 			// decrement count by the amount we've just encoded
 			count -= thisCount;
 		}
