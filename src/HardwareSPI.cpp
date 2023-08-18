@@ -166,7 +166,7 @@ void HardwareSPI::spi_write_pixels(const uint16_t* data, size_t length)
 */
 bool HardwareSPI::dma_busy(void)
 {
-    if(this->hw_params.hw_interface != SPI_Interface_t::SPI_DMA_HW)
+    if(this->hw_params.hw_interface != SPI_Interface_t::SPI_DMA_HW || this->hw_params.hw_interface != SPI_Interface_t::PIO_DMA_HW)
         return false;
     
     return dma_channel_is_busy(this->dma_tx);
