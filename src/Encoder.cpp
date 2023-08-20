@@ -34,25 +34,25 @@ void Encoder::Encode(stream_metadata_t* metadata, stream_config_t config, unsign
 	}
 }
 
-unsigned int Encoder::Decode(stream_metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer)
+unsigned int Encoder::Decode(stream_metadata_t* metadata, unsigned char* stream, size_t streamSize, unsigned short* frameBuffer)
 {
 	switch (metadata->type)
 	{
 	case encoding_type_t::MONOCHROME:
-		return this->DecodeMonochrome(metadata, stream, frameBuffer);
+		return this->DecodeMonochrome(metadata, stream, streamSize, frameBuffer);
 	case encoding_type_t::MONOCHROME_RLE:
-		return this->DecodeMonochromeRLE(metadata, stream, frameBuffer);
+		return this->DecodeMonochromeRLE(metadata, stream, streamSize, frameBuffer);
 	case encoding_type_t::RUN_LENGHT_ENCODING:
-		return this->DecodeRunLengthEncoding(metadata, stream, frameBuffer);
+		return this->DecodeRunLengthEncoding(metadata, stream, streamSize, frameBuffer);
 	case encoding_type_t::LOSSY:
-		return this->DecodeLossy(metadata, stream, frameBuffer);
+		return this->DecodeLossy(metadata, stream, streamSize, frameBuffer);
 	case encoding_type_t::REDUCED_COLOR:
-		return this->DecodeReducedColor(metadata, stream, frameBuffer);
+		return this->DecodeReducedColor(metadata, stream, streamSize, frameBuffer);
 	case encoding_type_t::REDUCED_COLOR_RLE:
-		return this->DecodeReducedColorRLE(metadata, stream, frameBuffer);
+		return this->DecodeReducedColorRLE(metadata, stream, streamSize, frameBuffer);
 	case encoding_type_t::RAW:
 		default:
-		return this->DecodeRaw(metadata, stream, frameBuffer);
+		return this->DecodeRaw(metadata, stream, streamSize, frameBuffer);
 	}
 }
 
@@ -201,9 +201,9 @@ void Encoder::EncodeRunLengthEncoding(stream_metadata_t* metadata, stream_config
 			while (count > 0)
 			{
 				unsigned char thisCount = count > 255 ? 255 : count;
-				stream[METADATA_BYTES + streamIndex++] = thisCount;
 				if (config.isReceiverBigEndian)
 				{
+					stream[METADATA_BYTES + streamIndex++] = thisCount;
 					stream[METADATA_BYTES + streamIndex++] = (oldPixel >> 0x8) & 0xff;
 					stream[METADATA_BYTES + streamIndex++] = oldPixel & 0xff;
 				}
@@ -211,6 +211,7 @@ void Encoder::EncodeRunLengthEncoding(stream_metadata_t* metadata, stream_config
 				{
 					stream[METADATA_BYTES + streamIndex++] = oldPixel & 0xff;
 					stream[METADATA_BYTES + streamIndex++] = (oldPixel >> 0x8) & 0xff;
+					stream[METADATA_BYTES + streamIndex++] = thisCount;
 				}
 				// decrement count by the amount we've just encoded
 				count -= thisCount;
@@ -234,9 +235,9 @@ void Encoder::EncodeRunLengthEncoding(stream_metadata_t* metadata, stream_config
 		while (count > 0)
 		{
 			unsigned char thisCount = count > 255 ? 255 : count;
-			stream[METADATA_BYTES + streamIndex++] = thisCount;
 			if (config.isReceiverBigEndian)
 			{
+				stream[METADATA_BYTES + streamIndex++] = thisCount;
 				stream[METADATA_BYTES + streamIndex++] = (oldPixel >> 0x8) & 0xff;
 				stream[METADATA_BYTES + streamIndex++] = oldPixel & 0xff;
 			}
@@ -244,6 +245,7 @@ void Encoder::EncodeRunLengthEncoding(stream_metadata_t* metadata, stream_config
 			{
 				stream[METADATA_BYTES + streamIndex++] = oldPixel & 0xff;
 				stream[METADATA_BYTES + streamIndex++] = (oldPixel >> 0x8) & 0xff;
+				stream[METADATA_BYTES + streamIndex++] = thisCount;
 			}
 			// decrement count by the amount we've just encoded
 			count -= thisCount;
@@ -283,10 +285,20 @@ void Encoder::EncodeLossy(stream_metadata_t* metadata, stream_config_t config, u
 				while (count > 0)
 				{
 					unsigned char thisCount = count > 255 ? 255 : count;
-					stream[METADATA_BYTES + streamIndex++] = thisCount;
-					stream[METADATA_BYTES + streamIndex++] = oldY;
-					stream[METADATA_BYTES + streamIndex++] = oldCB;
-					stream[METADATA_BYTES + streamIndex++] = oldCR;
+					if (config.isReceiverBigEndian)
+					{
+						stream[METADATA_BYTES + streamIndex++] = thisCount;
+						stream[METADATA_BYTES + streamIndex++] = oldY;
+						stream[METADATA_BYTES + streamIndex++] = oldCB;
+						stream[METADATA_BYTES + streamIndex++] = oldCR;
+					}
+					else
+					{
+						stream[METADATA_BYTES + streamIndex++] = oldCR;
+						stream[METADATA_BYTES + streamIndex++] = oldCB;
+						stream[METADATA_BYTES + streamIndex++] = oldY;
+						stream[METADATA_BYTES + streamIndex++] = thisCount;
+					}
 					// decrement count by the amount we've just encoded
 					count -= thisCount;
 				}
@@ -310,10 +322,20 @@ void Encoder::EncodeLossy(stream_metadata_t* metadata, stream_config_t config, u
 		while (count > 0)
 		{
 			unsigned char thisCount = count > 255 ? 255 : count;
-			stream[METADATA_BYTES + streamIndex++] = thisCount;
-			stream[METADATA_BYTES + streamIndex++] = oldY;
-			stream[METADATA_BYTES + streamIndex++] = oldCB;
-			stream[METADATA_BYTES + streamIndex++] = oldCR;
+			if (config.isReceiverBigEndian)
+			{
+				stream[METADATA_BYTES + streamIndex++] = thisCount;
+				stream[METADATA_BYTES + streamIndex++] = oldY;
+				stream[METADATA_BYTES + streamIndex++] = oldCB;
+				stream[METADATA_BYTES + streamIndex++] = oldCR;
+			}
+			else
+			{
+				stream[METADATA_BYTES + streamIndex++] = oldCR;
+				stream[METADATA_BYTES + streamIndex++] = oldCB;
+				stream[METADATA_BYTES + streamIndex++] = oldY;
+				stream[METADATA_BYTES + streamIndex++] = thisCount;
+			}
 			// decrement count by the amount we've just encoded
 			count -= thisCount;
 		}
@@ -381,8 +403,16 @@ void Encoder::EncodeReducedColorRLE(stream_metadata_t* metadata, stream_config_t
 			while (count > 0)
 			{
 				unsigned char thisCount = count > 255 ? 255 : count;
-				stream[METADATA_BYTES + streamIndex++] = count;
-				stream[METADATA_BYTES + streamIndex++] = oldPixel;
+				if (config.isReceiverBigEndian)
+				{
+					stream[METADATA_BYTES + streamIndex++] = count;
+					stream[METADATA_BYTES + streamIndex++] = oldPixel;
+				}
+				else
+				{
+					stream[METADATA_BYTES + streamIndex++] = oldPixel;
+					stream[METADATA_BYTES + streamIndex++] = count;
+				}
 				// decrement count by the amount we've just encoded
 				count -= thisCount;
 			}
@@ -405,8 +435,16 @@ void Encoder::EncodeReducedColorRLE(stream_metadata_t* metadata, stream_config_t
 		while (count > 0)
 		{
 			unsigned char thisCount = count > 255 ? 255 : count;
-			stream[METADATA_BYTES + streamIndex++] = count;
-			stream[METADATA_BYTES + streamIndex++] = oldPixel;
+			if (config.isReceiverBigEndian)
+			{
+				stream[METADATA_BYTES + streamIndex++] = count;
+				stream[METADATA_BYTES + streamIndex++] = oldPixel;
+			}
+			else
+			{
+				stream[METADATA_BYTES + streamIndex++] = oldPixel;
+				stream[METADATA_BYTES + streamIndex++] = count;
+			}
 			// decrement count by the amount we've just encoded
 			count -= thisCount;
 		}
@@ -446,13 +484,13 @@ void Encoder::EncodeRaw(stream_metadata_t* metadata, stream_config_t config, uns
 }
 
 
-unsigned int Encoder::DecodeMonochrome(stream_metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer)
+unsigned int Encoder::DecodeMonochrome(stream_metadata_t* metadata, unsigned char* stream, size_t streamSize, unsigned short* frameBuffer)
 {
 	// Here we reverse what the monochrome encoder did
 	unsigned int framebufferIndex = 0;
 
 	// copy the framebuffer to the display
-	for (int i = 0; i < metadata->totalBytes; i++)
+	for (int i = 0; i < streamSize; i++)
 	{
 		// get each pixel
 		unsigned char pixel = 0;
@@ -468,12 +506,12 @@ unsigned int Encoder::DecodeMonochrome(stream_metadata_t* metadata, unsigned cha
 	return framebufferIndex;
 }
 
-unsigned int Encoder::DecodeMonochromeRLE(stream_metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer)
+unsigned int Encoder::DecodeMonochromeRLE(stream_metadata_t* metadata, unsigned char* stream, size_t streamSize, unsigned short* frameBuffer)
 {
 	unsigned int outputBufferIndex = 0;
 
 	// loop through all the bytes
-	for (int streamIndex = 0; streamIndex < metadata->totalBytes;)
+	for (int streamIndex = 0; streamIndex < streamSize;)
 	{
 		// get the count and pixel value from the stream with an offset
 		unsigned int count = stream[streamIndex] >> 0x01;
@@ -487,17 +525,15 @@ unsigned int Encoder::DecodeMonochromeRLE(stream_metadata_t* metadata, unsigned 
 	return outputBufferIndex;
 }
 
-unsigned int Encoder::DecodeRunLengthEncoding(stream_metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer)
+unsigned int Encoder::DecodeRunLengthEncoding(stream_metadata_t* metadata, unsigned char* stream, size_t streamSize, unsigned short* frameBuffer)
 {
 	unsigned int outputBufferIndex = 0;
 
-	for (int streamIndex = 0; streamIndex < metadata->totalBytes;)
+	for (int streamIndex = 0; streamIndex < streamSize;)
 	{
 		// get the count and pixel value from the stream with an offset
 		unsigned int count = stream[streamIndex++];
-
-		unsigned short pixel = (stream[streamIndex++] << 0x8);
-		pixel |= stream[streamIndex++];
+		unsigned short pixel = (stream[streamIndex++] << 0x8) | stream[streamIndex++];
 
 		// reverse the run length encoding
 		for (int i = 0; i < count; i++)
@@ -507,14 +543,14 @@ unsigned int Encoder::DecodeRunLengthEncoding(stream_metadata_t* metadata, unsig
 	return outputBufferIndex;
 }
 
-unsigned int Encoder::DecodeLossy(stream_metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer)
+unsigned int Encoder::DecodeLossy(stream_metadata_t* metadata, unsigned char* stream, size_t streamSize, unsigned short* frameBuffer)
 {
 	int r, g, b;
 	int y, cb, cr;
-	int pixelIndex = 0, streamIndex = 0;
+	int pixelIndex = 0;
 	int lastY = 0, lastCB = 128, lastCR = 128; // Initialize chroma to mid-range.
 
-	for (; streamIndex < metadata->totalBytes;) // Loop through all pixels in the frame
+	for (unsigned int streamIndex = 0; streamIndex < streamSize;) // Loop through all pixels in the frame
 	{
 		unsigned int count = stream[streamIndex++];
 		y = stream[streamIndex++];
@@ -560,13 +596,13 @@ unsigned int Encoder::DecodeLossy(stream_metadata_t* metadata, unsigned char* st
 	return pixelIndex;
 }
 
-unsigned int Encoder::DecodeReducedColor(stream_metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer)
+unsigned int Encoder::DecodeReducedColor(stream_metadata_t* metadata, unsigned char* stream, size_t streamSize, unsigned short* frameBuffer)
 {
 	// Here we reverse what the reduced color encoder does
 	unsigned int pixelIndex = 0;
 
 	// loop through each pixel in the framebuffer
-	for (; pixelIndex < metadata->totalBytes; pixelIndex++)
+	for (; pixelIndex < streamSize; pixelIndex++)
 	{
 		// build up the pixel based on the stream buffer
 		unsigned char pixel = stream[pixelIndex];
@@ -589,14 +625,14 @@ unsigned int Encoder::DecodeReducedColor(stream_metadata_t* metadata, unsigned c
 	return pixelIndex;
 }
 
-unsigned int Encoder::DecodeReducedColorRLE(stream_metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer)
+unsigned int Encoder::DecodeReducedColorRLE(stream_metadata_t* metadata, unsigned char* stream, size_t streamSize, unsigned short* frameBuffer)
 {
 	unsigned char pixel;
 	unsigned char count;
 	unsigned short newPixel;
 	int pixelIndex = 0;
 
-	for (int streamIndex = 0; streamIndex < metadata->totalBytes;)
+	for (int streamIndex = 0; streamIndex < streamSize;)
 	{
 		count = stream[streamIndex++];
 		pixel = stream[streamIndex++];
@@ -621,18 +657,15 @@ unsigned int Encoder::DecodeReducedColorRLE(stream_metadata_t* metadata, unsigne
 	return pixelIndex;
 }
 
-unsigned int Encoder::DecodeRaw(stream_metadata_t* metadata, unsigned char* stream, unsigned short* frameBuffer)
+unsigned int Encoder::DecodeRaw(stream_metadata_t* metadata, unsigned char* stream, size_t streamSize, unsigned short* frameBuffer)
 {
 	// Here we reverse what the raw encoder does
 	unsigned int pixelIndex = 0;
 
 	// loop through each pixel in the framebuffer
-	for (unsigned int streamIndex = 0; streamIndex < metadata->totalBytes;)
-	{
+	for (unsigned int streamIndex = 0; streamIndex < streamSize;)
 		// build up the pixel based on the stream buffer
-		frameBuffer[pixelIndex] = (stream[streamIndex++] << 0x8);
-		frameBuffer[pixelIndex++] |= stream[streamIndex++];
-	}
+		frameBuffer[pixelIndex++] = (stream[streamIndex++] << 0x8) | stream[streamIndex++];
 
 	return pixelIndex;
 }

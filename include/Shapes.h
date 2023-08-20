@@ -66,42 +66,6 @@ struct Point
     }
 
     /**
-     * @brief Get the X coordinate of the point
-     * @return int X coordinate of the point
-    */
-    int X()
-    {
-        return this->x;
-    }
-
-    /**
-     * @brief Set the X coordinate of the point
-     * @param x X coordinate of the point
-    */
-    void X(int x)
-    {
-        this->x = x;
-    }
-
-    /**
-     * @brief Get the Y coordinate of the point
-     * @return int Y coordinate of the point
-    */
-    int Y()
-    {
-        return this->y;
-    }
-
-    /**
-     * @brief Set the Y coordinate of the point
-     * @param y Y coordinate of the point
-    */
-    void Y(int y)
-    {
-        this->y = y;
-    }
-
-    /**
      * @brief Calculate the distance between two points
      * @param other The other point
      * @return unsigned int The distance between the two points
@@ -109,6 +73,32 @@ struct Point
     unsigned int Distance(Point other)
     {
         return isqrt(ipow(this->x - other.x, 2) + ipow(this->y - other.y, 2));
+    }
+
+    /**
+     * @brief Get a point on a circle
+     * @param radius Radius of the circle
+     * @param angle Angle of the point on the circle, in degrees
+     * @return Point The point on the circle
+    */
+    Point getPointOnCircle(int radius, int angle)
+    {
+        // Clamp the angle between 0 and 360
+        while (angle < 0) angle += 360;
+        while (angle > 360) angle -= 360;
+        // Multiply the angle by 10
+        angle *= 10;
+
+        // Calculate the point on the circle
+        int x = (radius * cosTable[angle]);
+        x >>= FIXED_POINT_SCALE_BITS;
+        x += this->x;
+        int y = (radius * sinTable[angle]);
+        y >>= FIXED_POINT_SCALE_BITS;
+        y += this->y;
+
+        // Return the point
+        return Point(x, y);
     }
 
     bool operator==(const Point& other)
@@ -180,15 +170,15 @@ public:
     Rect(Point corner1, Point corner2)
     {
         // Set the corners of the Rect
-        this->x = Point(corner1.X(), corner2.Y());
-        this->y = Point(corner2.X(), corner1.Y());
+        this->x = Point(corner1.x, corner2.y);
+        this->y = Point(corner2.x, corner1.y);
         // Set the other variables of the Rect
-        this->width = corner2.X() - corner1.X();
-        this->height = corner2.Y() - corner1.Y();
-        this->bottom = this->y.Y();
-        this->left = this->x.X();
-        this->right = this->y.X();
-        this->top = this->x.Y();
+        this->width = corner2.x - corner1.x;
+        this->height = corner2.y - corner1.y;
+        this->bottom = this->y.y;
+        this->left = this->x.x;
+        this->right = this->y.x;
+        this->top = this->x.y;
     }
 
     /**
@@ -201,15 +191,15 @@ public:
     Rect(Point center, unsigned int width, unsigned int height)
     {
         // Calculate the corners of the Rect
-        this->x = Point(center.X() - (width / 2), center.Y() - (height / 2));
-        this->y = Point(center.X() + (width / 2), center.Y() + (height / 2));
+        this->x = Point(center.x - (width / 2), center.y - (height / 2));
+        this->y = Point(center.x + (width / 2), center.y + (height / 2));
         // Set the other variables of the Rect
         this->width = width;
         this->height = height;
-        this->bottom = this->y.Y();
-        this->left = this->x.X();
-        this->right = this->y.X();
-        this->top = this->x.Y();
+        this->bottom = this->y.y;
+        this->left = this->x.x;
+        this->right = this->y.x;
+        this->top = this->x.y;
     }
 
     /**
@@ -219,8 +209,8 @@ public:
     Point GetCenter()
     {
         return Point(
-            (x.X() + y.X()) / 2,
-            (x.Y() + y.Y()) / 2
+            (x.x + y.x) / 2,
+            (x.y + y.y) / 2
         );
     }
 

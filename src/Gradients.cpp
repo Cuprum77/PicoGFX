@@ -38,8 +38,8 @@ void Gradients::fillGradient(Color startColor, Color endColor, Point start, Poin
     }
 
     // calculate the direction of the gradient
-    int deltaX = end.X() - start.X();
-    int deltaY = end.Y() - start.Y();
+    int deltaX = end.x - start.x;
+    int deltaY = end.y - start.y;
     int magnitudeSquared = (deltaX * deltaX + deltaY * deltaY);
 
     // find the maximum difference between the color components
@@ -70,8 +70,8 @@ void Gradients::fillGradient(Color startColor, Color endColor, Point start, Poin
         for (int y = 0; y < this->params.height; y++)
         {
             // calculate the vector from the start to the current pixel
-            int vectorX = x - start.X();
-            int vectorY = y - start.Y();
+            int vectorX = x - start.x;
+            int vectorY = y - start.y;
 
             // calculate the distance along the gradient direction
             int dotProduct = (vectorX * deltaX + vectorY * deltaY);

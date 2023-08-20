@@ -11,7 +11,23 @@
 #include "Commands.hpp"
 #include "Structs.h"
 
-typedef struct pio_spi_inst {
+typedef enum
+{
+    SPI_HW,
+    SPI_DMA_HW,
+    PIO_HW,
+    PIO_DMA_HW
+}   SPI_Interface_t;
+
+typedef enum
+{
+    BITS_8 = 8,
+    BITS_16 = 16,
+    BITS_18 = 18
+}  SPI_Bits_t;
+
+typedef struct pio_spi_inst 
+{
     PIO pio;
     uint sm;
     uint cs_pin;
@@ -55,10 +71,16 @@ private:
     PIO pio;
     uint sm;
     uint offset;
+    float clkdiv;
+
+    // general
+    bool enabled = false;
 
     // private functions
     void initSPI(void);
-    void initDMA(void);
+    void initSPIwDMA(void);
     void initPIO(void);
+    void initPIOwDMA(void);
+    void changePIOSettings(SPI_Bits_t bits);
     inline void set_dc_cs(bool dc, bool cs);
 };

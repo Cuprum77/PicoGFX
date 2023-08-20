@@ -23,7 +23,7 @@ void Display::ST7789_Init()
     sleep_ms(10);
 
     // madctl = memory access control
-    this->ST7789_SetRotation(this->params->rotation);
+    this->setRotation(this->params->rotation);
 
     // set the display to memory access control
     this->setCursor({0, 0});

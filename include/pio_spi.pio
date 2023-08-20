@@ -22,17 +22,20 @@
 // but we are using a threshold of 8 here (consume 1 byte from each FIFO entry
 // and discard the remainder) to make things easier for software on the other side
 
-static inline void pio_spi_program_init(PIO pio, uint sm, uint offset, uint data_pin, uint clk_pin, float clk_div) {
+static inline void pio_spi_init(PIO pio, uint sm, uint offset, uint data_pin, uint clk_pin, float clk_div, int bits) 
+{
     pio_gpio_init(pio, data_pin);
     pio_gpio_init(pio, clk_pin);
     pio_sm_set_consecutive_pindirs(pio, sm, data_pin, 1, true);
     pio_sm_set_consecutive_pindirs(pio, sm, clk_pin, 1, true);
+
     pio_sm_config c = pio_spi_program_get_default_config(offset);
     sm_config_set_sideset_pins(&c, clk_pin);
     sm_config_set_out_pins(&c, data_pin, 1);
     sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_TX);
     sm_config_set_clkdiv(&c, clk_div);
-    sm_config_set_out_shift(&c, false, true, 8);
+    sm_config_set_out_shift(&c, false, true, bits);
+    
     pio_sm_init(pio, sm, offset, &c);
     pio_sm_set_enabled(pio, sm, true);
 }
@@ -40,28 +43,24 @@ static inline void pio_spi_program_init(PIO pio, uint sm, uint offset, uint data
 // Making use of the narrow store replication behaviour on RP2040 to get the
 // data left-justified (as we are using shift-to-left to get MSB-first serial)
 
-static inline void pio_spi_program_put(PIO pio, uint sm, uint8_t x) {
-    while (pio_sm_is_tx_fifo_full(pio, sm))
-        ;
+static inline void pio_spi_transmit_8(PIO pio, uint sm, uint8_t x) 
+{
+    while (pio_sm_is_tx_fifo_full(pio, sm));
     *(volatile uint8_t*)&pio->txf[sm] = x;
 }
 
-static inline void pio_spi_program_put_16(PIO pio, uint sm, uint16_t x) {
-    // Write high byte
+static inline void pio_spi_transmit_16(PIO pio, uint sm, uint16_t x) 
+{
     while (pio_sm_is_tx_fifo_full(pio, sm));
-    *(volatile uint8_t*)&pio->txf[sm] = (x >> 8) & 0xFF;
-
-    // Write low byte
-    while (pio_sm_is_tx_fifo_full(pio, sm));
-    *(volatile uint8_t*)&pio->txf[sm] = x & 0xFF;
+    *(volatile uint16_t*)&pio->txf[sm] = x;
 }
 
 // SM is done when it stalls on an empty FIFO
 
-static inline void pio_spi_program_wait_idle(PIO pio, uint sm) {
+static inline void pio_spi_wait_idle(PIO pio, uint sm) 
+{
     uint32_t sm_stall_mask = 1u << (sm + PIO_FDEBUG_TXSTALL_LSB);
     pio->fdebug = sm_stall_mask;
-    while (!(pio->fdebug & sm_stall_mask))
-        ;
+    while (!(pio->fdebug & sm_stall_mask));
 }
 %}

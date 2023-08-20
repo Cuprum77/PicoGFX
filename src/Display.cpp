@@ -104,6 +104,37 @@ void Display::update(bool framecounter)
 }
 
 /**
+ * @brief Partially update the display with a section of the frame buffer
+ * @param start Start index
+ * @param end End index
+ * @note No checks are done to speed up the process, make sure the start and end are valid!
+*/
+void Display::update(int start, int end)
+{
+    this->writePixels(&this->frameBuffer[start], end - start);
+}
+
+/**
+ * @brief Partially update the display with a section of the frame buffer
+ * @param start Start index
+ * @param end End index
+ * @param moveCursor Move the cursor to the start position
+*/
+void Display::update(int start, int end, bool moveCursor)
+{
+    // Check if the start and end are valid
+    if (start >= end || end >= this->totalPixels)
+        return;
+
+    // Move the cursor if needed
+    if (moveCursor)
+        this->setCursor({ start % this->params->width, start / this->params->width });
+
+    // Write the pixels
+    this->writePixels(&this->frameBuffer[start], end - start);
+}
+
+/**
  * @brief Put a pixel in the framebuffer
  * @param Point Points to draw the pixel at
  * @param color Color to draw in
@@ -111,7 +142,7 @@ void Display::update(bool framecounter)
 void Display::setPixel(Point point, Color color)
 {
     // set the framebuffer pixel
-    this->frameBuffer[point.X() + point.Y() * this->params->width] = color.to16bit();
+    this->frameBuffer[point.x + point.y * this->params->width] = color.to16bit();
 }
 
 /**
@@ -132,7 +163,7 @@ void Display::setPixel(uint index, ushort color)
 */
 Color Display::getPixel(Point point)
 {
-    return Color(this->frameBuffer[point.X() + point.Y() * this->params->width]);
+    return Color(this->frameBuffer[point.x + point.y * this->params->width]);
 }
 
 /**
@@ -180,12 +211,12 @@ void Display::setCursor(Point point)
 {
     // set the pixel x address
     this->columnAddressSet(
-        point.X() + this->params->columnOffset1,
+        point.x + this->params->columnOffset1,
         (this->params->width - 1) + this->params->columnOffset2
     );
     // set the pixel y address
     this->rowAddressSet(
-        point.Y() + this->params->rowOffset1,
+        point.y + this->params->rowOffset1,
         (this->params->height - 1) + this->params->rowOffset2
     );
     // set the internal cursor position

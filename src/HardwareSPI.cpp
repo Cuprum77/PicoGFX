@@ -23,11 +23,15 @@ void HardwareSPI::init()
 {
     switch(hw_params.hw_interface)
     {
-        case(SPI_Interface_t::DMA_HW):
-            this->hw_params.hw_interface = SPI_Interface_t::DMA_HW;
-            this->initDMA();
+        case SPI_Interface_t::PIO_DMA_HW:
+            this->hw_params.hw_interface = SPI_Interface_t::PIO_DMA_HW;
+            this->initPIOwDMA();
             break;
-        case(SPI_Interface_t::PIO_HW):
+        case SPI_Interface_t::SPI_DMA_HW:
+            this->hw_params.hw_interface = SPI_Interface_t::SPI_DMA_HW;
+            this->initSPIwDMA();
+            break;
+        case SPI_Interface_t::PIO_HW:
             this->hw_params.hw_interface = SPI_Interface_t::PIO_HW;
             this->initPIO();
             break;
@@ -54,18 +58,22 @@ void HardwareSPI::spi_write_data(uint8_t command, const uint8_t* data, size_t le
 {
     switch(this->hw_params.hw_interface)
     {
+        case(SPI_Interface_t::PIO_DMA_HW):
         case(SPI_Interface_t::PIO_HW):
-            pio_spi_program_wait_idle(this->pio, this->sm);
+            // We will to a bit of tomfoolery to solve the issue of switching between 8 and 16 bits
+            this->changePIOSettings(BITS_8);
+            pio_spi_wait_idle(this->pio, this->sm);
             this->set_dc_cs(0, 0);
-            pio_spi_program_put(this->pio, this->sm, command);
+            pio_spi_transmit_8(this->pio, this->sm, command);
             if(length)
             {
-                pio_spi_program_wait_idle(this->pio, this->sm);
+                pio_spi_wait_idle(this->pio, this->sm);
                 this->set_dc_cs(1, 0);
                 for(size_t i = 0; i < length; i++)
-                    pio_spi_program_put(this->pio, this->sm, *data++);
+                    pio_spi_transmit_8(this->pio, this->sm, *data++);
             }
-            pio_spi_program_wait_idle(this->pio, this->sm);
+            pio_spi_wait_idle(this->pio, this->sm);
+            this->changePIOSettings(BITS_16);
             this->set_dc_cs(1, 1);
             break;
         default:
@@ -80,6 +88,7 @@ void HardwareSPI::spi_write_data(uint8_t command, const uint8_t* data, size_t le
             // if there is data to send, send it
             if (length)
                 spi_write_blocking(this->spi, data, length);
+            spi_set_format(this->spi, 16, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
             break;
     }
 }
@@ -93,7 +102,8 @@ void HardwareSPI::spi_set_data_mode(uint8_t command)
 {
     switch(this->hw_params.hw_interface)
     {
-        case(SPI_Interface_t::PIO_HW):
+        case SPI_Interface_t::PIO_DMA_HW:
+        case SPI_Interface_t::PIO_HW:
             this->spi_write_data(command, nullptr, 0);
             this->set_dc_cs(1, 0);
             break;
@@ -118,21 +128,29 @@ void HardwareSPI::spi_write_pixels(const uint16_t* data, size_t length)
 {
     switch(this->hw_params.hw_interface)
     {
-        case(SPI_Interface_t::DMA_HW):
+        case SPI_Interface_t::PIO_DMA_HW:
             dma_channel_configure(
-                this->dma_tx, // Channel to be configured
-                &this->dma_config, // The configuration we just created
-                &spi_get_hw(this->spi)->dr, // The write address
-                data, // Pointer to the data we want to transmit
-                length, // Number of bytes to transmit
-                true // Start immediately
+                this->dma_tx,
+                &this->dma_config,
+                &this->pio->txf[this->sm],
+                data,
+                length,
+                true
             );
             break;
-        case(SPI_Interface_t::PIO_HW):
+        case SPI_Interface_t::SPI_DMA_HW:
+            dma_channel_configure(
+                this->dma_tx,
+                &this->dma_config,
+                &spi_get_hw(this->spi)->dr,
+                data,
+                length,
+                true
+            );
+            break;
+        case SPI_Interface_t::PIO_HW:
             while(length--)
-            {
-                pio_spi_program_put_16(this->pio, this->sm, *data++);
-            }
+                pio_spi_transmit_16(this->pio, this->sm, *data++);
             break;
         default:
             // send the data
@@ -148,7 +166,7 @@ void HardwareSPI::spi_write_pixels(const uint16_t* data, size_t length)
 */
 bool HardwareSPI::dma_busy(void)
 {
-    if(this->hw_params.hw_interface != SPI_Interface_t::DMA_HW)
+    if(this->hw_params.hw_interface != SPI_Interface_t::SPI_DMA_HW || this->hw_params.hw_interface != SPI_Interface_t::PIO_DMA_HW)
         return false;
     
     return dma_channel_is_busy(this->dma_tx);
@@ -177,7 +195,7 @@ void HardwareSPI::initSPI(void)
  * @private
  * @brief Initialize the SPI bus with DMA
 */
-void HardwareSPI::initDMA(void)
+void HardwareSPI::initSPIwDMA(void)
 {
     // enable the SPI bus
     this->initSPI();
@@ -188,7 +206,10 @@ void HardwareSPI::initDMA(void)
     // setup the control channel
     this->dma_config = dma_channel_get_default_config(this->dma_tx);
     channel_config_set_transfer_data_size(&this->dma_config, DMA_SIZE_16); // 16 bit transfers (1/2 word)
-    channel_config_set_dreq(&this->dma_config, DREQ_SPI0_TX); // SPI TX DREQ
+    if(this->spi == spi0)
+        channel_config_set_dreq(&this->dma_config, DREQ_SPI0_TX); // SPI0 TX DREQ
+    else
+        channel_config_set_dreq(&this->dma_config, DREQ_SPI1_TX); // SPI1 TX DREQ
     channel_config_set_read_increment(&this->dma_config, true); // increment the read address
     channel_config_set_write_increment(&this->dma_config, false); // don't increment the write address
 }
@@ -203,8 +224,8 @@ void HardwareSPI::initPIO(void)
     this->pio = pio0;
     this->sm = pio_claim_unused_sm(this->pio, true);
     this->offset = pio_add_program(this->pio, &pio_spi_program);
-    float clk_divider = (float)clock_get_hz(clk_sys) / (float)this->hw_params.baudrate;
-    pio_spi_program_init(this->pio, this->sm, this->offset, this->sda, this->scl, clk_divider);
+    this->clkdiv = (float)clock_get_hz(clk_sys) / (float)this->hw_params.baudrate;
+    pio_spi_init(this->pio, this->sm, this->offset, this->sda, this->scl, this->clkdiv, (int)BITS_8);
 
     // set the pins to SPI function
     gpio_init(this->cs);
@@ -213,6 +234,39 @@ void HardwareSPI::initPIO(void)
     gpio_set_dir(this->dc, GPIO_OUT);
     gpio_put(this->cs, 1);
     gpio_put(this->dc, 1);
+}
+
+/**
+ * @private
+ * @brief Initialize the SPI bus with PIO and DMA
+*/
+void HardwareSPI::initPIOwDMA(void)
+{
+    // Setup the regular PIO
+    this->initPIO();
+
+    // Grab some unused DMA channels
+    this->dma_tx = dma_claim_unused_channel(true);
+    
+    // Setup the DMA
+    this->dma_config = dma_channel_get_default_config(this->dma_tx);
+    channel_config_set_transfer_data_size(&this->dma_config, DMA_SIZE_16); // 16 bit transfers (1/2 word)
+    channel_config_set_dreq(&this->dma_config, pio_get_dreq(this->pio, this->sm, true)); // PIO TX DREQ
+    channel_config_set_read_increment(&this->dma_config, true); // increment the read address
+    channel_config_set_write_increment(&this->dma_config, false); // don't increment the write address
+}
+
+void HardwareSPI::changePIOSettings(SPI_Bits_t bits)
+{
+    // Stop the state machine
+    pio_sm_set_enabled(this->pio, this->sm, false);
+    // Remove the program
+    pio_remove_program(this->pio, &pio_spi_program, this->offset);
+    
+    // Re-add the program
+    this->offset = pio_add_program(this->pio, &pio_spi_program);
+    // Re-initialize the state machine
+    pio_spi_init(this->pio, this->sm, this->offset, this->sda, this->scl, this->clkdiv, (int)bits);
 }
 
 /**

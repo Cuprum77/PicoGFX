@@ -97,3 +97,13 @@ int lerp(int v0, int v1, int t)
 {
 	return (1 - t) * v0 + t * v1;
 }
+
+int clamp(int x, int min, int max)
+{
+	// clamp x to min
+	if (x < min) x = min;
+	// clamp x to max
+	if (x > max) x = max;
+	// return clamped value
+	return x;
+}

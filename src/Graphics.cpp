@@ -27,58 +27,6 @@ void Graphics::fill(Color color)
 }
 
 /**
- * @brief Fill the display with a color gradient
- * @param startColor Color to start with
- * @param endColor Color to end with
- * @param start Start Point
- * @param end End Point
- * @note The start and end points are only used to find the direction of the gradient, it will still fill the entire display!
-*/
-void Graphics::fillGradientCool(Color startColor, Color endColor, Point start, Point end)
-{
-    // check if the start and end Points are the same
-    if(start == end)
-        return;
-
-    // set the start to end if end is less than start
-    if(end.X() < start.Y() && end.Y() < start.Y())
-    {
-        Point temp = start;
-        start = end;
-        end = temp;
-    }
-
-    // calculate the length of the line
-    unsigned int length = start.Distance(end);
-
-    // calculate the direction of the gradient
-    unsigned int deltaX = end.X() - start.X();
-    unsigned int deltaY = end.Y() - start.Y();
-    unsigned int magnitude = isqrt((deltaX * deltaX) + (deltaY * deltaY));
-    float gradX = deltaX / magnitude;
-    float gradY = deltaY / magnitude;
-
-    // loop through each pixel in the buffer
-    for(int y = 0; y < this->params.height; y++)
-    {
-        for(int x = 0; x < this->params.width; x++)
-        {
-            // calculate the position along the gradient direction
-            float position = (gradX * x) + (gradY * y);
-
-            // interpolate the color based on the position
-            Color color;
-            color.r = startColor.r + ((endColor.r - startColor.r) * position / length);
-            color.g = startColor.g + ((endColor.g - startColor.g) * position / length);
-            color.b = startColor.b + ((endColor.b - startColor.b) * position / length);
-
-            // draw the pixel
-            this->frameBuffer[x + y * this->params.width] = color.to16bit();
-        }
-    }
-}
-
-/**
  * @brief Draw a line on the display
  * @param start Start Point
  * @param end End Point
@@ -86,128 +34,127 @@ void Graphics::fillGradientCool(Color startColor, Color endColor, Point start, P
 */
 void Graphics::drawLine(Point start, Point end, Color color)
 {
-    // Uses Bresenham's line algorithm
-    // https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
+    // Uses an optimized Bresenham's line algorithm
+    // http://members.chello.at/~easyfilter/bresenham.html
 
-    // move Points into local variables
-    unsigned int x0 = start.X();
-    unsigned int y0 = start.Y();
-    unsigned int x1 = end.X();
-    unsigned int y1 = end.Y();
+    // Find the delta x and start x
+    int dx = iabs(end.x - start.x), sx = start.x < end.x ? 1 : -1;
+    // Find the delta y and start y
+    int dy = -iabs(end.y - start.y), sy = start.y < end.y ? 1 : -1;
+    // Calculate the error
+    int err = dx + dy, e2;
+    // Get the unsigned short color
+    unsigned short color16 = color.to16bit();
 
-    // Clamp the x and y Points
-    if(x0 > this->params.width) x0 = this->params.width - 1;
-    if(y0 > this->params.height) y0 = this->params.height - 1;
-    if(x1 > this->params.width) x1 = this->params.width - 1;
-    if(y1 > this->params.height) y1 = this->params.height - 1;
-
-    // get the difference between the x and y Points
-    int dx = iabs((int)end.X() - (int)start.X());
-    int sx = start.X() < end.X() ? 1 : -1;
-    int dy = -(int)iabs((int)end.Y() - (int)start.Y());
-    int sy = start.Y() < end.Y() ? 1 : -1;
-    // calculate the error
-    int error = dx + dy;
-    
-    while(true)
+    // Loop until we break
+    for (;;)
     {
-        // set the pixel in the frame buffer
-        this->frameBuffer[x0 + y0 * this->params.width] = color.to16bit();
-
-        // if we have reached the end Point, break
-        if(x0 == x1 && y0 == y1) break;
-
-        // calculate the error
-        int e2 = 2 * error;
-        // if the error is greater than the difference in y
-        if(e2 >= dy)
-        {
-            // if we have reached the end Point, break
-            if(x0 == x1) break;
-            // increment the x Point
-            error += dy;
-            x0 += sx;
-        }
-        // if the error is greater than the difference in x
-        if(e2 <= dx)
-        {
-            // if we have reached the end Point, break
-            if(y0 == y1) break;
-            // increment the y Point
-            error += dx;
-            y0 += sy;
-        }
+        // Set the pixel at the current position
+        this->frameBuffer[start.x + start.y * this->params.width] = color16;
+        // Check if we are at the end
+        if (start.x == end.x && start.y == end.y) break;
+        // Calculate the new error
+        e2 = 2 * err;
+        // Check if we should move in the x direction
+        if (e2 >= dy) err += dy; start.x += sx;
+        // Check if we should move in the y direction
+        if (e2 <= dx) err += dx; start.y += sy;
     }
 }
 
 /**
- * @brief Draw a line on the display that expands in thickness
+ * @brief Draw a line on the display with anti-aliasing
  * @param start Start Point
  * @param end End Point
- * @param startThickness Thickness at the start point
- * @param endThickness Thickness at the end point
  * @param color Color to draw in
 */
-void Graphics::drawWedge(Point start, Point end, unsigned int startThickness, unsigned int endThickness, Color color)
+void Graphics::drawLineAntiAliased(Point start, Point end, Color color)
 {
-    // We need to calculate the offset of the line both for the start and end points
-    int startThicknessHalf = startThickness >> 1; // Divide by 2
-    int endThicknessHalf = endThickness >> 1; // Divide by 2
+    // Uses an optimized Bresenham's line algorithm
+    // http://members.chello.at/~easyfilter/bresenham.html
 
-    // Make sure the thickness is at least 1
-    if(startThicknessHalf == 0) startThicknessHalf = 1;
-    if(endThicknessHalf == 0) endThicknessHalf = 1;
-    
-    // Set I to be the inverse of the thickness half to get the offset
-    int i = -startThicknessHalf;
-    // If however the thickness is 1, we should change the variables so we can still draw the line
-    if (startThickness <= 1)
+    // Find the delta x and start x
+    int dx = iabs(end.x - start.x), sx = start.x < end.x ? 1 : -1;
+    // Find the delta y and start y
+    int dy = -iabs(end.y - start.y), sy = start.y < end.y ? 1 : -1;
+    // Calculate the error
+    int err = dx - dy;
+    int e2, x2;
+    int ed = dx + dy == 0 ? 1 : isqrt(dx * dx + dy * dy);
+    // Precalculate the inverse of ed for faster calculations
+    int edInv = (FIXED_POINT_SCALE + (ed / 2)) / ed;
+    // Get the unsigned short color
+    unsigned short color16 = color.to16bit();
+
+    // Loop until we break
+    for (;;)
     {
-        i = 0;
-        startThicknessHalf = 1;
-    }
+        // Set the pixel at the current position
+        unsigned char alpha = 255 * iabs(err - dx + dy) * edInv;
+        printf("%d ", alpha);
+        alpha >>= FIXED_POINT_SCALE_BITS;
+        printf("%d\n", alpha);
+        this->setPixelBlend(start.x, start.y, color16, alpha);
+        // Calculate the new error
+        e2 = err; x2 = start.x;
 
-    // Itterate through the start thickness
-    for (int i = -startThicknessHalf; i < startThicknessHalf; i++)
-    {
-        // Find the normal vector at the start point
-        int nxA = start.X() - end.X();
-        int nyA = start.Y() - end.Y();
-        // Offset the normal vector to be at the correct position
-        nxA += i;
-		nyA += i;
-
-        // Do the exact same thing for the end thickness
-        int j = -endThicknessHalf;
-        // If however the thickness is 1, we should change the variables so we can still draw the line
-        if (endThickness <= 1)
-		{
-			j = 0;
-			endThicknessHalf = 1;
-		}
-		// Itterate through the end thickness
-		for (int j = -endThicknessHalf; j < endThicknessHalf; j++)
-		{
-            // Find the normal vector at the end point
-			int nxB = end.X() - start.X();
-			int nyB = end.Y() - start.Y();
-			// Offset the normal vector to be at the correct position
-			nxB += j;
-			nyB += j;
-
-            int startX = start.X() + nxA;
-            int startY = start.Y() + nyA;
-            int endX = end.X() + nxB;
-            int endY = end.Y() + nyB;
-
-            // Verify that these coordinates are within the bounds of the display
-            if(startX < 0 || startX > this->params.width || startY < 0 || startY > this->params.height) continue;
-            if(endX < 0 || endX > this->params.width || endY < 0 || endY > this->params.height) continue;
-
-			// Draw the line
-			this->drawLine(Point(start.X() + nxA, start.Y() + nyA), Point(end.X() + nxB, end.Y() + nyB), color);
+        // Handle the X direction
+        if (2 * e2 >= -dx)
+        {
+            // Break if we are at the end
+            if (start.x == end.x) break;
+            // Set the pixel at the next position
+            if (e2 + dy < ed)
+            {
+                // Handle the anti-aliasing
+                alpha = 255 * (e2 + dy) * edInv;
+                alpha >>= FIXED_POINT_SCALE_BITS;
+                this->setPixelBlend(start.x, start.y + sy, color16, alpha);
+            }
+            // Update the error
+            err -= dy; start.x += sx;
+        }
+        // Handle the Y direction
+        if (2 * e2 <= dy)
+        {
+			// Break if we are at the end
+			if (start.y == end.y) break;
+			// Set the pixel at the next position
+            if (dx - e2 < ed)
+            {
+                // Handle the anti-aliasing
+                alpha = 255 * (dx - e2) * edInv;
+                alpha >>= FIXED_POINT_SCALE_BITS;
+                this->setPixelBlend(x2 + sx, start.y, color16, alpha);
+            }
+            // Update the error
+            err += dx; start.y += sy;
 		}
     }
+}
+
+/**
+ * @brief Draw a thick line on the display with anti-aliasing
+ * @param start Start Point
+ * @param end End Point
+ * @param thickness Thickness of the line, value must be greater than 1
+ * @param color Color to draw in
+*/
+void Graphics::drawLineThickAntiAliased(Point start, Point end, int thickness, Color color)
+{
+    // Uses an optimized Bresenham's line algorithm
+    // http://members.chello.at/~easyfilter/bresenham.html
+
+    // Find the delta x and start x
+    int dx = iabs(end.x - start.x), sx = start.x < end.x ? 1 : -1;
+    // Find the delta y and start y
+    int dy = -iabs(end.y - start.y), sy = start.y < end.y ? 1 : -1;
+    // Calculate the error
+    int err = dx - dy;
+    int e2, x2, y2;
+    int ed = dx + dy == 0 ? 1 : isqrt(dx * dx + dy * dy);
+    // Get the unsigned short color
+    unsigned short color16 = color.to16bit();
 }
 
 /**
@@ -232,7 +179,7 @@ void Graphics::drawTriangle(Point p1, Point p2, Point p3, Color color)
  * @param p3 Third point
  * @param color Color to draw in
 */
-void Graphics::drawTriangleFilled(Point p1, Point p2, Point p3, Color color)
+void Graphics::drawFilledTriangle(Point p1, Point p2, Point p3, Color color)
 {
     // calculate the bounding box of the triangle
     int minX = imin(imin(p1.x, p2.x), p3.x);
@@ -283,10 +230,10 @@ void Graphics::drawTriangleFilled(Point p1, Point p2, Point p3, Color color)
 void Graphics::drawRectangle(Point start, Point end, Color color)
 {
     // draw the rectangle
-    this->drawLine({start.X(), start.Y()}, {end.X(), start.Y()}, color);
-    this->drawLine({end.X(), start.Y()}, {end.X(), end.Y()}, color);
-    this->drawLine({end.X(), end.Y()}, {start.X(), end.Y()}, color);
-    this->drawLine({start.X(), end.Y()}, {start.X(), start.Y()}, color);
+    this->drawLine({start.x, start.y}, {end.x, start.y}, color);
+    this->drawLine({end.x, start.y}, {end.x, end.y}, color);
+    this->drawLine({end.x, end.y}, {start.x, end.y}, color);
+    this->drawLine({start.x, end.y}, {start.x, start.y}, color);
 }
 
 /**
@@ -312,8 +259,8 @@ void Graphics::drawRectangle(Rect rect, Color color)
 void Graphics::drawRectangle(Point center, unsigned int width, unsigned int height, Color color)
 {
     // calculate the start and end Points
-    Point start = {center.X() - (width / 2), center.Y() - (height / 2)};
-    Point end = {center.X() + (width / 2), center.Y() + (height / 2)};
+    Point start = {center.x - (width / 2), center.y - (height / 2)};
+    Point end = {center.x + (width / 2), center.y + (height / 2)};
 
     // draw the rectangle
     this->drawRectangle(start, end, color);
@@ -331,8 +278,8 @@ void Graphics::drawFilledRectangle(Point start, Point end, Color color)
     unsigned short color16 = color.to16bit();
 
     // calculate the size of the rectangle
-    unsigned int width = end.X() - start.X();
-    unsigned int height = end.Y() - start.Y();
+    unsigned int width = end.x - start.x;
+    unsigned int height = end.y - start.y;
 
     // loop through the height
     for (int i = 0; i < height; i++)
@@ -341,7 +288,7 @@ void Graphics::drawFilledRectangle(Point start, Point end, Color color)
         for (int j = 0; j < width; j++)
         {
             // write the pixel
-            this->frameBuffer[(start.X() + j) + (start.Y() + i) * this->params.width] = color16;
+            this->frameBuffer[(start.x + j) + (start.y + i) * this->params.width] = color16;
         }
     }
 }
@@ -414,7 +361,10 @@ void Graphics::drawFilledPolygon(Point* points, size_t numberOfPoints, Color col
 
         // Fill in the pixels between the start and end intersections
         for (int x = xStart; x < xEnd; x++)
+        {
+            // Verify that index is within the bounds of the framebuffer
             this->frameBuffer[x + y * this->params.width] = color16;
+        }
     }
 }
 
@@ -430,8 +380,8 @@ void Graphics::drawCircle(Point center, unsigned int radius, Color color)
     // https://en.wikipedia.org/wiki/Midpoint_circle_algorithm
 
     // move Points into local variables
-    int x0 = center.X();
-    int y0 = center.Y();
+    int x0 = center.x;
+    int y0 = center.y;
     int x = radius;
     int y = 0;
     int error = 3 - 2 * x;
@@ -479,41 +429,63 @@ void Graphics::drawCircle(Point center, unsigned int radius, Color color)
 */
 void Graphics::drawFilledCircle(Point center, unsigned int radius, Color color)
 {
-    // Uses Bresenham's circle algorithm
+    // Uses a modified Bresenham's circle algorithm
     // https://en.wikipedia.org/wiki/Midpoint_circle_algorithm
 
     // move Points into local variables
-    int x0 = center.X();
-    int y0 = center.Y();
+    int x0 = center.x;
+    int y0 = center.y;
     int x = radius;
     int y = 0;
     int error = 3 - 2 * x;
 
-    // loop through the radius
-    while(x >= y)
-    {
-        // draw the pixel
-        this->drawLine({x0 + x, y0 + y}, {x0 - x, y0 + y}, color);
-        this->drawLine({x0 + y, y0 + x}, {x0 - y, y0 + x}, color);
-        this->drawLine({x0 + x, y0 - y}, {x0 - x, y0 - y}, color);
-        this->drawLine({x0 + y, y0 - x}, {x0 - y, y0 - x}, color);
+    // convert the color to 16 bit
+    unsigned short color16 = color.to16bit();
 
-        // if the error is greater than 0
-        if(error > 0)
+    while (y <= x)
+    {
+        for (int i = x0 - x; i <= x0 + x; i++)
         {
-            // decrement the x Point
+            int index1 = (y0 + y) * this->params.width + i;
+            int index2 = (y0 - y) * this->params.width + i;
+            
+            if (index1 >= 0 && index1 < this->totalPixels)
+            {
+                this->frameBuffer[index1] = color16;
+            }
+            
+            if (index2 >= 0 && index2 < this->totalPixels)
+            {
+                this->frameBuffer[index2] = color16;
+            }
+        }
+        
+        for (int i = x0 - y; i <= x0 + y; i++)
+        {
+            int index1 = (y0 + x) * this->params.width + i;
+            int index2 = (y0 - x) * this->params.width + i;
+
+            if (index1 >= 0 && index1 < this->totalPixels)
+            {
+                this->frameBuffer[index1] = color16;
+            }
+            
+            if (index2 >= 0 && index2 < this->totalPixels)
+            {
+                this->frameBuffer[index2] = color16;
+            }
+        }
+
+        y++;
+
+        // Update the error
+        if (error > 0) 
+        {
             x--;
-            // calculate the error
-            error = error + 4 * (y - x) + 10;
+            error += 4 * (y - x) + 10;
         }
         else
-        {
-            // calculate the error
-            error = error + 4 * y + 6;
-        }
-
-        // increment the y Point
-        y++;
+            error += 4 * y + 6;
     }
 }
 
@@ -629,4 +601,90 @@ void Graphics::drawBitmap(const unsigned short* bitmap, unsigned int width, unsi
         // write the pixel
         this->frameBuffer[i] = bitmap[i];
     }
+}
+
+/**
+ * @brief Apply a simple blur to the display to combat pixelation
+*/
+void Graphics::antiAliasingFilter(void)
+{
+    // Helper function to get the color difference between two pixels
+    #define COLOR_DIFF(pixel1, pixel2) ( \
+        iabs(((pixel1 & 0xF800) >> 8) - ((pixel2 & 0xF800) >> 8)) + \
+        iabs(((pixel1 & 0x07E0) >> 3) - ((pixel2 & 0x07E0) >> 3)) + \
+        iabs(((pixel1 & 0x001F) << 3) - ((pixel2 & 0x001F) << 3)) \
+    )
+
+    // Loop through all the pixels in the framebuffer
+    for (int y = 1; y < (this->params.height - 1); y++)
+    {
+        for (int x = 1; x < (this->params.width - 1); x++)
+        {
+            // Get the index of the current pixel
+            int pixelIndex = y * this->params.width + x;
+
+            // Get the surrounding pixels
+            unsigned short leftPixel = this->frameBuffer[pixelIndex - 1];
+            unsigned short rightPixel = this->frameBuffer[pixelIndex + 1];
+            unsigned short upPixel = this->frameBuffer[pixelIndex - this->params.width];
+            unsigned short downPixel = this->frameBuffer[pixelIndex + this->params.width];            
+
+            // Calculate the  difference between the left and right pixel and the up and down pixel
+            int horizontalDiff = COLOR_DIFF(leftPixel, rightPixel);
+            int verticalDiff = COLOR_DIFF(upPixel, downPixel);
+
+            // If the difference is large enough, average the colors
+            if (horizontalDiff > 16 && verticalDiff > 16)
+            {
+                // Get the sum of the colors
+                int sumR = ((leftPixel & 0xF800) + (rightPixel & 0xF800) + (upPixel & 0xF800) + (downPixel & 0xF800)) >> 8;
+                int sumG = ((leftPixel & 0x07E0) + (rightPixel & 0x07E0) + (upPixel & 0x07E0) + (downPixel & 0x07E0)) >> 3;
+                int sumB = ((leftPixel & 0x001F) + (rightPixel & 0x001F) + (upPixel & 0x001F) + (downPixel & 0x001F)) << 3;
+                // Average the colors
+                unsigned short avgR = (sumR >> 2) & 0xF8;
+                unsigned short avgG = (sumG >> 2) & 0xFC;
+                unsigned short avgB = (sumB >> 2) >> 3;
+                // Write the averaged color to the framebuffer
+                this->frameBuffer[pixelIndex] = (avgR << 8) | (avgG << 3) | avgB;
+            }
+        }
+    }
+}
+
+//   rrrrrggggggbbbbb
+#define RB_MASK      63519  // 0b1111100000011111        --> hex :F81F
+#define G_MASK        2016  // 0b0000011111100000        --> hex :07E0
+#define RB_MUL_MASK 2032608 // 0b111110000001111100000   --> hex :1F03E0
+#define G_MUL_MASK   64512  // 0b000001111110000000000   --> hex :FC00
+
+/**
+ * @private
+ * @brief Helper function to blend the pixel color with the background for anti-aliasing
+ * @param x X coordinate of the pixel to blend
+ * @param y Y coordinate of the pixel to blend
+ * @param color Color of the pixel to blend
+ * @param alpha Alpha value of the pixel to blend, 0 is transparent, 255 is opaque
+ * @note Sets the pixel at the given index to the blended color
+ */
+void Graphics::setPixelBlend(int x, int y, unsigned short color, unsigned char alpha)
+{
+    // Taken from this stackoverflow answer https://stackoverflow.com/questions/72456587/implement-a-function-that-blends-two-colors-encoded-with-rgb565-using-alpha-blen
+
+    // Get the buffer index
+    int index = x + y * this->params.width;
+
+    // Reduce the alpha from [0,255] to [0,31] 
+    alpha = alpha >> 0x3;
+    // Create the inverse alpha value and call it beta
+    unsigned char beta = 0x20 - alpha;
+
+    // Get the background color
+    unsigned short background = this->frameBuffer[index];
+
+    // Apply the alpha blending formula
+    unsigned short result = (unsigned short)((((alpha * (unsigned int)(color & RB_MASK) + beta * (unsigned int)(background & RB_MASK)) & RB_MUL_MASK)
+        | ((alpha * (color & G_MASK) + beta * (background & G_MASK)) & G_MUL_MASK)) >> 0x5);
+
+    // Apply the blended color to the framebuffer
+    this->frameBuffer[index] = result;
 }
