@@ -1,6 +1,6 @@
 #pragma once
 
-// Estimated total memory usage: 62948 bytes
+// Estimated total memory usage: 107804 bytes
 
 // Struct for storing the location of the bitmap in memory
 // Offset is the number of pixels from the upper left corner

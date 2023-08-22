@@ -10,7 +10,7 @@ font_file = ["RobotoMono.ttf", "ComicSans.ttf"]
 # Output directory
 output_dir = "../fonts/"
 # Standard font sizes
-font_size = [20, 22, 24, 28, 32, 48]
+font_size = [16, 20, 22, 24, 28, 32, 36, 48, 72]
 #font_size = [48]
 # Variables
 total_memory_usage = 0
