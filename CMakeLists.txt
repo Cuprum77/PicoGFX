@@ -6,7 +6,7 @@ project(PicoGFX)
 
 # Add the library with the above sources
 add_library(${PROJECT_NAME} 
-    src/HardwareSPI.cpp
+    src/Driver.cpp
     src/Display.cpp
     src/Print.cpp
     src/Graphics.cpp
@@ -15,14 +15,15 @@ add_library(${PROJECT_NAME}
     src/GfxMath.c
     src/Encoder.cpp
     src/Gauge.cpp
-    Specifics/ST7789.cpp
-    Specifics/GC9A01.cpp
+    specifics/src/ST7789.cpp
+    specifics/src/GC9A01.cpp
 )
 
 add_library(sub::Display ALIAS ${PROJECT_NAME})
 
 target_include_directories(${PROJECT_NAME}
     PUBLIC ${PROJECT_SOURCE_DIR}/include
+    PUBLIC ${PROJECT_SOURCE_DIR}/specifics/include
     PUBLIC ${PROJECT_SOURCE_DIR}/fonts
 )
 
