@@ -1,15 +1,6 @@
 #include "PicoGFX.hpp"
 
 /**
- * @brief Get the Display object
- * @return Display&
-*/
-Display& PicoGFX::getDisplay()
-{
-    return *display;
-}
-
-/**
  * @brief Get the Print object
  * @return Print&
 */
@@ -45,15 +36,6 @@ Encoder& PicoGFX::getEncoder()
     return *encoder;
 }
 
-
-/**
- * @brief Get the Display pointer
- * @return Display*
-*/
-Display* PicoGFX::getDisplayPtr()
-{
-    return display;
-}
 
 /**
  * @brief Get the Print pointer
