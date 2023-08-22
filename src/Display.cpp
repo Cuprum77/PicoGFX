@@ -2,41 +2,41 @@
 
 /**
  * @brief Display initialization
- * @param spi SPI bus
- * @param pins Pins
- * @param params Display parameters
- * @param dimming Enable dimming
- * @param backlight Enable backlight
 */
-Display::Display(HardwareSPI* spi, Display_Pins* pins, Display_Params* params)
+Display::Display(Driver* spi, display_config_t* config, unsigned short* frameBuffer, unsigned char CASET, unsigned char RASET, unsigned char RAMWR)
 {
     this->spi = spi;
-    this->pins = pins;
-    this->params = params;
-    this->type = params->type;
-    this->totalPixels = params->width * params->height;
+    this->config = config;
+    this->totalPixels = config->width * config->height;
+    this->frameBuffer = frameBuffer;
+    this->CASET = CASET;
+    this->RASET = RASET;
+    this->RAMWR = RAMWR;
 
-    // init the rest of the pins
-    gpio_init(this->pins->rst);
-    // set the rest of the pins to GPIO output
-    gpio_set_dir(this->pins->rst, GPIO_OUT);
-    // set the pins to high
-    gpio_put(this->pins->rst, 1);
+    // init the rest of the pins if we are using a compatible screen
+    if (config->interface == display_interface_t::DISPLAY_SPI)
+    {
+        gpio_init(this->config->spi.rst);
+        // set the rest of the pins to GPIO output
+        gpio_set_dir(this->config->spi.rst, GPIO_OUT);
+        // set the pins to high
+        gpio_put(this->config->spi.rst, 1);
+    }
 
     // set up the backlight pin depending on the dimming setting
-    this->backlight = this->pins->bl != -1;
+    this->backlight = this->config->backlightPin != -1;
     if (this->backlight)
     {
-        if (params->dimming)
+        if (config->dimming)
         {
             // enable dimming
             this->dimmingEnabled = true;
-            gpio_set_function(this->pins->bl, GPIO_FUNC_PWM);
+            gpio_set_function(this->config->backlightPin, GPIO_FUNC_PWM);
             // get the PWM slice number
-            uint sliceNum = pwm_gpio_to_slice_num(this->pins->bl);
+            uint sliceNum = pwm_gpio_to_slice_num(this->config->backlightPin);
             this->sliceNum = sliceNum;
             // get the PWM channel
-            uint chan = pwm_gpio_to_channel(this->pins->bl);
+            uint chan = pwm_gpio_to_channel(this->config->backlightPin);
             this->pwmChannel = chan;
             // turn on the PWM slice
             pwm_set_enabled(sliceNum, true);
@@ -48,27 +48,11 @@ Display::Display(HardwareSPI* spi, Display_Pins* pins, Display_Params* params)
         else
         {
             this->dimmingEnabled = false;
-            gpio_init(this->pins->bl);
-            gpio_set_dir(this->pins->bl, GPIO_OUT);
-            gpio_put(this->pins->bl, 1);
+            gpio_init(this->config->backlightPin);
+            gpio_set_dir(this->config->backlightPin, GPIO_OUT);
+            gpio_put(this->config->backlightPin, 1);
         }
     }
-}
-
-/**
- * @brief Display initialization
-*/
-void Display::init()
-{
-    if (this->type == display_type_t::GC9A01)
-        this->GC9A01_Init();
-    else if (this->type == display_type_t::ST7789)
-        this->ST7789_Init();
-
-    // clear the display
-    this->clear();
-    // turn on the display
-    this->writeData(DISPON, (const uint8_t*)NULL, 0);
 }
 
 /**
@@ -128,7 +112,7 @@ void Display::update(int start, int end, bool moveCursor)
 
     // Move the cursor if needed
     if (moveCursor)
-        this->setCursor({ start % this->params->width, start / this->params->width });
+        this->setCursor({ start % this->config->width, start / this->config->width });
 
     // Write the pixels
     this->writePixels(&this->frameBuffer[start], end - start);
@@ -142,7 +126,7 @@ void Display::update(int start, int end, bool moveCursor)
 void Display::setPixel(Point point, Color color)
 {
     // set the framebuffer pixel
-    this->frameBuffer[point.x + point.y * this->params->width] = color.to16bit();
+    this->frameBuffer[point.x + point.y * this->config->width] = color.to16bit();
 }
 
 /**
@@ -163,7 +147,7 @@ void Display::setPixel(uint index, ushort color)
 */
 Color Display::getPixel(Point point)
 {
-    return Color(this->frameBuffer[point.x + point.y * this->params->width]);
+    return Color(this->frameBuffer[point.x + point.y * this->config->width]);
 }
 
 /**
@@ -177,33 +161,6 @@ ushort Display::getPixel(uint index)
 }
 
 /**
- * @brief Get the size of the display framebuffer
- * @return Size of the framebuffer
-*/
-size_t Display::getBufferSize()
-{
-    return FRAMEBUFFER_SIZE;
-}
-
-/**
- * @brief Turn the display on
-*/
-void Display::displayOn()
-{
-    this->writeData(Display_Commands::DISPON);
-    sleep_ms(10);
-}
-
-/**
- * @brief Turn the display off
-*/
-void Display::displayOff()
-{
-    this->writeData(Display_Commands::DISPOFF);
-    sleep_ms(10);
-}
-
-/**
  * @brief Set the cursor position
  * @param Point Point to set the cursor to
 */
@@ -211,13 +168,13 @@ void Display::setCursor(Point point)
 {
     // set the pixel x address
     this->columnAddressSet(
-        point.x + this->params->columnOffset1,
-        (this->params->width - 1) + this->params->columnOffset2
+        point.x + this->config->columnOffset1,
+        (this->config->width - 1) + this->config->columnOffset2
     );
     // set the pixel y address
     this->rowAddressSet(
-        point.y + this->params->rowOffset1,
-        (this->params->height - 1) + this->params->rowOffset2
+        point.y + this->config->rowOffset1,
+        (this->config->height - 1) + this->config->rowOffset2
     );
     // set the internal cursor position
     this->cursor = point;
@@ -239,58 +196,10 @@ Point Display::getCursor()
 Point Display::getCenter()
 {
     Point Point = {
-        this->params->width / 2,
-        this->params->height / 2
+        this->config->width / 2,
+        this->config->height / 2
     };
     return Point;
-}
-
-/**
- * @brief Rotate the display
- * @param rotation Rotation to set
-*/
-void Display::setRotation(int rotation)
-{
-    // save the rotation
-    this->params->rotation = (int)rotation;
-    unsigned int width = this->params->width;
-	unsigned int height = this->params->height;
-	unsigned int maxHeight = this->maxHeight;
-	unsigned int maxWidth = this->maxWidth;
-
-    switch(rotation)
-    {
-		case 0:
-			this->params->height = height;
-			this->params->width = width;
-			this->maxHeight = maxHeight;
-			this->maxWidth = maxWidth;
-            break;
-        case 1:
-			this->params->height = width;
-			this->params->width = height;
-			this->maxHeight = maxWidth;
-			this->maxWidth = maxHeight;
-            break;
-        case 2:
-			this->params->height = height;
-			this->params->width = width;
-			this->maxHeight = maxHeight;
-			this->maxWidth = maxWidth;
-            break;
-        case 3:
-			this->params->height = width;
-			this->params->width = height;
-			this->maxHeight = maxWidth;
-			this->maxWidth = maxHeight;
-            break;
-    }
-
-    // set the rotation based on the display type
-    if (this->type == display_type_t::GC9A01)
-        this->GC9A01_SetRotation(rotation);
-    else if (this->type == display_type_t::ST7789)
-        this->ST7789_SetRotation(rotation);
 }
 
 /**
@@ -313,7 +222,7 @@ void Display::setBrightness(unsigned char brightness)
         // make sure the brightness is between 0 and 1
         brightness = brightness & 0x01;
         // toggle the backlight pin based on the brightness
-        gpio_put(this->pins->bl, brightness);
+        gpio_put(this->config->backlightPin, brightness);
     }
 }
 
@@ -330,7 +239,7 @@ void Display::writeData(unsigned char command, const unsigned char* data, size_t
     // set the data mode
     this->dataMode = false;
     // write the command
-    this->spi->spi_write_data(command, data, length);
+    this->spi->writeData(command, data, length);
 }
 
 /**
@@ -354,7 +263,7 @@ inline void Display::columnAddressSet(uint x0, uint x1)
     };
 
     // write the data
-    this->writeData(Display_Commands::CASET, data, sizeof(data));
+    this->writeData(this->CASET, data, sizeof(data));
 }
 
 /**
@@ -378,7 +287,7 @@ inline void Display::rowAddressSet(uint y0, uint y1)
     };
 
     // write the data
-    this->writeData(Display_Commands::RASET, data, sizeof(data));
+    this->writeData(this->RASET, data, sizeof(data));
 }
 
 /**
@@ -394,9 +303,9 @@ void Display::writePixels(const unsigned short* data, size_t length)
     if (!this->dataMode)
     {
         // set the data mode
-        this->spi->spi_set_data_mode(Display_Commands::RAMWR);
+        this->spi->setDataMode(this->RAMWR);
         this->dataMode = true;
     }
     // write the pixels
-    this->spi->spi_write_pixels(data, length);
+    this->spi->writePixels(data, length);
 }

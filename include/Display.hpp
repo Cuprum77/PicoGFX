@@ -7,30 +7,19 @@
 #include "pico/stdlib.h"
 #include "pico/divider.h"
 #include "hardware/pwm.h"
-#include "pico/multicore.h"
 
-#include "HardwareSPI.hpp"
-#include "Commands.hpp"
+#include "Driver.hpp"
 #include "Structs.h"
 #include "Shapes.h"
 #include "Color.h"
 
-// Limit of the ST7789 driver
-#define ST7789_WIDTH 240
-#define ST7789_HEIGHT 320
-#define FRAMEBUFFER_SIZE (ST7789_WIDTH * ST7789_HEIGHT)
 
 class Display
 {
 public:
-    Display(HardwareSPI* spi, Display_Pins* pins, Display_Params* params);
-    void init(void);
-    bool writeReady(void) { return !this->spi->dma_busy(); }
+    Display(Driver* spi, display_config_t* config, unsigned short* frameBuffer, unsigned char CASET, unsigned char RASET, unsigned char RAMWR);
     void setBrightness(unsigned char brightness);
-    void setRotation(int rotation);
-    int getRotation(void) { return this->params->rotation; }
-    void displayOn(void);
-    void displayOff(void);
+    int getRotation(void) { return this->config->rotation; }
     void clear(void);
 
     void update(bool framecounter = false);
@@ -40,51 +29,38 @@ public:
     void setPixel(unsigned int point, unsigned short color);
     Color getPixel(Point point);
     unsigned short getPixel(unsigned int point);
-    size_t getBufferSize(void);
 
     void setCursor(Point point);
     Point getCursor(void);
     Point getCenter(void);
 
     int getFrameCounter() { return this->frames; }
-    unsigned int getWidth(void) { return this->params->width; }
-    unsigned int getHeight(void)  { return this->params->height; }
+    unsigned int getWidth(void) { return this->config->width; }
+    unsigned int getHeight(void)  { return this->config->height; }
     unsigned short* getFrameBuffer(void) { return this->frameBuffer; }
 
 protected:
-    HardwareSPI* spi;
-    Display_Pins* pins;
-    Display_Params* params;
+    Driver* spi;
+    display_config_t* config;
     bool dimmingEnabled = false;
     unsigned int sliceNum;
     unsigned int pwmChannel;
     bool dataMode = false;
-    unsigned short frameBuffer[FRAMEBUFFER_SIZE + 1];
+    unsigned short* frameBuffer;
     Point cursor = {0, 0};
     bool backlight;
-    display_type_t type;
-    bool BGR = false;
+    unsigned int totalPixels;
     unsigned int maxWidth;
     unsigned int maxHeight;
-    unsigned int totalPixels;
+    int CASET;
+    int RASET;
+    int RAMWR;
 
     // timer for the framerate calculation
     int framecounter = 0;
     int frames = 0;
     unsigned long timer = 0;
 
-    void ST7789_Init(void);
-    void ST7789_SetRotation(int rotation);
-
-    void GC9A01_Init(void);
-    void GC9A01_SoftReset(void);
-    void GC9A01_HardReset(void);
-    void GC9A01_SetRotation(int rotation);
-
-    void writeData(Display_Commands command, 
-        const unsigned char* data, size_t length) { writeData((unsigned char)command, data, length); }
-    void writeData(Display_Commands command, unsigned char data) { writeData((unsigned char)command, &data, 1); }
-    void writeData(Display_Commands command) { writeData(command, nullptr, 0); }
     void writeData(unsigned char command, const unsigned char* data, size_t length);
     void writeData(unsigned char command, unsigned char data) { writeData(command, &data, 1); }
     void writeData(unsigned char command) { writeData(command, nullptr, 0); }
