@@ -11,10 +11,10 @@ add_library(${PROJECT_NAME}
     src/Print.cpp
     src/Graphics.cpp
     src/Gradients.cpp
-    src/Dials.cpp
     src/PicoGFX.cpp
     src/GfxMath.c
     src/Encoder.cpp
+    src/Gauge.cpp
     Specifics/ST7789.cpp
     Specifics/GC9A01.cpp
 )

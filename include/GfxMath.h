@@ -13,8 +13,8 @@ extern "C"
 #define PI 3.1415926535897932384626433832795028841971693993751058209749445923078164062
 #define FIXED_POINT_SCALE 4096	// 2^12
 #define FIXED_POINT_SCALE_BITS 12	// log2(FIXED_POINT_SCALE)
-#define FIXED_POINT_SCALE_HIGH_RES 2097152  // 2^21
-#define FIXED_POINT_SCALE_HIGH_RES_BITS 21	// log2(FIXED_POINT_SCALE_HIGH_RES)
+#define FIXED_POINT_SCALE_HIGH_RES 16777216  // 2^24
+#define FIXED_POINT_SCALE_HIGH_RES_BITS 24	// log2(FIXED_POINT_SCALE_HIGH_RES)
 
 extern int cosTable[NUMBER_OF_ANGLES];
 extern int sinTable[NUMBER_OF_ANGLES];
@@ -32,6 +32,7 @@ extern void fillLookupTables();
 extern void pointOnCircle(unsigned int radius, unsigned int angle, int offsetX, int offsetY, unsigned int* x, unsigned int* y);
 
 extern int lerp(int v0, int v1, int t);
+extern int clamp(int x, int min, int max);
 
 #ifdef __cplusplus
 }
