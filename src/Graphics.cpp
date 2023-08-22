@@ -6,11 +6,11 @@
  * @param frameBuffer Pointer to the frame buffer
  * @param params Display parameters
 */
-Graphics::Graphics(unsigned short* frameBuffer, Display_Params params)
+Graphics::Graphics(unsigned short* frameBuffer, display_config_t* config)
 {
     this->frameBuffer = frameBuffer;
-    this->params = params;
-    this->totalPixels = params.width * params.height;
+    this->config = config;
+    this->totalPixels = config->width * config->height;
 }
 
 /**
@@ -50,7 +50,7 @@ void Graphics::drawLine(Point start, Point end, Color color)
     for (;;)
     {
         // Set the pixel at the current position
-        this->frameBuffer[start.x + start.y * this->params.width] = color16;
+        this->frameBuffer[start.x + start.y * this->config->width] = color16;
         // Check if we are at the end
         if (start.x == end.x && start.y == end.y) break;
         // Calculate the new error
@@ -210,12 +210,12 @@ void Graphics::drawFilledTriangle(Point p1, Point p2, Point p3, Color color)
 
 		// clamp the start and end points the screen
         startX = imax(startX, 0);
-		endX = imin(endX, this->params.width);
+		endX = imin(endX, this->config->width);
 
         // fill the pixels between the intersection points
         for (int x = startX; x <= endX; x++)
         {
-            this->frameBuffer[x + y * this->params.width] = color16;
+            this->frameBuffer[x + y * this->config->width] = color16;
         }
     }
 }
@@ -288,7 +288,7 @@ void Graphics::drawFilledRectangle(Point start, Point end, Color color)
         for (int j = 0; j < width; j++)
         {
             // write the pixel
-            this->frameBuffer[(start.x + j) + (start.y + i) * this->params.width] = color16;
+            this->frameBuffer[(start.x + j) + (start.y + i) * this->config->width] = color16;
         }
     }
 }
@@ -363,7 +363,7 @@ void Graphics::drawFilledPolygon(Point* points, size_t numberOfPoints, Color col
         for (int x = xStart; x < xEnd; x++)
         {
             // Verify that index is within the bounds of the framebuffer
-            this->frameBuffer[x + y * this->params.width] = color16;
+            this->frameBuffer[x + y * this->config->width] = color16;
         }
     }
 }
@@ -393,14 +393,14 @@ void Graphics::drawCircle(Point center, unsigned int radius, Color color)
     while(x >= y)
     {
         // draw the pixels in the frame buffer
-        this->frameBuffer[(x0 + x) + (y0 + y) * this->params.width] = color16;
-        this->frameBuffer[(x0 + y) + (y0 + x) * this->params.width] = color16;
-        this->frameBuffer[(x0 - y) + (y0 + x) * this->params.width] = color16;
-        this->frameBuffer[(x0 - x) + (y0 + y) * this->params.width] = color16;
-        this->frameBuffer[(x0 - x) + (y0 - y) * this->params.width] = color16;
-        this->frameBuffer[(x0 - y) + (y0 - x) * this->params.width] = color16;
-        this->frameBuffer[(x0 + y) + (y0 - x) * this->params.width] = color16;
-        this->frameBuffer[(x0 + x) + (y0 - y) * this->params.width] = color16;
+        this->frameBuffer[(x0 + x) + (y0 + y) * this->config->width] = color16;
+        this->frameBuffer[(x0 + y) + (y0 + x) * this->config->width] = color16;
+        this->frameBuffer[(x0 - y) + (y0 + x) * this->config->width] = color16;
+        this->frameBuffer[(x0 - x) + (y0 + y) * this->config->width] = color16;
+        this->frameBuffer[(x0 - x) + (y0 - y) * this->config->width] = color16;
+        this->frameBuffer[(x0 - y) + (y0 - x) * this->config->width] = color16;
+        this->frameBuffer[(x0 + y) + (y0 - x) * this->config->width] = color16;
+        this->frameBuffer[(x0 + x) + (y0 - y) * this->config->width] = color16;
         
         // if the error is greater than 0
         if(error > 0)
@@ -446,8 +446,8 @@ void Graphics::drawFilledCircle(Point center, unsigned int radius, Color color)
     {
         for (int i = x0 - x; i <= x0 + x; i++)
         {
-            int index1 = (y0 + y) * this->params.width + i;
-            int index2 = (y0 - y) * this->params.width + i;
+            int index1 = (y0 + y) * this->config->width + i;
+            int index2 = (y0 - y) * this->config->width + i;
             
             if (index1 >= 0 && index1 < this->totalPixels)
             {
@@ -462,8 +462,8 @@ void Graphics::drawFilledCircle(Point center, unsigned int radius, Color color)
         
         for (int i = x0 - y; i <= x0 + y; i++)
         {
-            int index1 = (y0 + x) * this->params.width + i;
-            int index2 = (y0 - x) * this->params.width + i;
+            int index1 = (y0 + x) * this->config->width + i;
+            int index2 = (y0 - x) * this->config->width + i;
 
             if (index1 >= 0 && index1 < this->totalPixels)
             {
@@ -499,8 +499,8 @@ void Graphics::drawFilledCircle(Point center, unsigned int radius, Color color)
 */
 void Graphics::drawArc(Point center, unsigned int radius, unsigned int start_angle, unsigned int end_angle, Color color)
 {
-    unsigned int imageWidth = params.width;
-    unsigned int imageHeight = params.height;
+    unsigned int imageWidth = config->width;
+    unsigned int imageHeight = config->height;
 
 	// Swap angles if start_angle is greater than end_angle
     if (end_angle < start_angle) 
@@ -568,8 +568,8 @@ void Graphics::drawFilledDualArc(Point center, int innerRadius, int outerRadius,
             y >>= FIXED_POINT_SCALE_BITS;
             y += center.y;
 
-            if (x >= 0 && x < params.width && y >= 0 && y < params.height)
-                this->frameBuffer[x + y * params.width] = color16;
+            if (x >= 0 && x < config->width && y >= 0 && y < config->height)
+                this->frameBuffer[x + y * config->width] = color16;
         }
     }
 }
@@ -616,18 +616,18 @@ void Graphics::antiAliasingFilter(void)
     )
 
     // Loop through all the pixels in the framebuffer
-    for (int y = 1; y < (this->params.height - 1); y++)
+    for (int y = 1; y < (this->config->height - 1); y++)
     {
-        for (int x = 1; x < (this->params.width - 1); x++)
+        for (int x = 1; x < (this->config->width - 1); x++)
         {
             // Get the index of the current pixel
-            int pixelIndex = y * this->params.width + x;
+            int pixelIndex = y * this->config->width + x;
 
             // Get the surrounding pixels
             unsigned short leftPixel = this->frameBuffer[pixelIndex - 1];
             unsigned short rightPixel = this->frameBuffer[pixelIndex + 1];
-            unsigned short upPixel = this->frameBuffer[pixelIndex - this->params.width];
-            unsigned short downPixel = this->frameBuffer[pixelIndex + this->params.width];            
+            unsigned short upPixel = this->frameBuffer[pixelIndex - this->config->width];
+            unsigned short downPixel = this->frameBuffer[pixelIndex + this->config->width];            
 
             // Calculate the  difference between the left and right pixel and the up and down pixel
             int horizontalDiff = COLOR_DIFF(leftPixel, rightPixel);
@@ -671,7 +671,7 @@ void Graphics::setPixelBlend(int x, int y, unsigned short color, unsigned char a
     // Taken from this stackoverflow answer https://stackoverflow.com/questions/72456587/implement-a-function-that-blends-two-colors-encoded-with-rgb565-using-alpha-blen
 
     // Get the buffer index
-    int index = x + y * this->params.width;
+    int index = x + y * this->config->width;
 
     // Reduce the alpha from [0,255] to [0,31] 
     alpha = alpha >> 0x3;

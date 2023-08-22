@@ -24,7 +24,7 @@ class Print
 {
 public:
     // Constructor
-    Print(unsigned short* frameBuffer, Display_Params params);
+    Print(unsigned short* frameBuffer, display_config_t* config);
 
     // Configuration functions
     void setColor(Color color);

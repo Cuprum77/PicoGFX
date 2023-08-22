@@ -8,14 +8,14 @@
 class Gradients
 {
 public:
-    Gradients(unsigned short* frameBuffer, Display_Params params);
+    Gradients(unsigned short* frameBuffer, display_config_t* config);
 
     void fillGradient(Color startColor, Color endColor, Point start, Point end);
     void drawRotCircleGradient(Point center, int radius, int rotationSpeed, Color start, Color end);
     void drawRotRectGradient(Point center, int width, int height, int rotationSpeed, Color start, Color end);
 private:
     unsigned short* frameBuffer;
-    Display_Params params;
+    display_config_t* config;
     size_t totalPixels;
 
     unsigned int theta; // The angle of the rotating gradient

@@ -9,11 +9,11 @@ unsigned short colorLUT[MAX_COLOR_DIFF + 1];
  * @param frameBuffer Pointer to the frame buffer
  * @param params Display parameters
 */
-Gradients::Gradients(unsigned short* frameBuffer, Display_Params params)
+Gradients::Gradients(unsigned short* frameBuffer, display_config_t* config)
 {
     this->frameBuffer = frameBuffer;
-    this->params = params;
-    this->totalPixels = params.width * params.height;
+    this->config = config;
+    this->totalPixels = config->width * config->height;
     this->theta = 0;
 }
 
@@ -65,9 +65,9 @@ void Gradients::fillGradient(Color startColor, Color endColor, Point start, Poin
     int magnitudeInverse = (FIXED_POINT_SCALE_HIGH_RES + (magnitudeSquared / 2)) / magnitudeSquared;
 
     // loop through each pixel in the buffer
-    for(int x = 0; x < this->params.width; x++)
+    for(int x = 0; x < this->config->width; x++)
     {
-        for (int y = 0; y < this->params.height; y++)
+        for (int y = 0; y < this->config->height; y++)
         {
             // calculate the vector from the start to the current pixel
             int vectorX = x - start.x;
@@ -83,7 +83,7 @@ void Gradients::fillGradient(Color startColor, Color endColor, Point start, Poin
             position = (position < 0) ? 0 : (position > maxDiff) ? maxDiff : position;
 
             // draw the pixel
-			this->frameBuffer[x + y * this->params.width] = colorLUT[position];
+			this->frameBuffer[x + y * this->config->width] = colorLUT[position];
         }
     }
 }

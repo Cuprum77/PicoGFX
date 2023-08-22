@@ -4,12 +4,12 @@
  * @brief Construct a new Print object
  * @param display Display to print on
 */
-Print::Print(unsigned short* frameBuffer, Display_Params params)
+Print::Print(unsigned short* frameBuffer, display_config_t* config)
 {
     this->frameBuffer = frameBuffer;
-    this->width = params.width;
-    this->height = params.height;
-    this->totalPixels = params.width * params.height;
+    this->width = config->width;
+    this->height = config->height;
+    this->totalPixels = config->width * config->height;
     this->color = Colors::White;
     this->font = nullptr;
     this->cursor = 0;

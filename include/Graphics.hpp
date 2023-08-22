@@ -8,7 +8,7 @@
 class Graphics
 {
 public:
-    Graphics(unsigned short* frameBuffer, Display_Params params);
+    Graphics(unsigned short* frameBuffer, display_config_t* config);
 
     void fill(Color color);
 
@@ -39,7 +39,7 @@ public:
     void antiAliasingFilter(void);
 private:
     unsigned short* frameBuffer;
-    Display_Params params;
+    display_config_t* config;
     size_t totalPixels;
 
     void setPixelBlend(int x, int y, unsigned short background, unsigned char alpha);
