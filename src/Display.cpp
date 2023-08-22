@@ -218,10 +218,42 @@ Point Display::getCenter()
  * @brief Rotate the display
  * @param rotation Rotation to set
 */
-void Display::setRotation(displayRotation_t rotation)
+void Display::setRotation(int rotation)
 {
     // save the rotation
     this->params->rotation = (int)rotation;
+    unsigned int width = this->params->width;
+	unsigned int height = this->params->height;
+	unsigned int maxHeight = this->maxHeight;
+	unsigned int maxWidth = this->maxWidth;
+
+    switch(rotation)
+    {
+		case 0:
+			this->params->height = height;
+			this->params->width = width;
+			this->maxHeight = maxHeight;
+			this->maxWidth = maxWidth;
+            break;
+        case 1:
+			this->params->height = width;
+			this->params->width = height;
+			this->maxHeight = maxWidth;
+			this->maxWidth = maxHeight;
+            break;
+        case 2:
+			this->params->height = height;
+			this->params->width = width;
+			this->maxHeight = maxHeight;
+			this->maxWidth = maxWidth;
+            break;
+        case 3:
+			this->params->height = width;
+			this->params->width = height;
+			this->maxHeight = maxWidth;
+			this->maxWidth = maxHeight;
+            break;
+    }
 
     // set the rotation based on the display type
     if (this->type == display_type_t::GC9A01)
