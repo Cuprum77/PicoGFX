@@ -1,17 +1,17 @@
-#include "Display.hpp"
+#include "GC9A01.hpp"
 
-void Display::GC9A01_Init()
+/**
+ * @brief Initialize the display
+*/
+void GC9A01::init()
 {
-	// constants for this driver
-	this->BGR = true;
-	this->maxHeight = 240;
-	this->maxWidth = 240;
+    // Apply constants
+    this->maxWidth = MAX_WIDTH;
+    this->maxHeight = MAX_HEIGHT;
+	this->config->interface = display_interface_t::DISPLAY_SPI;
 
 	// initialize the display
-    this->GC9A01_HardReset();
-    sleep_ms(100);
-
-    this->GC9A01_HardReset();
+    this->reset();
     sleep_ms(100);
 
     this->writeData(0xef, (const uint8_t *) NULL, 0);
@@ -32,7 +32,7 @@ void Display::GC9A01_Init()
 	this->writeData(0x8e, (const uint8_t *) "\xFF", 1);
 	this->writeData(0x8f, (const uint8_t *) "\xFF", 1);
 	this->writeData(0xb6, (const uint8_t *) "\x00\x00", 2);
-	this->GC9A01_SetRotation(this->params->rotation);
+	this->setRotation(this->config->rotation);
 	this->writeData(0x3a, (const uint8_t *) "\x55", 1);
 	this->writeData(0x90, (const uint8_t *) "\x08\x08\x08\x08", 4);
 	this->writeData(0xbd, (const uint8_t *) "\x06", 1);
@@ -67,41 +67,87 @@ void Display::GC9A01_Init()
 
 	this->writeData(0x29, (const uint8_t *) NULL, 0);
 	sleep_ms(20);
+
+    // clear the display
+    this->clear();
 }
 
-void Display::GC9A01_SoftReset()
+/**
+ * @private
+ * @brief Reset the display, but not the chip
+*/
+void GC9A01::softReset()
 {
-	this->writeData(SWRESET, (const uint8_t *) NULL, 0);
+	this->writeData(0x01, (const uint8_t *) NULL, 0);
 	sleep_ms(120);
 }
 
-void Display::GC9A01_HardReset()
+/**
+ * @brief Reset the display
+*/
+void GC9A01::reset()
 {
 	// Hardware reset
-	gpio_put(this->pins->rst, 1);
+	gpio_put(this->config->spi.rst, 1);
 	sleep_ms(50);
-	gpio_put(this->pins->rst, 0);
+	gpio_put(this->config->spi.rst, 0);
 	sleep_ms(50);
-	gpio_put(this->pins->rst, 1);
+	gpio_put(this->config->spi.rst, 1);
 }
 
-void Display::GC9A01_SetRotation(int rotation)
+/**
+ * @brief Set the rotation of the display
+ * @param rotation Rotation to set
+*/
+void GC9A01::setRotation(int rotation)
 {
 	rotation %= 4; // Normalize rotation to 0-3
+	// save the rotation
+    this->config->rotation = (int)rotation;
+    unsigned int width = this->config->width;
+	unsigned int height = this->config->height;
+    unsigned int maxWidth = this->maxWidth;
+    unsigned int maxHeight = this->maxHeight;
 
 	switch(rotation)
     {
 		case 0:
-            this->writeData(MADCTL, (unsigned char)Display_MADCTL::BGR | Display_MADCTL::MX);
+            this->writeData(0x36, 0x48);
+			this->config->height = height;
+			this->config->width = width;
+            this->maxWidth = MAX_WIDTH;
+            this->maxHeight = MAX_HEIGHT;
             break;
         case 1:
-			this->writeData(MADCTL, (unsigned char)(Display_MADCTL::MX | Display_MADCTL::MV | Display_MADCTL::RGB));
+			this->writeData(0x36, 0x60);
+			this->config->height = width;
+			this->config->width = height;
+            this->maxWidth = MAX_HEIGHT;
+            this->maxHeight = MAX_WIDTH;
             break;
         case 2:
-			this->writeData(MADCTL, (unsigned char)(Display_MADCTL::MY | Display_MADCTL::BGR));
+			this->writeData(0x36, 0x88);
+			this->config->height = height;
+			this->config->width = width;
+            this->maxWidth = MAX_WIDTH;
+            this->maxHeight = MAX_HEIGHT;
             break;
         case 3:
-			this->writeData(MADCTL, (unsigned char)(Display_MADCTL::MV | Display_MADCTL::MY | Display_MADCTL::BGR));
+			this->writeData(0x36, 0xa8);
+			this->config->height = width;
+			this->config->width = height;
+            this->maxWidth = MAX_HEIGHT;
+            this->maxHeight = MAX_WIDTH;
             break;
     }
+}
+
+/**
+ * @brief Turn the display on
+*/
+void GC9A01::setDisplayState(bool on)
+{
+    if(on) this->writeData(0x29);
+    else this->writeData(0x28);
+    sleep_ms(10);
 }
