@@ -31,12 +31,6 @@ void Driver::init()
                 this->initSPI();
             }
             break;
-        case display_interface_t::DISPLAY_PISS:
-            this->initPiss();
-            break;
-        case display_interface_t::DISPLAY_RGB:
-            this->initRGB();
-            break;
     }
 }
 
@@ -50,8 +44,7 @@ void Driver::init()
 void Driver::writeData(uint8_t command, const uint8_t* data, size_t length)
 {
     // These displays don't operate with internal drivers with buffers
-    if(this->interface == display_interface_t::DISPLAY_PISS 
-        || this->interface == display_interface_t::DISPLAY_RGB)
+    if(this->interface != display_interface_t::DISPLAY_SPI)
         return;
 
     if(this->pioMode)
@@ -97,8 +90,7 @@ void Driver::writeData(uint8_t command, const uint8_t* data, size_t length)
 void Driver::setDataMode(uint8_t command)
 {
     // These displays don't operate with internal drivers with buffers
-    if(this->interface == display_interface_t::DISPLAY_PISS 
-        || this->interface == display_interface_t::DISPLAY_RGB)
+    if(this->interface != display_interface_t::DISPLAY_SPI)
         return;
 
     if(pioMode)
@@ -137,10 +129,6 @@ void Driver::writePixels(const uint16_t* data, size_t length)
                 // send the data
                 spi_write16_blocking(this->config->spi.spi_instance, data, length);
             }
-            break;
-        case display_interface_t::DISPLAY_PISS:
-            break;
-        case display_interface_t::DISPLAY_RGB:
             break;
     }
 }
