@@ -46,9 +46,7 @@ public:
 private:
     // Display variables
     unsigned short* frameBuffer;
-    unsigned int width;
-    unsigned int height;
-    size_t totalPixels;
+    display_config_t* config;
 
     // Print variables
     char characterBuffer[CHARACTER_BUFFER_SIZE];
