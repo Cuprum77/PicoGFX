@@ -71,7 +71,6 @@ typedef enum
 
 typedef struct
 {
-    display_interface_t interface;
     bool dimming;
     int backlightPin;
     unsigned int height;
@@ -82,9 +81,12 @@ typedef struct
     unsigned int rowOffset2;   
     unsigned int rotation;
 
+#ifdef PICO_BUILD
+    display_interface_t interface;
     display_spi_config_t spi;
     display_piss_config_t piss;
     display_rgb_config_t rgb;
+#endif
 } display_config_t;
 
 #ifdef __cplusplus
