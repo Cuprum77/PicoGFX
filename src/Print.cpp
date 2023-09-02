@@ -7,9 +7,7 @@
 Print::Print(unsigned short* frameBuffer, display_config_t* config)
 {
     this->frameBuffer = frameBuffer;
-    this->width = config->width;
-    this->height = config->height;
-    this->totalPixels = config->width * config->height;
+    this->config = config;
     this->color = Colors::White;
     this->font = nullptr;
     this->cursor = 0;
@@ -39,7 +37,7 @@ Color Print::getColor(void)
 */
 void Print::setCursor(Point point)
 {
-    this->cursor = (unsigned long)(point.x + point.y * this->width);
+    this->cursor = (unsigned long)(point.x + point.y * this->config->width);
 }
 
 /**
@@ -49,7 +47,7 @@ void Print::setCursor(Point point)
 */
 void Print::moveCursor(int x, int y)
 {
-    this->cursor += (unsigned long)(x + y * this->width);
+    this->cursor += (unsigned long)(x + y * this->config->width);
 }
 
 /**
@@ -58,7 +56,7 @@ void Print::moveCursor(int x, int y)
 */
 Point Print::getCursor(void)
 {
-    return { (unsigned int)(this->cursor % this->width), (unsigned int)(this->cursor / this->width) };
+    return { (unsigned int)(this->cursor % this->config->width), (unsigned int)(this->cursor / this->config->width) };
 }
 
 /**
@@ -91,8 +89,8 @@ void Print::setString(const char* format, ...)
 void Print::center(Alignment_t alignment)
 {
     // Get the center of the screen
-    int centerX = this->width >> 1;
-	int centerY = this->height >> 1;
+    int centerX = this->config->width >> 1;
+	int centerY = this->config->height >> 1;
 
     // Initialize the midpoint variables
     int stringWidthMidpoint = 0;
@@ -109,7 +107,7 @@ void Print::center(Alignment_t alignment)
         // Get the midpoint of the string
         stringWidthMidpoint = this->getStringWidth() >> 1;
         // Set the x position to the center, while keeping the y position the same
-        cursorY = this->getCursor().y * this->width;
+        cursorY = this->getCursor().y * this->config->width;
         this->cursor = (unsigned long)(centerX - stringWidthMidpoint + cursorY);
         break;
     case Alignment_t::VerticalCenter:
@@ -117,7 +115,7 @@ void Print::center(Alignment_t alignment)
         stringHeightMidpoint = this->getStringHeight() >> 1;
         // Move only the y position, keeping the x position the same
         cursorX = this->getCursor().x;
-        this->cursor = (unsigned long)(cursorX + (centerY - stringHeightMidpoint) * this->width);
+        this->cursor = (unsigned long)(cursorX + (centerY - stringHeightMidpoint) * this->config->width);
         break;
     case Alignment_t::TotalCenter:
     default:
@@ -253,7 +251,7 @@ void Print::drawAscii(const char character)
     FontCharacter charData = this->font->characters[character - 0x20];
 
     // if the bitmap is a null pointer or overflows the frame buffer, return 0
-    if (!((bitmap != nullptr) && ((charData.width * charData.height) < this->totalPixels)))
+    if (!((bitmap != nullptr) && ((charData.width * charData.height) < (this->config->width * this->config->height))))
         return;
 
     // handle edge cases
@@ -266,13 +264,13 @@ void Print::drawAscii(const char character)
     else if(character == 0x0A) // new line
     {
         // move the cursor to the next line
-        this->cursor += (this->width - (this->cursor % this->width)) + this->width * this->font->newLineDistance;
+        this->cursor += (this->config->width - (this->cursor % this->config->width)) + this->config->width * this->font->newLineDistance;
         return;
     }
     else if(character == 0x0D) // carriage return
     {
         // move the cursor to the beginning of the line
-        this->cursor -= (this->cursor % this->width);
+        this->cursor -= (this->cursor % this->config->width);
         return;
     }
     else if (character == 0x09) // tab
@@ -288,20 +286,20 @@ void Print::drawAscii(const char character)
     unsigned int rowSize = charData.width;
 
     // make sure the character is not placed off screen in the x direction, if so, move the character to the next line
-    if (((bufferPosition % this->width) + charData.width) > this->width)
+    if (((bufferPosition % this->config->width) + charData.width) > this->config->width)
     {
         // move the cursor to the next line
-        bufferPosition += (this->width - (this->cursor % this->width)) + this->width * this->font->newLineDistance;
+        bufferPosition += (this->config->width - (this->cursor % this->config->width)) + this->config->width * this->font->newLineDistance;
     }
     // make sure the character is not placed off screen in the y direction, if so, return to the top
-    if (((bufferPosition / this->width) + charData.height) > this->height)
+    if (((bufferPosition / this->config->width) + charData.height) > this->config->height)
     {
         // move the cursor to the top of the screen
         bufferPosition = 0;
     }
 
     // move the cursor by the y offset
-    bufferPosition += charData.yOffset * this->width;
+    bufferPosition += charData.yOffset * this->config->width;
     // keep track of the current row position
     unsigned int rowPosition = 0;
 
@@ -327,7 +325,7 @@ void Print::drawAscii(const char character)
             if (rowPosition >= rowSize)
             {
                 rowPosition = 0;
-                bufferPosition += this->width;
+                bufferPosition += this->config->width;
             }
         }
     }
