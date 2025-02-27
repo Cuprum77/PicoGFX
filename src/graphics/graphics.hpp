@@ -37,12 +37,18 @@ public:
 
     void drawBitmap(const uint8_t* bitmap, uint32_t width, uint32_t height);
     void drawBitmap(const uint16_t* bitmap, uint32_t width, uint32_t height);
+    void drawBitmap(const uint8_t* bitmap, uint32_t width, uint32_t height, bool center);
+    void drawBitmap(const uint16_t* bitmap, uint32_t width, uint32_t height, bool center);
+    void drawBitmap(const uint8_t* bitmap, uint32_t width, uint32_t height, point start);
+    void drawBitmap(const uint16_t* bitmap, uint32_t width, uint32_t height, point start);
 
     void antiAliasingFilter(void);
 private:
     uint16_t* frameBuffer;
     display_config_t* config;
     size_t totalPixels;
+    uint32_t width;
+    uint32_t height;
 
     inline void setPixel(uint32_t x, uint32_t y, uint16_t color) { this->frameBuffer[x + y * this->config->width] = color; }
     void setPixelBlend(uint32_t x, uint32_t y, uint16_t background, uint8_t alpha);

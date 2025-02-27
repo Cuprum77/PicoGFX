@@ -234,3 +234,88 @@ void graphics::drawCircleYLine(uint32_t x, uint32_t y1, uint32_t y2, color color
 {
     while (y1 <= y2) this->setPixel(x, y1++, color.to16bit());
 }
+
+/**
+ * @brief Draw an arc to the display
+ * @param center Center point
+ * @param radius Radius of the arc
+ * @param start_angle Start angle of the arc
+ * @param end_angle End angle of the arc
+ * @param color color to draw in
+*/
+void graphics::drawArc(point center, uint32_t radius, uint32_t start_angle, uint32_t end_angle, color color)
+{
+    uint32_t imageWidth = config->width;
+    uint32_t imageHeight = config->height;
+
+	// Swap angles if start_angle is greater than end_angle
+    if (end_angle < start_angle) 
+    {
+        uint32_t temp = end_angle;
+        end_angle = start_angle;
+        start_angle = temp;
+    }
+
+	// clamp the input variables to be between 0 and 3600
+	start_angle = imin(start_angle, NUMBER_OF_ANGLES);
+	end_angle = imin(end_angle, NUMBER_OF_ANGLES);
+
+	// convert the color to 16 bit
+    uint16_t color16bit = color.to16bit();
+
+    // loop through the angles
+    for (int32_t angle = start_angle; angle < end_angle; angle++) 
+    {
+		// Get the coordinates of the pixel
+        int32_t x = 0;
+        int32_t y = 0;
+		pointOnCircle(radius, angle, center.x, center.y, &x, &y);
+
+		// avoid overflowing the buffer
+        if (x >= 0 && x < imageWidth && y >= 0 && y < imageHeight)
+            this->frameBuffer[x + y * imageWidth] = color16bit;
+    }
+}
+
+/**
+ * @brief Draw two arcs and fill the gap between them
+ * @param center Center point
+ * @param innerRadius Radius for the inner most arc
+ * @param outerRadius Radius for the outer most arc
+ * @param startAngle Angle in degrees for both arcs
+ * @param endAngle Angle in degrees for both arcs
+ * @color color to draw the arc in
+ */
+void graphics::drawFilledDualArc(point center, uint32_t innerRadius, uint32_t outerRadius, uint32_t startAngle, uint32_t endAngle, color color)
+{
+    // Transform angles from [-180, 180] to [0, 360)
+    if (startAngle < 0) startAngle += 360;
+    if (endAngle < 0) endAngle += 360;
+    if (endAngle < startAngle) endAngle += 360;
+
+    uint16_t color16 = color.to16bit();
+
+    for (int32_t angleLUT = startAngle * 10; angleLUT <= endAngle * 10; angleLUT++)
+    {
+        // Handle the angle wrap at 3600 manually
+        int32_t wrappedAngleLUT = angleLUT;
+        if (wrappedAngleLUT >= 3600) wrappedAngleLUT -= 3600;
+
+        int32_t cosValue = cosTable[wrappedAngleLUT];
+        int32_t sinValue = sinTable[wrappedAngleLUT];
+
+        for (int32_t radius = innerRadius; radius <= outerRadius; radius++)
+        {
+            int32_t x = cosValue * radius;
+            x >>= FIXED_POINT_SCALE_BITS;
+            x += center.x;
+
+            int32_t y = sinValue * radius;
+            y >>= FIXED_POINT_SCALE_BITS;
+            y += center.y;
+
+            if (x >= 0 && x < config->width && y >= 0 && y < config->height)
+                this->frameBuffer[x + y * config->width] = color16;
+        }
+    }
+}

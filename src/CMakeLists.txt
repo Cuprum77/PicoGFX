@@ -15,7 +15,11 @@ add_library(${PROJECT_NAME}
     gauge/gauge.cpp
     gradient/gradient.cpp
     graphics/graphics.cpp
+    graphics/bitmap.cpp
     graphics/circle.cpp
+    graphics/line.cpp
+    graphics/polygon.cpp
+    graphics/triangle.cpp
     graphics/gfxmath.c
     hardware_driver/hardware_driver.cpp
     print/print.cpp
