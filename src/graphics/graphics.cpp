@@ -1,5 +1,4 @@
 #include "graphics.hpp"
-#include <stdio.h>
 
 /**
  * @brief Construct a new graphics object

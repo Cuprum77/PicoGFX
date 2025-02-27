@@ -65,9 +65,7 @@ void graphics::drawLineAntiAliased(point start, point end, color color)
     {
         // Set the pixel at the current position
         uint8_t alpha = 255 * iabs(err - dx + dy) * edInv;
-        printf("%d ", alpha);
         alpha >>= FIXED_POINT_SCALE_BITS;
-        printf("%d\n", alpha);
         this->setPixelBlend(start.x, start.y, color16, alpha);
         // Calculate the new error
         e2 = err; x2 = start.x;
