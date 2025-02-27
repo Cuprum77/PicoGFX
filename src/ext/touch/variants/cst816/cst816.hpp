@@ -29,13 +29,11 @@ typedef struct
 class cst816 : public touch
 {
 public:
-    cst816(display_touch_config_t* config, Display* display);
+    cst816(display_touch_config_t* config, Display* display = nullptr);
     void init();
     void reset();
     void disableStandby();
     void enableStandby();
-
-    bool dataAvailable();
 
     uint32_t getX();
     uint32_t getY();
@@ -45,7 +43,6 @@ private:
     uint32_t irq_pin;
     cst816_report_t report;
     Display* display;
-    bool available = false;
 
     static cst816* instance;
 

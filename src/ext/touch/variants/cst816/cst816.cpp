@@ -5,11 +5,8 @@ cst816* cst816::instance = nullptr;  // Define the static instance
 /**
  * @public
  * @brief CST816 constructor
- * @param i2c_inst I2C instance
- * @param sda_pin SDA pin
- * @param scl_pin SCL pin
- * @param irq_pin IRQ pin
- * @param rst_pin RST pin
+ * @param config Touch configuration pointer
+ * @param display Display pointer
  * @note This constructor will setup a IRQ handler for the CST816 as the CST816 will not respond unless touch is detected!
  */
 cst816::cst816(display_touch_config_t* config, Display* display) : touch(config)
@@ -58,7 +55,7 @@ void cst816::reset()
  */
 void cst816::disableStandby()
 {
-    this->touchWrite(CST816_ADDR, 0xfe, 0xfe);
+    this->touchWrite(CST816_ADDR, (uint8_t)0xfe, 0xfe);
 }
 
 /**
@@ -67,20 +64,7 @@ void cst816::disableStandby()
  */
 void cst816::enableStandby()
 {
-    this->touchWrite(CST816_ADDR, 0xfe, 0x00);
-}
-
-/**
- * @public
- * @brief Check if data is available
- * @returns True if data is available
- * @note Returns true only once per call and is reset when new data is available
- */
-bool cst816::dataAvailable()
-{
-    bool available = this->available;
-    this->available = false;
-    return available;
+    this->touchWrite(CST816_ADDR, (uint8_t)0xfe, 0x00);
 }
 
 /**
@@ -110,30 +94,33 @@ uint32_t cst816::getY()
 void cst816::fetch()
 {
     uint8_t data[6] = { 0 };
-    this->touchRead(CST816_ADDR, 0x01, data, 6);
+    this->touchRead(CST816_ADDR, (uint8_t)0x01, data, 6);
 
     uint16_t x = (uint16_t)(((data[2] & 0x0f) << 8) | data[3]);
     uint16_t y = (uint16_t)(((data[4] & 0x0f) << 8) | data[5]);
 
-    // Translate the X and Y to the display
-    display_rotation_t rotation = this->display->getRotation();
+    if (this->display != nullptr)
+    {    
+        // Translate the X and Y to the display
+        display_rotation_t rotation = this->display->getRotation();
 
-    switch (rotation)
-    {
-        case display_rotation_t::ROTATION_0:
-            break;
-        case display_rotation_t::ROTATION_90:
-            std::swap(x, y);
-            y = this->display->getHeight() - y;
-            break;
-        case display_rotation_t::ROTATION_180:
-            x = this->display->getWidth() - x;
-            y = this->display->getHeight() - y;
-            break;
-        case display_rotation_t::ROTATION_270:
-            std::swap(x, y);
-            x = this->display->getHeight() - x;
-            break;
+        switch (rotation)
+        {
+            case display_rotation_t::ROTATION_0:
+                break;
+            case display_rotation_t::ROTATION_90:
+                std::swap(x, y);
+                y = this->display->getHeight() - y;
+                break;
+            case display_rotation_t::ROTATION_180:
+                x = this->display->getWidth() - x;
+                y = this->display->getHeight() - y;
+                break;
+            case display_rotation_t::ROTATION_270:
+                std::swap(x, y);
+                x = this->display->getHeight() - x;
+                break;
+        }
     }
 
     this->report = {
@@ -154,7 +141,7 @@ void cst816::fetch()
 uint32_t cst816::getVersion()
 {
     uint8_t data = 0;
-    this->touchRead(CST816_ADDR, 0x15, &data);
+    this->touchRead(CST816_ADDR, (uint8_t)0x15, &data);
     return data;
 }
 
@@ -166,6 +153,6 @@ uint32_t cst816::getVersion()
 void cst816::getVersionValue(uint32_t* data)
 {
     uint8_t buf[3] = { 0 };
-    this->touchRead(CST816_ADDR, 0xa7, buf, 3);
+    this->touchRead(CST816_ADDR, (uint8_t)0xa7, buf, 3);
     *data = (buf[0] << 16) | (buf[1] << 8) | buf[2];
 }
