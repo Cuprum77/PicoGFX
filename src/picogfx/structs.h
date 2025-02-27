@@ -40,7 +40,7 @@ typedef struct
 typedef struct
 {
     i2c_inst_t* i2c_inst;
-    uint32_t speed = 400'000;
+    uint32_t speed;
     uint32_t sda_pin;
     uint32_t scl_pin;
     uint32_t irq_pin;
