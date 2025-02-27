@@ -1,8 +1,7 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
-#include "pico/multicore.h"
-#include "picogfx.hpp"
 #include "st7789.hpp"
+#include "graphics.hpp"
 #include "wee_bg.h"
 
 // Display pins
@@ -20,7 +19,7 @@
 #define DISP_OFFSET_X1      20		// cut off on the right side of the display
 #define DISP_OFFSET_Y0      0		// cut off on the top of the display
 #define DISP_OFFSET_Y1      0		// cut off on the bottom of the display
-#define DISP_ROTATION       1       // 0, 1, 2, or 3
+#define DISP_ROTATION       display_rotation_t::ROTATION_90
 
 // set the display parameters
 display_spi_config_t spi_config {
@@ -47,8 +46,8 @@ display_config_t config = {
 
 // Create the display object
 hardware_driver spi(&config);
-ST7789 display(&spi, &config);
-Graphics graphics(display.getFrameBuffer(), &config);
+st7789 display(&spi, &config);
+graphics draw(display.getFrameBuffer(), &config);
 
 int main()
 {
@@ -58,7 +57,7 @@ int main()
     // Initialize the display
     spi.init();
     display.init();
-	graphics.drawBitmap(background_image, 240, 280);
+	draw.drawBitmap(background_image, 240, 280);
     display.update();
 
     return 0;
