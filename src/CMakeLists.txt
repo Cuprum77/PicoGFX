@@ -15,12 +15,14 @@ add_library(${PROJECT_NAME}
     gauge/gauge.cpp
     gradient/gradient.cpp
     graphics/graphics.cpp
+    graphics/circle.cpp
     graphics/gfxmath.c
     hardware_driver/hardware_driver.cpp
     picogfx/picogfx.cpp
     print/print.cpp
     ext/touch/touch.cpp
     ext/touch/variants/cst816/cst816.cpp
+    ext/touch/variants/gt911/gt911.cpp
 )
 
 add_library(sub::Display ALIAS ${PROJECT_NAME})
@@ -40,6 +42,7 @@ target_include_directories(${PROJECT_NAME}
     PUBLIC ${PROJECT_SOURCE_DIR}/print/fonts
     PUBLIC ${PROJECT_SOURCE_DIR}/ext/touch
     PUBLIC ${PROJECT_SOURCE_DIR}/ext/touch/variants/cst816
+    PUBLIC ${PROJECT_SOURCE_DIR}/ext/touch/variants/gt911
 )
 
 pico_generate_pio_header(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/hardware_driver/pio_spi.pio)

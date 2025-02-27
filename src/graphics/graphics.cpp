@@ -6,7 +6,7 @@
  * @param frameBuffer Pointer to the frame buffer
  * @param params Display parameters
 */
-Graphics::Graphics(unsigned short* frameBuffer, display_config_t* config)
+Graphics::Graphics(uint16_t* frameBuffer, display_config_t* config)
 {
     this->frameBuffer = frameBuffer;
     this->config = config;
@@ -20,9 +20,9 @@ Graphics::Graphics(unsigned short* frameBuffer, display_config_t* config)
 void Graphics::fill(Color color)
 {
     // convert color to 16 bit
-    unsigned short color16 = color.to16bit();
+    uint16_t color16 = color.to16bit();
     // fill the frame buffer
-    for (int i = 0; i < this->totalPixels; i++)
+    for (int32_t i = 0; i < this->totalPixels; i++)
         this->frameBuffer[i] = color16;
 }
 
@@ -38,13 +38,13 @@ void Graphics::drawLine(Point start, Point end, Color color)
     // http://members.chello.at/~easyfilter/bresenham.html
 
     // Find the delta x and start x
-    int dx = iabs(end.x - start.x), sx = start.x < end.x ? 1 : -1;
+    int32_t dx = iabs(end.x - start.x), sx = start.x < end.x ? 1 : -1;
     // Find the delta y and start y
-    int dy = -iabs(end.y - start.y), sy = start.y < end.y ? 1 : -1;
+    int32_t dy = -iabs(end.y - start.y), sy = start.y < end.y ? 1 : -1;
     // Calculate the error
-    int err = dx + dy, e2;
-    // Get the unsigned short color
-    unsigned short color16 = color.to16bit();
+    int32_t err = dx + dy, e2;
+    // Get the uint16_t color
+    uint16_t color16 = color.to16bit();
 
     // Loop until we break
     for (;;)
@@ -74,23 +74,23 @@ void Graphics::drawLineAntiAliased(Point start, Point end, Color color)
     // http://members.chello.at/~easyfilter/bresenham.html
 
     // Find the delta x and start x
-    int dx = iabs(end.x - start.x), sx = start.x < end.x ? 1 : -1;
+    int32_t dx = iabs(end.x - start.x), sx = start.x < end.x ? 1 : -1;
     // Find the delta y and start y
-    int dy = -iabs(end.y - start.y), sy = start.y < end.y ? 1 : -1;
+    int32_t dy = -iabs(end.y - start.y), sy = start.y < end.y ? 1 : -1;
     // Calculate the error
-    int err = dx - dy;
-    int e2, x2;
-    int ed = dx + dy == 0 ? 1 : isqrt(dx * dx + dy * dy);
+    int32_t err = dx - dy;
+    int32_t e2, x2;
+    int32_t ed = dx + dy == 0 ? 1 : isqrt(dx * dx + dy * dy);
     // Precalculate the inverse of ed for faster calculations
-    int edInv = (FIXED_POINT_SCALE + (ed / 2)) / ed;
-    // Get the unsigned short color
-    unsigned short color16 = color.to16bit();
+    int32_t edInv = (FIXED_POINT_SCALE + (ed / 2)) / ed;
+    // Get the uint16_t color
+    uint16_t color16 = color.to16bit();
 
     // Loop until we break
     for (;;)
     {
         // Set the pixel at the current position
-        unsigned char alpha = 255 * iabs(err - dx + dy) * edInv;
+        uint8_t alpha = 255 * iabs(err - dx + dy) * edInv;
         printf("%d ", alpha);
         alpha >>= FIXED_POINT_SCALE_BITS;
         printf("%d\n", alpha);
@@ -140,21 +140,21 @@ void Graphics::drawLineAntiAliased(Point start, Point end, Color color)
  * @param thickness Thickness of the line, value must be greater than 1
  * @param color Color to draw in
 */
-void Graphics::drawLineThickAntiAliased(Point start, Point end, int thickness, Color color)
+void Graphics::drawLineThickAntiAliased(Point start, Point end, uint32_t thickness, Color color)
 {
     // Uses an optimized Bresenham's line algorithm
     // http://members.chello.at/~easyfilter/bresenham.html
 
     // Find the delta x and start x
-    int dx = iabs(end.x - start.x), sx = start.x < end.x ? 1 : -1;
+    int32_t dx = iabs(end.x - start.x), sx = start.x < end.x ? 1 : -1;
     // Find the delta y and start y
-    int dy = -iabs(end.y - start.y), sy = start.y < end.y ? 1 : -1;
+    int32_t dy = -iabs(end.y - start.y), sy = start.y < end.y ? 1 : -1;
     // Calculate the error
-    int err = dx - dy;
-    int e2, x2, y2;
-    int ed = dx + dy == 0 ? 1 : isqrt(dx * dx + dy * dy);
-    // Get the unsigned short color
-    unsigned short color16 = color.to16bit();
+    int32_t err = dx - dy;
+    int32_t e2, x2, y2;
+    int32_t ed = dx + dy == 0 ? 1 : isqrt(dx * dx + dy * dy);
+    // Get the uint16_t color
+    uint16_t color16 = color.to16bit();
 }
 
 /**
@@ -182,28 +182,28 @@ void Graphics::drawTriangle(Point p1, Point p2, Point p3, Color color)
 void Graphics::drawFilledTriangle(Point p1, Point p2, Point p3, Color color)
 {
     // calculate the bounding box of the triangle
-    int minX = imin(imin(p1.x, p2.x), p3.x);
-    int maxX = imax(imax(p1.x, p2.x), p3.x);
-    int minY = imin(imin(p1.y, p2.y), p3.y);
-    int maxY = imax(imax(p1.y, p2.y), p3.y);
+    int32_t minX = imin(imin(p1.x, p2.x), p3.x);
+    int32_t maxX = imax(imax(p1.x, p2.x), p3.x);
+    int32_t minY = imin(imin(p1.y, p2.y), p3.y);
+    int32_t maxY = imax(imax(p1.y, p2.y), p3.y);
 
-    // convert the color to unsigned short
-    unsigned short color16 = color.to16bit();
+    // convert the color to uint16_t
+    uint16_t color16 = color.to16bit();
 
     // iterate over each row within the bounding box
-    for (int y = minY; y <= maxY; y++)
+    for (int32_t y = minY; y <= maxY; y++)
     {
 		// find the start x by interpolating between p1 and p2
-		int divisor = (p2.y - p1.y) == 0 ? 1 : p2.y - p1.y;
-		int startX = p1.x + (y - p1.y) * (p2.x - p1.x) / divisor;
+		int32_t divisor = (p2.y - p1.y) == 0 ? 1 : p2.y - p1.y;
+		int32_t startX = p1.x + (y - p1.y) * (p2.x - p1.x) / divisor;
 		// find the end x by interpolating between p2 and p3
 		divisor = (p3.y - p2.y) == 0 ? 1 : p3.y - p2.y;
-		int endX = p2.x + (y - p2.y) * (p3.x - p2.x) / divisor;
+		int32_t endX = p2.x + (y - p2.y) * (p3.x - p2.x) / divisor;
 
         // ensure startX <= endX
         if (startX > endX)
         {
-            int temp = startX;
+            int32_t temp = startX;
             startX = endX;
             endX = temp;
         }
@@ -213,7 +213,7 @@ void Graphics::drawFilledTriangle(Point p1, Point p2, Point p3, Color color)
 		endX = imin(endX, this->config->width);
 
         // fill the pixels between the intersection points
-        for (int x = startX; x <= endX; x++)
+        for (int32_t x = startX; x <= endX; x++)
         {
             this->frameBuffer[x + y * this->config->width] = color16;
         }
@@ -256,7 +256,7 @@ void Graphics::drawRectangle(Rect rect, Color color)
  * @param color Color to draw in
  * @param thickness Thickness of the line
 */
-void Graphics::drawRectangle(Point center, unsigned int width, unsigned int height, Color color)
+void Graphics::drawRectangle(Point center, uint32_t width, uint32_t height, Color color)
 {
     // calculate the start and end Points
     Point start = {center.x - (width / 2), center.y - (height / 2)};
@@ -275,17 +275,17 @@ void Graphics::drawRectangle(Point center, unsigned int width, unsigned int heig
 void Graphics::drawFilledRectangle(Point start, Point end, Color color)
 {
     // convert color to 16 bit
-    unsigned short color16 = color.to16bit();
+    uint16_t color16 = color.to16bit();
 
     // calculate the size of the rectangle
-    unsigned int width = end.x - start.x;
-    unsigned int height = end.y - start.y;
+    uint32_t width = end.x - start.x;
+    uint32_t height = end.y - start.y;
 
     // loop through the height
-    for (int i = 0; i < height; i++)
+    for (int32_t i = 0; i < height; i++)
     {
         // loop through the width
-        for (int j = 0; j < width; j++)
+        for (int32_t j = 0; j < width; j++)
         {
             // write the pixel
             this->frameBuffer[(start.x + j) + (start.y + i) * this->config->width] = color16;
@@ -299,7 +299,7 @@ void Graphics::drawPolygon(Point* points, size_t numberOfPoints, Color color)
     if (numberOfPoints < 3) return;
 
     // Draw the lines between the points
-    for (int i = 0; i < numberOfPoints - 1; i++)
+    for (int32_t i = 0; i < numberOfPoints - 1; i++)
 		// Draw the line
 		this->drawLine(points[i], points[i + 1], color);
 
@@ -313,16 +313,16 @@ void Graphics::drawFilledPolygon(Point* points, size_t numberOfPoints, Color col
     if (numberOfPoints < 3) return;
 
     // Set the min and max values to the absolute max and min
-    int minX = 0xffffffff;
-    int maxX = 0;
-    int minY = 0xffffffff;
-    int maxY = 0;
+    int32_t minX = 0xffffffff;
+    int32_t maxX = 0;
+    int32_t minY = 0xffffffff;
+    int32_t maxY = 0;
 
-    // Get the unsigned short version of the color
-    unsigned short color16 = color.to16bit();
+    // Get the uint16_t version of the color
+    uint16_t color16 = color.to16bit();
 
     // Calculate the bounding box of the polygon by first finding the min and max x and y values
-    for (int i = 0; i < numberOfPoints; i++)
+    for (int32_t i = 0; i < numberOfPoints; i++)
     {
         // Check if the x value is less than the min x value
         if(points[i].x < minX) minX = points[i].x;
@@ -335,22 +335,22 @@ void Graphics::drawFilledPolygon(Point* points, size_t numberOfPoints, Color col
     }
 
     // Implement a scanline algorithm to fill in the polygon
-    for (int y = minY; y <= maxY; y++) {
-        int xStart = maxX;
-        int xEnd = minX;
+    for (int32_t y = minY; y <= maxY; y++) {
+        int32_t xStart = maxX;
+        int32_t xEnd = minX;
 
         // Iterate over the edges of the polygon, finding intersections with the scanline
-        for (int i = 0; i < numberOfPoints; i++) {
-            int nextIndex = i + 1;
+        for (int32_t i = 0; i < numberOfPoints; i++) {
+            int32_t nextIndex = i + 1;
             // Manually handle the wrap-around condition
             if (nextIndex == numberOfPoints) nextIndex = 0;
 
-            int deltaY = points[nextIndex].y - points[i].y;
+            int32_t deltaY = points[nextIndex].y - points[i].y;
             // Check if the scanline intersects with this edge
             if ((points[i].y <= y && points[nextIndex].y > y) || (points[nextIndex].y <= y && points[i].y > y))
             {
                 // Compute the x coordinate of the intersection, avoiding division by zero
-                int x = points[i].x;
+                int32_t x = points[i].x;
                 if (deltaY != 0) {
                     x += (y - points[i].y) * (points[nextIndex].x - points[i].x) / deltaY;
                 }
@@ -360,132 +360,11 @@ void Graphics::drawFilledPolygon(Point* points, size_t numberOfPoints, Color col
         }
 
         // Fill in the pixels between the start and end intersections
-        for (int x = xStart; x < xEnd; x++)
+        for (int32_t x = xStart; x < xEnd; x++)
         {
             // Verify that index is within the bounds of the framebuffer
             this->frameBuffer[x + y * this->config->width] = color16;
         }
-    }
-}
-
-/**
- * @brief Draw a circle on the display
- * @param center Center Point
- * @param radius Radius of the circle
- * @param color Color to draw in
-*/
-void Graphics::drawCircle(Point center, unsigned int radius, Color color)
-{
-    // Uses Bresenham's circle algorithm
-    // https://en.wikipedia.org/wiki/Midpoint_circle_algorithm
-
-    // move Points into local variables
-    int x0 = center.x;
-    int y0 = center.y;
-    int x = radius;
-    int y = 0;
-    int error = 3 - 2 * x;
-
-    // convert the color to 16 bit
-    unsigned short color16 = color.to16bit();
-
-    // loop through the radius
-    while(x >= y)
-    {
-        // draw the pixels in the frame buffer
-        this->frameBuffer[(x0 + x) + (y0 + y) * this->config->width] = color16;
-        this->frameBuffer[(x0 + y) + (y0 + x) * this->config->width] = color16;
-        this->frameBuffer[(x0 - y) + (y0 + x) * this->config->width] = color16;
-        this->frameBuffer[(x0 - x) + (y0 + y) * this->config->width] = color16;
-        this->frameBuffer[(x0 - x) + (y0 - y) * this->config->width] = color16;
-        this->frameBuffer[(x0 - y) + (y0 - x) * this->config->width] = color16;
-        this->frameBuffer[(x0 + y) + (y0 - x) * this->config->width] = color16;
-        this->frameBuffer[(x0 + x) + (y0 - y) * this->config->width] = color16;
-        
-        // if the error is greater than 0
-        if(error > 0)
-        {
-            // decrement the x Point
-            x--;
-            // calculate the error
-            error = error + 4 * (y - x) + 10;
-        }
-        else
-        {
-            // calculate the error
-            error = error + 4 * y + 6;
-        }
-
-        // increment the y Point
-        y++;
-    }
-}
-
-/**
- * @brief Draw a filled circle on the display
- * @param center Center Point
- * @param radius Radius of the circle
- * @param color Color to draw in
-*/
-void Graphics::drawFilledCircle(Point center, unsigned int radius, Color color)
-{
-    // Uses a modified Bresenham's circle algorithm
-    // https://en.wikipedia.org/wiki/Midpoint_circle_algorithm
-
-    // move Points into local variables
-    int x0 = center.x;
-    int y0 = center.y;
-    int x = radius;
-    int y = 0;
-    int error = 3 - 2 * x;
-
-    // convert the color to 16 bit
-    unsigned short color16 = color.to16bit();
-
-    while (y <= x)
-    {
-        for (int i = x0 - x; i <= x0 + x; i++)
-        {
-            int index1 = (y0 + y) * this->config->width + i;
-            int index2 = (y0 - y) * this->config->width + i;
-            
-            if (index1 >= 0 && index1 < this->totalPixels)
-            {
-                this->frameBuffer[index1] = color16;
-            }
-            
-            if (index2 >= 0 && index2 < this->totalPixels)
-            {
-                this->frameBuffer[index2] = color16;
-            }
-        }
-        
-        for (int i = x0 - y; i <= x0 + y; i++)
-        {
-            int index1 = (y0 + x) * this->config->width + i;
-            int index2 = (y0 - x) * this->config->width + i;
-
-            if (index1 >= 0 && index1 < this->totalPixels)
-            {
-                this->frameBuffer[index1] = color16;
-            }
-            
-            if (index2 >= 0 && index2 < this->totalPixels)
-            {
-                this->frameBuffer[index2] = color16;
-            }
-        }
-
-        y++;
-
-        // Update the error
-        if (error > 0) 
-        {
-            x--;
-            error += 4 * (y - x) + 10;
-        }
-        else
-            error += 4 * y + 6;
     }
 }
 
@@ -497,15 +376,15 @@ void Graphics::drawFilledCircle(Point center, unsigned int radius, Color color)
  * @param end_angle End angle of the arc
  * @param color Color to draw in
 */
-void Graphics::drawArc(Point center, unsigned int radius, unsigned int start_angle, unsigned int end_angle, Color color)
+void Graphics::drawArc(Point center, uint32_t radius, uint32_t start_angle, uint32_t end_angle, Color color)
 {
-    unsigned int imageWidth = config->width;
-    unsigned int imageHeight = config->height;
+    uint32_t imageWidth = config->width;
+    uint32_t imageHeight = config->height;
 
 	// Swap angles if start_angle is greater than end_angle
     if (end_angle < start_angle) 
     {
-        unsigned int temp = end_angle;
+        uint32_t temp = end_angle;
         end_angle = start_angle;
         start_angle = temp;
     }
@@ -515,14 +394,14 @@ void Graphics::drawArc(Point center, unsigned int radius, unsigned int start_ang
 	end_angle = imin(end_angle, NUMBER_OF_ANGLES);
 
 	// convert the color to 16 bit
-    unsigned short color16bit = color.to16bit();
+    uint16_t color16bit = color.to16bit();
 
     // loop through the angles
-    for (int angle = start_angle; angle < end_angle; angle++) 
+    for (int32_t angle = start_angle; angle < end_angle; angle++) 
     {
 		// Get the coordinates of the pixel
-        unsigned int x = 0;
-        unsigned int y = 0;
+        int32_t x = 0;
+        int32_t y = 0;
 		pointOnCircle(radius, angle, center.x, center.y, &x, &y);
 
 		// avoid overflowing the buffer
@@ -540,31 +419,31 @@ void Graphics::drawArc(Point center, unsigned int radius, unsigned int start_ang
  * @param endAngle Angle in degrees for both arcs
  * @color Color to draw the arc in
  */
-void Graphics::drawFilledDualArc(Point center, int innerRadius, int outerRadius, int startAngle, int endAngle, Color color)
+void Graphics::drawFilledDualArc(Point center, uint32_t innerRadius, uint32_t outerRadius, uint32_t startAngle, uint32_t endAngle, Color color)
 {
     // Transform angles from [-180, 180] to [0, 360)
     if (startAngle < 0) startAngle += 360;
     if (endAngle < 0) endAngle += 360;
     if (endAngle < startAngle) endAngle += 360;
 
-    unsigned short color16 = color.to16bit();
+    uint16_t color16 = color.to16bit();
 
-    for (int angleLUT = startAngle * 10; angleLUT <= endAngle * 10; angleLUT++)
+    for (int32_t angleLUT = startAngle * 10; angleLUT <= endAngle * 10; angleLUT++)
     {
         // Handle the angle wrap at 3600 manually
-        int wrappedAngleLUT = angleLUT;
+        int32_t wrappedAngleLUT = angleLUT;
         if (wrappedAngleLUT >= 3600) wrappedAngleLUT -= 3600;
 
-        int cosValue = cosTable[wrappedAngleLUT];
-        int sinValue = sinTable[wrappedAngleLUT];
+        int32_t cosValue = cosTable[wrappedAngleLUT];
+        int32_t sinValue = sinTable[wrappedAngleLUT];
 
-        for (int radius = innerRadius; radius <= outerRadius; radius++)
+        for (int32_t radius = innerRadius; radius <= outerRadius; radius++)
         {
-            int x = cosValue * radius;
+            int32_t x = cosValue * radius;
             x >>= FIXED_POINT_SCALE_BITS;
             x += center.x;
 
-            int y = sinValue * radius;
+            int32_t y = sinValue * radius;
             y >>= FIXED_POINT_SCALE_BITS;
             y += center.y;
 
@@ -581,9 +460,9 @@ void Graphics::drawFilledDualArc(Point center, int innerRadius, int outerRadius,
  * @param width Width of the bitmap
  * @param height Height of the bitmap
 */
-void Graphics::drawBitmap(const unsigned char* bitmap, unsigned int width, unsigned int height)
+void Graphics::drawBitmap(const uint8_t* bitmap, uint32_t width, uint32_t height)
 {
-    this->drawBitmap((const unsigned short*)bitmap, width, height);
+    this->drawBitmap((const uint16_t*)bitmap, width, height);
 }
 
 /**
@@ -593,10 +472,10 @@ void Graphics::drawBitmap(const unsigned char* bitmap, unsigned int width, unsig
  * @param width Width of the bitmap
  * @param height Height of the bitmap
 */
-void Graphics::drawBitmap(const unsigned short* bitmap, unsigned int width, unsigned int height)
+void Graphics::drawBitmap(const uint16_t* bitmap, uint32_t width, uint32_t height)
 {
     // write the entire bitmap directly to the framebuffer using the setPixel function
-    for(int i = 0; i < width * height; i++)
+    for(int32_t i = 0; i < width * height; i++)
     {
         // write the pixel
         this->frameBuffer[i] = bitmap[i];
@@ -616,34 +495,34 @@ void Graphics::antiAliasingFilter(void)
     )
 
     // Loop through all the pixels in the framebuffer
-    for (int y = 1; y < (this->config->height - 1); y++)
+    for (int32_t y = 1; y < (this->config->height - 1); y++)
     {
-        for (int x = 1; x < (this->config->width - 1); x++)
+        for (int32_t x = 1; x < (this->config->width - 1); x++)
         {
             // Get the index of the current pixel
-            int pixelIndex = y * this->config->width + x;
+            int32_t pixelIndex = y * this->config->width + x;
 
             // Get the surrounding pixels
-            unsigned short leftPixel = this->frameBuffer[pixelIndex - 1];
-            unsigned short rightPixel = this->frameBuffer[pixelIndex + 1];
-            unsigned short upPixel = this->frameBuffer[pixelIndex - this->config->width];
-            unsigned short downPixel = this->frameBuffer[pixelIndex + this->config->width];            
+            uint16_t leftPixel = this->frameBuffer[pixelIndex - 1];
+            uint16_t rightPixel = this->frameBuffer[pixelIndex + 1];
+            uint16_t upPixel = this->frameBuffer[pixelIndex - this->config->width];
+            uint16_t downPixel = this->frameBuffer[pixelIndex + this->config->width];            
 
             // Calculate the  difference between the left and right pixel and the up and down pixel
-            int horizontalDiff = COLOR_DIFF(leftPixel, rightPixel);
-            int verticalDiff = COLOR_DIFF(upPixel, downPixel);
+            int32_t horizontalDiff = COLOR_DIFF(leftPixel, rightPixel);
+            int32_t verticalDiff = COLOR_DIFF(upPixel, downPixel);
 
             // If the difference is large enough, average the colors
             if (horizontalDiff > 16 && verticalDiff > 16)
             {
                 // Get the sum of the colors
-                int sumR = ((leftPixel & 0xF800) + (rightPixel & 0xF800) + (upPixel & 0xF800) + (downPixel & 0xF800)) >> 8;
-                int sumG = ((leftPixel & 0x07E0) + (rightPixel & 0x07E0) + (upPixel & 0x07E0) + (downPixel & 0x07E0)) >> 3;
-                int sumB = ((leftPixel & 0x001F) + (rightPixel & 0x001F) + (upPixel & 0x001F) + (downPixel & 0x001F)) << 3;
+                int32_t sumR = ((leftPixel & 0xF800) + (rightPixel & 0xF800) + (upPixel & 0xF800) + (downPixel & 0xF800)) >> 8;
+                int32_t sumG = ((leftPixel & 0x07E0) + (rightPixel & 0x07E0) + (upPixel & 0x07E0) + (downPixel & 0x07E0)) >> 3;
+                int32_t sumB = ((leftPixel & 0x001F) + (rightPixel & 0x001F) + (upPixel & 0x001F) + (downPixel & 0x001F)) << 3;
                 // Average the colors
-                unsigned short avgR = (sumR >> 2) & 0xF8;
-                unsigned short avgG = (sumG >> 2) & 0xFC;
-                unsigned short avgB = (sumB >> 2) >> 3;
+                uint16_t avgR = (sumR >> 2) & 0xF8;
+                uint16_t avgG = (sumG >> 2) & 0xFC;
+                uint16_t avgB = (sumB >> 2) >> 3;
                 // Write the averaged color to the framebuffer
                 this->frameBuffer[pixelIndex] = (avgR << 8) | (avgG << 3) | avgB;
             }
@@ -666,23 +545,23 @@ void Graphics::antiAliasingFilter(void)
  * @param alpha Alpha value of the pixel to blend, 0 is transparent, 255 is opaque
  * @note Sets the pixel at the given index to the blended color
  */
-void Graphics::setPixelBlend(int x, int y, unsigned short color, unsigned char alpha)
+void Graphics::setPixelBlend(uint32_t x, uint32_t y, uint16_t color, uint8_t alpha)
 {
     // Taken from this stackoverflow answer https://stackoverflow.com/questions/72456587/implement-a-function-that-blends-two-colors-encoded-with-rgb565-using-alpha-blen
 
     // Get the buffer index
-    int index = x + y * this->config->width;
+    int32_t index = x + y * this->config->width;
 
     // Reduce the alpha from [0,255] to [0,31] 
     alpha = alpha >> 0x3;
     // Create the inverse alpha value and call it beta
-    unsigned char beta = 0x20 - alpha;
+    uint8_t beta = 0x20 - alpha;
 
     // Get the background color
-    unsigned short background = this->frameBuffer[index];
+    uint16_t background = this->frameBuffer[index];
 
     // Apply the alpha blending formula
-    unsigned short result = (unsigned short)((((alpha * (unsigned int)(color & RB_MASK) + beta * (unsigned int)(background & RB_MASK)) & RB_MUL_MASK)
+    uint16_t result = (uint16_t)((((alpha * (uint32_t)(color & RB_MASK) + beta * (uint32_t)(background & RB_MASK)) & RB_MUL_MASK)
         | ((alpha * (color & G_MASK) + beta * (background & G_MASK)) & G_MUL_MASK)) >> 0x5);
 
     // Apply the blended color to the framebuffer
