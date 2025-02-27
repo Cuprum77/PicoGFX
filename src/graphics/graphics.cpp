@@ -2,11 +2,11 @@
 #include <stdio.h>
 
 /**
- * @brief Construct a new Graphics object
+ * @brief Construct a new graphics object
  * @param frameBuffer Pointer to the frame buffer
  * @param params Display parameters
 */
-Graphics::Graphics(uint16_t* frameBuffer, display_config_t* config)
+graphics::graphics(uint16_t* frameBuffer, display_config_t* config)
 {
     this->frameBuffer = frameBuffer;
     this->config = config;
@@ -15,9 +15,9 @@ Graphics::Graphics(uint16_t* frameBuffer, display_config_t* config)
 
 /**
  * @brief Fill the display with a color
- * @param color Color to fill with
+ * @param color color to fill with
 */
-void Graphics::fill(Color color)
+void graphics::fill(color color)
 {
     // convert color to 16 bit
     uint16_t color16 = color.to16bit();
@@ -28,11 +28,11 @@ void Graphics::fill(Color color)
 
 /**
  * @brief Draw a line on the display
- * @param start Start Point
- * @param end End Point
- * @param color Color to draw in
+ * @param start Start point
+ * @param end End point
+ * @param color color to draw in
 */
-void Graphics::drawLine(Point start, Point end, Color color)
+void graphics::drawLine(point start, point end, color color)
 {
     // Uses an optimized Bresenham's line algorithm
     // http://members.chello.at/~easyfilter/bresenham.html
@@ -64,11 +64,11 @@ void Graphics::drawLine(Point start, Point end, Color color)
 
 /**
  * @brief Draw a line on the display with anti-aliasing
- * @param start Start Point
- * @param end End Point
- * @param color Color to draw in
+ * @param start Start point
+ * @param end End point
+ * @param color color to draw in
 */
-void Graphics::drawLineAntiAliased(Point start, Point end, Color color)
+void graphics::drawLineAntiAliased(point start, point end, color color)
 {
     // Uses an optimized Bresenham's line algorithm
     // http://members.chello.at/~easyfilter/bresenham.html
@@ -135,12 +135,12 @@ void Graphics::drawLineAntiAliased(Point start, Point end, Color color)
 
 /**
  * @brief Draw a thick line on the display with anti-aliasing
- * @param start Start Point
- * @param end End Point
+ * @param start Start point
+ * @param end End point
  * @param thickness Thickness of the line, value must be greater than 1
- * @param color Color to draw in
+ * @param color color to draw in
 */
-void Graphics::drawLineThickAntiAliased(Point start, Point end, uint32_t thickness, Color color)
+void graphics::drawLineThickAntiAliased(point start, point end, uint32_t thickness, color color)
 {
     // Uses an optimized Bresenham's line algorithm
     // http://members.chello.at/~easyfilter/bresenham.html
@@ -162,9 +162,9 @@ void Graphics::drawLineThickAntiAliased(Point start, Point end, uint32_t thickne
  * @param p1 First point
  * @param p2 Second point
  * @param p3 Third point
- * @param color Color to draw in
+ * @param color color to draw in
 */
-void Graphics::drawTriangle(Point p1, Point p2, Point p3, Color color)
+void graphics::drawTriangle(point p1, point p2, point p3, color color)
 {
 	// Draw the three lines of the triangle
 	this->drawLine(p1, p2, color);
@@ -177,9 +177,9 @@ void Graphics::drawTriangle(Point p1, Point p2, Point p3, Color color)
  * @param p1 First point
  * @param p2 Second point
  * @param p3 Third point
- * @param color Color to draw in
+ * @param color color to draw in
 */
-void Graphics::drawFilledTriangle(Point p1, Point p2, Point p3, Color color)
+void graphics::drawFilledTriangle(point p1, point p2, point p3, color color)
 {
     // calculate the bounding box of the triangle
     int32_t minX = imin(imin(p1.x, p2.x), p3.x);
@@ -222,12 +222,12 @@ void Graphics::drawFilledTriangle(Point p1, Point p2, Point p3, Color color)
 
 /**
  * @brief Draw a rectangle on the display
- * @param start Start Point
- * @param end End Point
- * @param color Color to draw in
+ * @param start Start point
+ * @param end End point
+ * @param color color to draw in
  * @param thickness Thickness of the line
 */
-void Graphics::drawRectangle(Point start, Point end, Color color)
+void graphics::drawRectangle(point start, point end, color color)
 {
     // draw the rectangle
     this->drawLine({start.x, start.y}, {end.x, start.y}, color);
@@ -239,10 +239,10 @@ void Graphics::drawRectangle(Point start, Point end, Color color)
 /**
  * @brief Draw a rectangle on the display
  * @param rect Rectangle to draw
- * @param color Color to draw in
+ * @param color color to draw in
  * @param thickness Thickness of the line
 */
-void Graphics::drawRectangle(Rect rect, Color color)
+void graphics::drawRectangle(rect rect, color color)
 {
     // draw the rectangle
     this->drawRectangle(rect.X(), rect.Y(), color);
@@ -250,17 +250,17 @@ void Graphics::drawRectangle(Rect rect, Color color)
 
 /**
  * @brief Draw a center aligned rectangle on the display
- * @param center Center Point
+ * @param center Center point
  * @param width Width of the rectangle
  * @param height Height of the rectangle
- * @param color Color to draw in
+ * @param color color to draw in
  * @param thickness Thickness of the line
 */
-void Graphics::drawRectangle(Point center, uint32_t width, uint32_t height, Color color)
+void graphics::drawRectangle(point center, uint32_t width, uint32_t height, color color)
 {
     // calculate the start and end Points
-    Point start = {center.x - (width / 2), center.y - (height / 2)};
-    Point end = {center.x + (width / 2), center.y + (height / 2)};
+    point start = {center.x - (width / 2), center.y - (height / 2)};
+    point end = {center.x + (width / 2), center.y + (height / 2)};
 
     // draw the rectangle
     this->drawRectangle(start, end, color);
@@ -268,11 +268,11 @@ void Graphics::drawRectangle(Point center, uint32_t width, uint32_t height, Colo
 
 /**
  * @brief Draw a filled rectangle on the display
- * @param start Start Point
- * @param end End Point
- * @param color Color to draw in
+ * @param start Start point
+ * @param end End point
+ * @param color color to draw in
 */
-void Graphics::drawFilledRectangle(Point start, Point end, Color color)
+void graphics::drawFilledRectangle(point start, point end, color color)
 {
     // convert color to 16 bit
     uint16_t color16 = color.to16bit();
@@ -293,7 +293,7 @@ void Graphics::drawFilledRectangle(Point start, Point end, Color color)
     }
 }
 
-void Graphics::drawPolygon(Point* points, size_t numberOfPoints, Color color)
+void graphics::drawPolygon(point* points, size_t numberOfPoints, color color)
 {
     // Make sure theres at least 3 points
     if (numberOfPoints < 3) return;
@@ -307,7 +307,7 @@ void Graphics::drawPolygon(Point* points, size_t numberOfPoints, Color color)
 	this->drawLine(points[numberOfPoints - 1], points[0], color);
 }
 
-void Graphics::drawFilledPolygon(Point* points, size_t numberOfPoints, Color color)
+void graphics::drawFilledPolygon(point* points, size_t numberOfPoints, color color)
 {
     // Make sure theres at least 3 points
     if (numberOfPoints < 3) return;
@@ -374,9 +374,9 @@ void Graphics::drawFilledPolygon(Point* points, size_t numberOfPoints, Color col
  * @param radius Radius of the arc
  * @param start_angle Start angle of the arc
  * @param end_angle End angle of the arc
- * @param color Color to draw in
+ * @param color color to draw in
 */
-void Graphics::drawArc(Point center, uint32_t radius, uint32_t start_angle, uint32_t end_angle, Color color)
+void graphics::drawArc(point center, uint32_t radius, uint32_t start_angle, uint32_t end_angle, color color)
 {
     uint32_t imageWidth = config->width;
     uint32_t imageHeight = config->height;
@@ -417,9 +417,9 @@ void Graphics::drawArc(Point center, uint32_t radius, uint32_t start_angle, uint
  * @param outerRadius Radius for the outer most arc
  * @param startAngle Angle in degrees for both arcs
  * @param endAngle Angle in degrees for both arcs
- * @color Color to draw the arc in
+ * @color color to draw the arc in
  */
-void Graphics::drawFilledDualArc(Point center, uint32_t innerRadius, uint32_t outerRadius, uint32_t startAngle, uint32_t endAngle, Color color)
+void graphics::drawFilledDualArc(point center, uint32_t innerRadius, uint32_t outerRadius, uint32_t startAngle, uint32_t endAngle, color color)
 {
     // Transform angles from [-180, 180] to [0, 360)
     if (startAngle < 0) startAngle += 360;
@@ -460,7 +460,7 @@ void Graphics::drawFilledDualArc(Point center, uint32_t innerRadius, uint32_t ou
  * @param width Width of the bitmap
  * @param height Height of the bitmap
 */
-void Graphics::drawBitmap(const uint8_t* bitmap, uint32_t width, uint32_t height)
+void graphics::drawBitmap(const uint8_t* bitmap, uint32_t width, uint32_t height)
 {
     this->drawBitmap((const uint16_t*)bitmap, width, height);
 }
@@ -472,7 +472,7 @@ void Graphics::drawBitmap(const uint8_t* bitmap, uint32_t width, uint32_t height
  * @param width Width of the bitmap
  * @param height Height of the bitmap
 */
-void Graphics::drawBitmap(const uint16_t* bitmap, uint32_t width, uint32_t height)
+void graphics::drawBitmap(const uint16_t* bitmap, uint32_t width, uint32_t height)
 {
     // write the entire bitmap directly to the framebuffer using the setPixel function
     for(int32_t i = 0; i < width * height; i++)
@@ -485,7 +485,7 @@ void Graphics::drawBitmap(const uint16_t* bitmap, uint32_t width, uint32_t heigh
 /**
  * @brief Apply a simple blur to the display to combat pixelation
 */
-void Graphics::antiAliasingFilter(void)
+void graphics::antiAliasingFilter(void)
 {
     // Helper function to get the color difference between two pixels
     #define COLOR_DIFF(pixel1, pixel2) ( \
@@ -541,11 +541,11 @@ void Graphics::antiAliasingFilter(void)
  * @brief Helper function to blend the pixel color with the background for anti-aliasing
  * @param x X coordinate of the pixel to blend
  * @param y Y coordinate of the pixel to blend
- * @param color Color of the pixel to blend
+ * @param color color of the pixel to blend
  * @param alpha Alpha value of the pixel to blend, 0 is transparent, 255 is opaque
  * @note Sets the pixel at the given index to the blended color
  */
-void Graphics::setPixelBlend(uint32_t x, uint32_t y, uint16_t color, uint8_t alpha)
+void graphics::setPixelBlend(uint32_t x, uint32_t y, uint16_t color, uint8_t alpha)
 {
     // Taken from this stackoverflow answer https://stackoverflow.com/questions/72456587/implement-a-function-that-blends-two-colors-encoded-with-rgb565-using-alpha-blen
 

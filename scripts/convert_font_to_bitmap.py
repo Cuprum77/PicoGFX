@@ -163,7 +163,7 @@ def Generate_File(font_file, size):
 // Estimated memory usage: {str(size_of_font).replace(",", " ")} bytes
 
 // Font bitmap data
-static const unsigned int {font_name}{size}_bitmap[] = {{
+static const uint32_t {font_name}{size}_bitmap[] = {{
     """
         f.write(header)
 
@@ -234,26 +234,28 @@ def Generate_Header():
     with open(os.path.abspath(output_dir) + '/' + "fontstruct.h", "w") as f:
         header = f"""#pragma once
 
+#include <stdint.h>
+
 // Estimated total memory usage: {total_memory_usage} bytes
 
 // Struct for storing the location of the bitmap in memory
 // Offset is the number of pixels from the upper left corner
 typedef struct {{
-    unsigned int pointer;
-    unsigned int length;
-    unsigned char width;
-    unsigned char height;
-    signed char xOffset;
-    signed char yOffset;
+    uint32_t pointer;
+    uint32_t length;
+    uint8_t width;
+    uint8_t height;
+    int8_t xOffset;
+    int8_t yOffset;
 }} FontCharacter;
 
 
 // Struct for storing the font data
 typedef struct {{
-    const unsigned int *bitmap;
+    const uint32_t *bitmap;
     const FontCharacter *characters;
-    unsigned int size;
-    unsigned int newLineDistance;
+    uint32_t size;
+    uint32_t newLineDistance;
 }} FontStruct;
 """
         f.write(header)

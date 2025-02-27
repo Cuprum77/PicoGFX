@@ -11,16 +11,16 @@
 
 #define FRAMEBUFFER_SIZE MAX_WIDTH * MAX_HEIGHT
 
-class ST7789 : public Display
+class st7789 : public display
 {
 public:
-    ST7789(hardware_driver* spi, display_config_t* config) : 
-        Display(spi, config, this->framebuffer, COMMAND_CASET, COMMAND_RASET, COMMAND_RAMWR) {} // Constructor
+    st7789(hardware_driver* spi, display_config_t* config) : 
+        display(spi, config, this->framebuffer, COMMAND_CASET, COMMAND_RASET, COMMAND_RAMWR) {} // Constructor
     void init();
 
     void setRotation(display_rotation_t rotation);
     void setDisplayState(bool on);
 
 private:
-    unsigned short framebuffer[FRAMEBUFFER_SIZE];
+    uint16_t framebuffer[FRAMEBUFFER_SIZE];
 };

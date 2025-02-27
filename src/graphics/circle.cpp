@@ -2,11 +2,11 @@
 
 /**
  * @brief Draw a circle on the display
- * @param center Center Point
+ * @param center Center point
  * @param radius Radius of the circle
- * @param color Color to draw in
+ * @param color color to draw in
 */
-void Graphics::drawCircle(Point center, uint32_t radius, Color color, uint32_t thickness)
+void graphics::drawCircle(point center, uint32_t radius, color color, uint32_t thickness)
 {
     if (thickness == 0 || thickness == 1)
         this->drawCircle1(center, radius, color);
@@ -16,11 +16,11 @@ void Graphics::drawCircle(Point center, uint32_t radius, Color color, uint32_t t
 
 /**
  * @brief Draw a filled circle on the display
- * @param center Center Point
+ * @param center Center point
  * @param radius Radius of the circle
- * @param color Color to draw in
+ * @param color color to draw in
 */
-void Graphics::drawFilledCircle(Point center, uint32_t radius, Color color)
+void graphics::drawFilledCircle(point center, uint32_t radius, color color)
 {
     // Uses a modified Bresenham's circle algorithm
     // https://en.wikipedia.org/wiki/Midpoint_circle_algorithm
@@ -84,13 +84,13 @@ void Graphics::drawFilledCircle(Point center, uint32_t radius, Color color)
 
 /**
  * @brief Draw a filled circle with a stroke on the display
- * @param center Center Point
+ * @param center Center point
  * @param radius Radius of the circle
- * @param fillColor Color to fill in
- * @param strokeColor Color of the stroke
+ * @param fillColor color to fill in
+ * @param strokeColor color of the stroke
  * @param strokeThickness Thickness of the stroke
  */
-void Graphics::drawFilledCircleWithStroke(Point center, uint32_t radius, Color fillColor, Color strokeColor, uint32_t strokeThickness)
+void graphics::drawFilledCircleWithStroke(point center, uint32_t radius, color fillColor, color strokeColor, uint32_t strokeThickness)
 {
     this->drawFilledCircle(center, radius, fillColor);
     this->drawCircle(center, radius, strokeColor, strokeThickness);
@@ -99,11 +99,11 @@ void Graphics::drawFilledCircleWithStroke(Point center, uint32_t radius, Color f
 /**
  * @private
  * @brief Function to draw the circle using the Bresenham's circle algorithm
- * @param center Center Point
+ * @param center Center point
  * @param radius Radius of the circle
- * @param color Color to draw in
+ * @param color color to draw in
  */
-void Graphics::drawCircle1(Point center, uint32_t radius, Color color)
+void graphics::drawCircle1(point center, uint32_t radius, color color)
 {
     // move Points into local variables
     uint32_t x0 = center.x;
@@ -131,7 +131,7 @@ void Graphics::drawCircle1(Point center, uint32_t radius, Color color)
         // if the error is greater than 0
         if(error > 0)
         {
-            // decrement the x Point
+            // decrement the x point
             x--;
             // calculate the error
             error = error + 4 * (y - x) + 10;
@@ -142,7 +142,7 @@ void Graphics::drawCircle1(Point center, uint32_t radius, Color color)
             error = error + 4 * y + 6;
         }
 
-        // increment the y Point
+        // increment the y point
         y++;
     }
 }
@@ -150,12 +150,12 @@ void Graphics::drawCircle1(Point center, uint32_t radius, Color color)
 /**
  * @private
  * @brief Function to draw the circle using a modified Bresenham's circle algorithm
- * @param center Center Point
+ * @param center Center point
  * @param radius Radius of the circle
- * @param color Color to draw in
+ * @param color color to draw in
  * @param thickness Thickness of the circle
  */
-void Graphics::drawCircle2(Point center, uint32_t radius, Color color, uint32_t thickness)
+void graphics::drawCircle2(point center, uint32_t radius, color color, uint32_t thickness)
 {
     uint32_t thickness_mod = thickness >> 1;
     uint32_t x_outer = radius + thickness_mod;
@@ -215,9 +215,9 @@ void Graphics::drawCircle2(Point center, uint32_t radius, Color color, uint32_t 
  * @param x1 Start x coordinate
  * @param x2 End x coordinate
  * @param y Y coordinate
- * @param color Color of the line
+ * @param color color of the line
  */
-void Graphics::drawCircleXLine(uint32_t x1, uint32_t x2, uint32_t y, Color color)
+void graphics::drawCircleXLine(uint32_t x1, uint32_t x2, uint32_t y, color color)
 {
     while (x1 <= x2) this->setPixel(x1++, y, color.to16bit());
 }
@@ -228,9 +228,9 @@ void Graphics::drawCircleXLine(uint32_t x1, uint32_t x2, uint32_t y, Color color
  * @param x X coordinate
  * @param y1 Start y coordinate
  * @param y2 End y coordinate
- * @param color Color of the line
+ * @param color color of the line
  */
-void Graphics::drawCircleYLine(uint32_t x, uint32_t y1, uint32_t y2, Color color)
+void graphics::drawCircleYLine(uint32_t x, uint32_t y1, uint32_t y2, color color)
 {
     while (y1 <= y2) this->setPixel(x, y1++, color.to16bit());
 }

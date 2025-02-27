@@ -8,29 +8,29 @@ concept numeric = requires(T t)
     std::is_arithmetic_v<T>; (int)t; 
 };
 
-struct Point
+struct point
 {
     int x;
     int y;
    
     /**
-     * @brief Construct a new empty Point object
+     * @brief Construct a new empty point object
      */
-    Point(): x{0}, y{0} {}
+    point(): x{0}, y{0} {}
 
     /**
-     * @brief Construct a new Point object
+     * @brief Construct a new point object
      * @param x X coordinate of the point
      * @param y Y coordinate of the point
      */
-    Point(numeric auto x, numeric auto y): x{(int)x}, y{(int)y} {}
+    point(numeric auto x, numeric auto y): x{(int)x}, y{(int)y} {}
 
     /**
      * @brief Calculate the distance between two points
      * @param other The other point
      * @return unsigned int The distance between the two points
     */
-    unsigned int Distance(Point other)
+    unsigned int Distance(point other)
     {
         return isqrt(ipow(this->x - other.x, 2) + ipow(this->y - other.y, 2));
     }
@@ -39,9 +39,9 @@ struct Point
      * @brief Get a point on a circle
      * @param radius Radius of the circle
      * @param angle Angle of the point on the circle, in degrees
-     * @return Point The point on the circle
+     * @return point The point on the circle
     */
-    Point getPointOnCircle(int radius, int angle)
+    point getPointOnCircle(int radius, int angle)
     {
         // Clamp the angle between 0 and 360
         while (angle < 0) angle += 360;
@@ -58,45 +58,45 @@ struct Point
         y += this->y;
 
         // Return the point
-        return Point(x, y);
+        return point(x, y);
     }
 
-    bool operator==(const Point& other)
+    bool operator==(const point& other)
     {
         return this->x == other.x && this->y == other.y;
     }
 
-    bool operator!=(const Point& other)
+    bool operator!=(const point& other)
     {
         return !(*this == other);
     }
 
-    Point operator+(const Point& other)
+    point operator+(const point& other)
     {
-        return Point(this->x + other.x, this->y + other.y);
+        return point(this->x + other.x, this->y + other.y);
     }
 
-    Point operator-(const Point& other)
+    point operator-(const point& other)
     {
-        return Point(this->x - other.x, this->y - other.y);
+        return point(this->x - other.x, this->y - other.y);
     }
 
-    Point operator*(const Point& other)
+    point operator*(const point& other)
     {
-        return Point(this->x * other.x, this->y * other.y);
+        return point(this->x * other.x, this->y * other.y);
     }
 
-    Point operator/(const Point& other)
+    point operator/(const point& other)
     {
-        return Point(this->x / other.x, this->y / other.y);
+        return point(this->x / other.x, this->y / other.y);
     }
 };
 
-struct Rect
+struct rect
 {
 private:
-    Point x;
-    Point y;
+    point x;
+    point y;
 
     unsigned int width;
     unsigned int height;
@@ -108,12 +108,12 @@ private:
 
 public:
     /**
-     * @brief Construct a new empty Rect object
+     * @brief Construct a new empty rect object
     */
-    Rect()
+    rect()
     {
-        this->x = Point();
-        this->y = Point();
+        this->x = point();
+        this->y = point();
         this->width = 0;
         this->height = 0;
         this->bottom = 0;
@@ -123,16 +123,16 @@ public:
     }
 
     /**
-     * @brief Construct a new Rect object
-     * @param corner1 Upper left corner of the Rect
-     * @param corner2 Lower right corner of the Rect
+     * @brief Construct a new rect object
+     * @param corner1 Upper left corner of the rect
+     * @param corner2 Lower right corner of the rect
     */
-    Rect(Point corner1, Point corner2)
+    rect(point corner1, point corner2)
     {
-        // Set the corners of the Rect
-        this->x = Point(corner1.x, corner2.y);
-        this->y = Point(corner2.x, corner1.y);
-        // Set the other variables of the Rect
+        // Set the corners of the rect
+        this->x = point(corner1.x, corner2.y);
+        this->y = point(corner2.x, corner1.y);
+        // Set the other variables of the rect
         this->width = corner2.x - corner1.x;
         this->height = corner2.y - corner1.y;
         this->bottom = this->y.y;
@@ -142,18 +142,18 @@ public:
     }
 
     /**
-     * @brief Construct a new Rect object
-     * @param center Center of the Rect
-     * @param width Width of the Rect
-     * @param height Height of the Rect
-     * @note The Rect is constructed with the center as the center of the Rect
+     * @brief Construct a new rect object
+     * @param center Center of the rect
+     * @param width Width of the rect
+     * @param height Height of the rect
+     * @note The rect is constructed with the center as the center of the rect
     */
-    Rect(Point center, unsigned int width, unsigned int height)
+    rect(point center, unsigned int width, unsigned int height)
     {
-        // Calculate the corners of the Rect
-        this->x = Point(center.x - (width / 2), center.y - (height / 2));
-        this->y = Point(center.x + (width / 2), center.y + (height / 2));
-        // Set the other variables of the Rect
+        // Calculate the corners of the rect
+        this->x = point(center.x - (width / 2), center.y - (height / 2));
+        this->y = point(center.x + (width / 2), center.y + (height / 2));
+        // Set the other variables of the rect
         this->width = width;
         this->height = height;
         this->bottom = this->y.y;
@@ -163,37 +163,37 @@ public:
     }
 
     /**
-     * @brief Get the center of the Rect
-     * @return Point
+     * @brief Get the center of the rect
+     * @return point
     */
-    Point GetCenter()
+    point GetCenter()
     {
-        return Point(
+        return point(
             (x.x + y.x) / 2,
             (x.y + y.y) / 2
         );
     }
 
     /**
-     * @brief Get the first corner of the Rect
-     * @return Point
+     * @brief Get the first corner of the rect
+     * @return point
     */
-    Point X()
+    point X()
     {
         return x;
     }
 
     /**
-     * @brief Get the second corner of the Rect
-     * @return Point
+     * @brief Get the second corner of the rect
+     * @return point
     */
-    Point Y()
+    point Y()
     {
         return y;
     }
 
     /**
-     * @brief Get the width of the Rect
+     * @brief Get the width of the rect
      * @return unsigned int
     */
     unsigned int Width()
@@ -202,7 +202,7 @@ public:
     }
 
     /**
-     * @brief Get the height of the Rect
+     * @brief Get the height of the rect
      * @return unsigned int
     */
     unsigned int Height()
@@ -211,8 +211,8 @@ public:
     }
 
     /**
-     * @brief Get the bottom of the Rect
-     * @return unsigned int that is the Y coordinate of the bottom of the Rect
+     * @brief Get the bottom of the rect
+     * @return unsigned int that is the Y coordinate of the bottom of the rect
     */
     unsigned int Bottom()
     {
@@ -220,8 +220,8 @@ public:
     }
 
     /**
-     * @brief Get the left of the Rect
-     * @return unsigned int that is the X coordinate of the left of the Rect
+     * @brief Get the left of the rect
+     * @return unsigned int that is the X coordinate of the left of the rect
     */
     unsigned int Left()
     {
@@ -229,8 +229,8 @@ public:
     }
 
     /**
-     * @brief Get the right of the Rect
-     * @return unsigned int that is the X coordinate of the right of the Rect
+     * @brief Get the right of the rect
+     * @return unsigned int that is the X coordinate of the right of the rect
     */
     unsigned int Right()
     {
@@ -238,8 +238,8 @@ public:
     }
 
     /**
-     * @brief Get the top of the Rect
-     * @return unsigned int that is the Y coordinate of the top of the Rect
+     * @brief Get the top of the rect
+     * @return unsigned int that is the Y coordinate of the top of the rect
     */
     unsigned int Top()
     {
@@ -247,9 +247,9 @@ public:
     }
 };
 
-inline void swap(Point& a, Point& b)
+inline void swap(point& a, point& b)
 {
-	Point temp = a;
+	point temp = a;
 	a = b;
 	b = temp;
 }

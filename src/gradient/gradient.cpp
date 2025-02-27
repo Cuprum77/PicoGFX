@@ -2,14 +2,14 @@
 #include <stdio.h>
 
 // create a global instance of the lookup tables
-unsigned short colorLUT[MAX_COLOR_DIFF + 1];
+uint16_t colorLUT[MAX_COLOR_DIFF + 1];
 
 /**
  * @brief Construct a new Advanced Graphics object
  * @param frameBuffer Pointer to the frame buffer
  * @param params Display parameters
 */
-Gradient::Gradient(unsigned short* frameBuffer, display_config_t* config)
+gradient::gradient(uint16_t* frameBuffer, display_config_t* config)
 {
     this->frameBuffer = frameBuffer;
     this->config = config;
@@ -19,40 +19,40 @@ Gradient::Gradient(unsigned short* frameBuffer, display_config_t* config)
 
 /**
  * @brief Fill the display with a color gradient
- * @param startColor Color to start with
- * @param endColor Color to end with
- * @param start Start Point
- * @param end End Point
+ * @param startColor color to start with
+ * @param endColor color to end with
+ * @param start Start point
+ * @param end End point
  * @note The start and end points are only used to find the direction of the gradient, it will still fill the entire display!
 */
-void Gradient::fillGradient(Color startColor, Color endColor, Point start, Point end)
+void gradient::fillGradient(color startColor, color endColor, point start, point end)
 {
     // check if the start and end Points are the same
     if(start == end)
     {
-        unsigned short startColor16 = startColor.to16bit();
-        for(int i = 0; i < this->totalPixels; i++)
+        uint16_t startColor16 = startColor.to16bit();
+        for(int32_t i = 0; i < this->totalPixels; i++)
             this->frameBuffer[i] = startColor16;
 
         return;
     }
 
     // calculate the direction of the gradient
-    int deltaX = end.x - start.x;
-    int deltaY = end.y - start.y;
-    int magnitudeSquared = (deltaX * deltaX + deltaY * deltaY);
+    int32_t deltaX = end.x - start.x;
+    int32_t deltaY = end.y - start.y;
+    int32_t magnitudeSquared = (deltaX * deltaX + deltaY * deltaY);
 
     // find the maximum difference between the color components
-    int dr = iabs(endColor.r - startColor.r);
-    int dg = iabs(endColor.g - startColor.g);
-    int db = iabs(endColor.b - startColor.b);
-    int maxDiff = imax(dr, imax(dg, db));
+    int32_t dr = iabs(endColor.r - startColor.r);
+    int32_t dg = iabs(endColor.g - startColor.g);
+    int32_t db = iabs(endColor.b - startColor.b);
+    int32_t maxDiff = imax(dr, imax(dg, db));
 
     // create the lookup tables based on the maximum difference
-    unsigned int numPositions = maxDiff + 1;
+    uint32_t numPositions = maxDiff + 1;
 
     // loop through each position in the gradient
-    for(int i = 0; i < numPositions; i++)
+    for(int32_t i = 0; i < numPositions; i++)
     {
         // interpolate the color components based on the position and add them to the lookup tables
         unsigned char r = (((endColor.r - startColor.r) * i) / maxDiff + startColor.r) & 0x1f;
@@ -62,21 +62,21 @@ void Gradient::fillGradient(Color startColor, Color endColor, Point start, Point
     }
 
     // precalculate the divisor
-    int magnitudeInverse = (FIXED_POINT_SCALE_HIGH_RES + (magnitudeSquared / 2)) / magnitudeSquared;
+    int32_t magnitudeInverse = (FIXED_POINT_SCALE_HIGH_RES + (magnitudeSquared / 2)) / magnitudeSquared;
 
     // loop through each pixel in the buffer
-    for(int x = 0; x < this->config->width; x++)
+    for(int32_t x = 0; x < this->config->width; x++)
     {
-        for (int y = 0; y < this->config->height; y++)
+        for (int32_t y = 0; y < this->config->height; y++)
         {
             // calculate the vector from the start to the current pixel
-            int vectorX = x - start.x;
-            int vectorY = y - start.y;
+            int32_t vectorX = x - start.x;
+            int32_t vectorY = y - start.y;
 
             // calculate the distance along the gradient direction
-            int dotProduct = (vectorX * deltaX + vectorY * deltaY);
-            //int position = (dotProduct * maxDiff) / magnitudeSquared;
-            int position = ((dotProduct * maxDiff) * magnitudeInverse);
+            int32_t dotProduct = (vectorX * deltaX + vectorY * deltaY);
+            //int32_t position = (dotProduct * maxDiff) / magnitudeSquared;
+            int32_t position = ((dotProduct * maxDiff) * magnitudeInverse);
             position >>= FIXED_POINT_SCALE_HIGH_RES_BITS;
 
             // clamp the position within the valid range
@@ -96,19 +96,19 @@ void Gradient::fillGradient(Color startColor, Color endColor, Point start, Point
  * @param start The color to start the gradient with
  * @param end The color to end the gradient with
 */
-void Gradient::drawRotCircleGradient(Point center, int radius, int rotationSpeed, Color start, Color end)
+void gradient::drawRotCircleGradient(point center, int32_t radius, int32_t rotationSpeed, color start, color end)
 {
     this->theta += rotationSpeed;
     this->theta = this->theta % NUMBER_OF_ANGLES;
 
-    int cosTheta = cosTable[theta];
-    int sinTheta = sinTable[theta];
+    int32_t cosTheta = cosTable[theta];
+    int32_t sinTheta = sinTable[theta];
 
-    Point rotGradStart = Point(
+    point rotGradStart = point(
         center.x - (radius * cosTheta) / FIXED_POINT_SCALE,
         center.y - (radius * sinTheta) / FIXED_POINT_SCALE
     );
-    Point rotGradEnd = Point(
+    point rotGradEnd = point(
         center.x + (radius * cosTheta) / FIXED_POINT_SCALE,
         center.y + (radius * sinTheta) / FIXED_POINT_SCALE
     );
@@ -125,36 +125,36 @@ void Gradient::drawRotCircleGradient(Point center, int radius, int rotationSpeed
  * @param start The color to start the gradient with
  * @param end The color to end the gradient with
 */
-void Gradient::drawRotRectGradient(Point center, int width, int height, int rotationSpeed, Color start, Color end)
+void gradient::drawRotRectGradient(point center, int32_t width, int32_t height, int32_t rotationSpeed, color start, color end)
 {
     this->theta += rotationSpeed;
     this->theta = this->theta % NUMBER_OF_ANGLES;
-    Point rotGradStart, rotGradEnd;
+    point rotGradStart, rotGradEnd;
 
     // follow the quadrants of the unit circle
     if(this->theta < this->firstQuadrant)
-        rotGradStart = Point(
+        rotGradStart = point(
             center.x + (width >> 1),
             center.y - (height >> 1) + (this->theta * height / this->firstQuadrant)
         );
     else if(this->theta < this->secondQuadrant)
-        rotGradStart = Point(
+        rotGradStart = point(
             center.x + (width >> 1) - ((this->theta - this->firstQuadrant) * width / this->firstQuadrant),
             center.y + (height >> 1)
         );
     else if(this->theta < this->thirdQuadrant)
-        rotGradStart = Point(
+        rotGradStart = point(
             center.x - (width >> 1),
             center.y + (height >> 1) - ((this->theta - this->secondQuadrant) * height / this->firstQuadrant)
         );
     else
-        rotGradStart = Point(
+        rotGradStart = point(
             center.x - (width >> 1) + ((this->theta - this->thirdQuadrant) * width / this->firstQuadrant),
             center.y - (height >> 1)
         );
 
     // create the end point by making the start point the opposite corner
-    rotGradEnd = Point(
+    rotGradEnd = point(
         center.x - (rotGradStart.x - center.x),
         center.y - (rotGradStart.y - center.y)
     );

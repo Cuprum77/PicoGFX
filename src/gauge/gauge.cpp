@@ -10,17 +10,17 @@
  * @param minValue Minimum value of the dial
  * @param maxValue Maximum value of the dial
  * @param initValue Initial value of the dial
- * @param valueColors Colors to use for the dial
+ * @param valueColors colors to use for the dial
  * @param numberOfValueColors Number of colors to use for the dial
  * @param type Type of dial to draw
  * @param angle Dial angle, represents how much of a circle the dial should be. Default is 230 degrees
  * @note The dial will be drawn on the frame buffer
 */
-DialGauge::DialGauge(Graphics* graphics, int screenWidth, int screenHeight, Point center, int radius,
-	int minValue, int maxValue,Color* valueColors, size_t numberOfValueColors, DialGaugeType_t type, int angle)
+dialGauge::dialGauge(graphics* graphics_ptr, int screenWidth, int screenHeight, point center, int radius,
+	int minValue, int maxValue, color* valueColors, size_t numberOfValueColors, dialGaugeType_t type, int angle)
 {
 	// Copy the display parameters to the object
-	this->graphics = graphics;
+	this->graphics_ptr = graphics_ptr;
 	this->width = screenWidth;
 	this->height = screenHeight;
 	this->totalPixels = (size_t)(screenWidth) * (size_t)(screenHeight);
@@ -39,18 +39,18 @@ DialGauge::DialGauge(Graphics* graphics, int screenWidth, int screenHeight, Poin
 
 /**
  * @brief Set the color of the needle
- * @param value Color to set the needle to
+ * @param value color to set the needle to
  */
-void DialGauge::setNeedleColor(Color value)
+void dialGauge::setNeedleColor(color value)
 {
 	this->needleColor = value;
 }
 
 /**
  * @brief Set the background color of the dial
- * @param value Color to set the background to
+ * @param value color to set the background to
  */
-void DialGauge::attachBackgroundColor(Color value)
+void dialGauge::attachBackgroundColor(color value)
 {
 	if (this->hasBackground) return;
 	this->background = value;
@@ -61,9 +61,9 @@ void DialGauge::attachBackgroundColor(Color value)
  * @brief Draw a line across the dial gauge to indicate stops/starts/set points etc
  * @param value Value to draw the line at
  * @param width Width of the line
- * @param color Color to draw the line in
+ * @param color color to draw the line in
  */
-void DialGauge::drawLine(int value, int width, Color color)
+void dialGauge::drawLine(int value, int width, color color)
 {
 	// Make sure the thickness is above 0 
 	if (width <= 0) width = 1;
@@ -75,30 +75,30 @@ void DialGauge::drawLine(int value, int width, Color color)
 	// Offset the angle by 90 degrees
 	angle -= 90;
 	// Calculate the start and end points of the line by finding the point on the circle
-	Point start = this->center;
+	point start = this->center;
 	start = start.getPointOnCircle(this->innerRadius, angle);
-	Point end = this->center;
+	point end = this->center;
 	end = end.getPointOnCircle(this->radius, angle);
 	// Draw the line
-	this->graphics->drawLineAntiAliased(start, end, color);
+	this->graphics_ptr->drawLineAntiAliased(start, end, color);
 }
 
 /**
  * @brief Update the dial value
  * @param value New value to set the dial to
  */
-void DialGauge::update(int value)
+void dialGauge::update(int value)
 {
 	// Draw the dial
 	switch (this->type)
 	{
-	case DialGaugeType_t::DialSimple:
+	case dialGaugeType_t::DialSimple:
 		// Draw the dial
 		this->drawSimpleDial(value);
 		// Draw the needle
 		this->drawNeedle(value);
 		break;
-	case DialGaugeType_t::DialSimple2:
+	case dialGaugeType_t::DialSimple2:
 		// Draw the dial
 		this->drawSimpleDial2(value);
 		break;
@@ -112,7 +112,7 @@ void DialGauge::update(int value)
  * @brief Draw a needle
  * @param value Value to draw the dial at
  */
-void DialGauge::drawNeedle(int value)
+void dialGauge::drawNeedle(int value)
 {
 	// Calculate the needle radius
 	int needleRadius = (int)(this->radius * 0.05);
@@ -136,16 +136,16 @@ void DialGauge::drawNeedle(int value)
 	int sinValue = this->radius * sinTable[needleAngle];
 	sinValue >>= FIXED_POINT_SCALE_BITS;
 	// Calculate the end point of the needle
-	Point endPoint;
+	point endPoint;
 	endPoint.x = this->center.x + cosValue;
 	endPoint.y = this->center.y + sinValue;
 
 	// Draw the needle
-	this->graphics->drawFilledCircle(this->center, needleRadius, this->needleColor);
+	this->graphics_ptr->drawFilledCircle(this->center, needleRadius, this->needleColor);
 
 	// Draw the needle line as a line if the needleRadius is less than 4 otherwise draw it as a wedge
 	if (needleRadius < 4)
-		this->graphics->drawLine(this->center, endPoint, this->needleColor);
+		this->graphics_ptr->drawLine(this->center, endPoint, this->needleColor);
 	else
 	{
 		// Calculate the angle of the base
@@ -160,18 +160,18 @@ void DialGauge::drawNeedle(int value)
 		x1 >>= FIXED_POINT_SCALE_BITS;
 		int y1 = needleRadius * sinTable[baseAngle1];
 		y1 >>= FIXED_POINT_SCALE_BITS;
-		Point p1 = { center.x + x1, center.y + y1 };
+		point p1 = { center.x + x1, center.y + y1 };
 
 		// Do the same for the other point
 		int x2 = needleRadius * cosTable[baseAngle2];
 		x2 >>= FIXED_POINT_SCALE_BITS;
 		int y2 = needleRadius * sinTable[baseAngle2];
 		y2 >>= FIXED_POINT_SCALE_BITS;
-		Point p2 = { center.x + x2, center.y + y2 };
+		point p2 = { center.x + x2, center.y + y2 };
 
 		// Draw the needle
-		Point points[] = { p1, p2, endPoint };
-		this->graphics->drawFilledPolygon(points, 3, this->needleColor);
+		point points[] = { p1, p2, endPoint };
+		this->graphics_ptr->drawFilledPolygon(points, 3, this->needleColor);
 	}
 }
 
@@ -180,7 +180,7 @@ void DialGauge::drawNeedle(int value)
  * @brief Draw a simple dial
  * @param value Value to draw the dial at
  */
-void DialGauge::drawSimpleDial(int value)
+void dialGauge::drawSimpleDial(int value)
 {
 	// Calculate the inner radius of the dial by multiplying with the golden ratio
 	this->innerRadius = (int)(this->radius * 0.618);
@@ -195,7 +195,7 @@ void DialGauge::drawSimpleDial(int value)
 
 	// Draw the background
 	if(this->hasBackground)
-		this->graphics->drawFilledCircle(this->center, this->radius, this->background);
+		this->graphics_ptr->drawFilledCircle(this->center, this->radius, this->background);
 
 	// Draw the segments
 	int offset = 0;
@@ -224,7 +224,7 @@ void DialGauge::drawSimpleDial(int value)
 			}
 		}
 		// Draw the segment
-		this->graphics->drawFilledDualArc(this->center, this->innerRadius, this->radius, angle, angleTarget, this->valueColors[i]);
+		this->graphics_ptr->drawFilledDualArc(this->center, this->innerRadius, this->radius, angle, angleTarget, this->valueColors[i]);
 	}
 }
 
@@ -233,7 +233,7 @@ void DialGauge::drawSimpleDial(int value)
  * @brief Draw a simple dial, with a different style
  * @param value Value to draw the dial at
  */
-void DialGauge::drawSimpleDial2(int value)
+void dialGauge::drawSimpleDial2(int value)
 {
 	// Make the dial's inner radius about 85% of the outer radius
 	this->innerRadius = (int)(this->radius * 0.85);
@@ -260,7 +260,7 @@ void DialGauge::drawSimpleDial2(int value)
 	int angle2End = this->halfAngle - 90;
 
 	// Draw the dual filled arc
-	this->graphics->drawFilledDualArc(this->center, this->innerRadius, this->radius, angle1Start, angle1End, this->valueColors[0]);
-	this->graphics->drawFilledDualArc(this->center, this->innerRadius, this->radius, angle1End, angle2Start, this->valueColors[1]);
-	this->graphics->drawFilledDualArc(this->center, this->innerRadius, this->radius, angle2Start, angle2End, this->valueColors[0]);
+	this->graphics_ptr->drawFilledDualArc(this->center, this->innerRadius, this->radius, angle1Start, angle1End, this->valueColors[0]);
+	this->graphics_ptr->drawFilledDualArc(this->center, this->innerRadius, this->radius, angle1End, angle2Start, this->valueColors[1]);
+	this->graphics_ptr->drawFilledDualArc(this->center, this->innerRadius, this->radius, angle2Start, angle2End, this->valueColors[0]);
 }

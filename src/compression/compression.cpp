@@ -1,9 +1,9 @@
 #include <compression.h>
 
-void compression::addMetadata(stream_metadata_t* metadata, unsigned char* stream)
+void compression::addMetadata(stream_metadata_t* metadata, uint8_t* stream)
 {
 	// create an index to easily move data around if needed
-	int index = 0;
+	int32_t index = 0;
 
 	// Add the metadata to the beginning of the stream
 	stream[index++] = metadata->type;	// add type
@@ -21,10 +21,10 @@ void compression::addMetadata(stream_metadata_t* metadata, unsigned char* stream
 	stream[index++] = metadata->totalBytes & 0xff;
 }
 
-void compression::stripMetadata(stream_metadata_t* metadata, unsigned char* stream)
+void compression::stripMetadata(stream_metadata_t* metadata, uint8_t* stream)
 {
 	// create an index to easily move data around if needed
-	int index = 0;
+	int32_t index = 0;
 
 	// add the type of stream and the rotation
 	metadata->type = stream[index++];

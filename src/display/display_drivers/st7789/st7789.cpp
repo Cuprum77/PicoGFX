@@ -1,6 +1,6 @@
 #include "st7789.hpp"
 
-void ST7789::init()
+void st7789::init()
 {    
     // Apply constants
     this->maxWidth = MAX_WIDTH;
@@ -47,14 +47,14 @@ void ST7789::init()
  * @brief Set the rotation of the display
  * @param rotation Rotation to set
  */
-void ST7789::setRotation(display_rotation_t rotation)
+void st7789::setRotation(display_rotation_t rotation)
 {
 	// save the rotation
     this->config->rotation = rotation;
-    unsigned int width = this->config->width;
-	unsigned int height = this->config->height;
-    unsigned int maxWidth = this->maxWidth;
-    unsigned int maxHeight = this->maxHeight;
+    uint32_t width = this->config->width;
+	uint32_t height = this->config->height;
+    uint32_t maxWidth = this->maxWidth;
+    uint32_t maxHeight = this->maxHeight;
 
 	switch(rotation)
     {
@@ -92,7 +92,7 @@ void ST7789::setRotation(display_rotation_t rotation)
 /**
  * @brief Turn the display on
 */
-void ST7789::setDisplayState(bool on)
+void st7789::setDisplayState(bool on)
 {
     if(on) this->writeData(0x29);
     else this->writeData(0x28);

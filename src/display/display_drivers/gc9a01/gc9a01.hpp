@@ -11,11 +11,11 @@
 
 #define FRAMEBUFFER_SIZE MAX_WIDTH * MAX_HEIGHT
 
-class GC9A01 : public Display
+class gc9a01 : public display
 {
 public:
-    GC9A01(hardware_driver* spi, display_config_t* config) : 
-        Display(spi, config, this->framebuffer, COMMAND_CASET, COMMAND_RASET, COMMAND_RAMWR) {} // Constructor
+    gc9a01(hardware_driver* spi, display_config_t* config) : 
+        display(spi, config, this->framebuffer, COMMAND_CASET, COMMAND_RASET, COMMAND_RAMWR) {} // Constructor
     void init();
     void reset();
     void softReset();
@@ -24,5 +24,5 @@ public:
     void setDisplayState(bool on);
 
 private:
-    unsigned short framebuffer[FRAMEBUFFER_SIZE];
+    uint16_t framebuffer[FRAMEBUFFER_SIZE];
 };

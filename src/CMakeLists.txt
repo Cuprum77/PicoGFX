@@ -18,7 +18,6 @@ add_library(${PROJECT_NAME}
     graphics/circle.cpp
     graphics/gfxmath.c
     hardware_driver/hardware_driver.cpp
-    picogfx/picogfx.cpp
     print/print.cpp
     ext/touch/touch.cpp
     ext/touch/variants/cst816/cst816.cpp
@@ -37,7 +36,7 @@ target_include_directories(${PROJECT_NAME}
     PUBLIC ${PROJECT_SOURCE_DIR}/gradient
     PUBLIC ${PROJECT_SOURCE_DIR}/graphics
     PUBLIC ${PROJECT_SOURCE_DIR}/hardware_driver
-    PUBLIC ${PROJECT_SOURCE_DIR}/picogfx
+    PUBLIC ${PROJECT_SOURCE_DIR}/misc
     PUBLIC ${PROJECT_SOURCE_DIR}/print
     PUBLIC ${PROJECT_SOURCE_DIR}/print/fonts
     PUBLIC ${PROJECT_SOURCE_DIR}/ext/touch

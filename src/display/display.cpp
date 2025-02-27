@@ -1,9 +1,9 @@
 #include "display.hpp"
 
 /**
- * @brief Display initialization
+ * @brief display initialization
 */
-Display::Display(hardware_driver* spi, display_config_t* config, unsigned short* frameBuffer, unsigned char CASET, unsigned char RASET, unsigned char RAMWR)
+display::display(hardware_driver* spi, display_config_t* config, uint16_t* frameBuffer, uint8_t CASET, uint8_t RASET, uint8_t RAMWR)
 {
     this->spi = spi;
     this->config = config;
@@ -33,10 +33,10 @@ Display::Display(hardware_driver* spi, display_config_t* config, unsigned short*
             this->dimmingEnabled = true;
             gpio_set_function(this->config->backlightPin, GPIO_FUNC_PWM);
             // get the PWM slice number
-            uint sliceNum = pwm_gpio_to_slice_num(this->config->backlightPin);
+            uint32_t sliceNum = pwm_gpio_to_slice_num(this->config->backlightPin);
             this->sliceNum = sliceNum;
             // get the PWM channel
-            uint chan = pwm_gpio_to_channel(this->config->backlightPin);
+            uint32_t chan = pwm_gpio_to_channel(this->config->backlightPin);
             this->pwmChannel = chan;
             // turn on the PWM slice
             pwm_set_enabled(sliceNum, true);
@@ -58,7 +58,7 @@ Display::Display(hardware_driver* spi, display_config_t* config, unsigned short*
 /**
  * @brief Clear the display by drawing a black rectangle
 */
-void Display::clear()
+void display::clear()
 {
     // set the cursor position to the top left
     this->setCursor({ 0, 0 });
@@ -72,7 +72,7 @@ void Display::clear()
 /**
  * @brief Print the frame buffer to the display
 */
-void Display::update(bool framecounter)
+void display::update(bool framecounter)
 {
     this->setCursor({ 0, 0 });
     this->writePixels(this->frameBuffer, this->totalPixels);
@@ -93,7 +93,7 @@ void Display::update(bool framecounter)
  * @param end End index
  * @note No checks are done to speed up the process, make sure the start and end are valid!
 */
-void Display::update(int start, int end)
+void display::update(int start, int end)
 {
     this->writePixels(&this->frameBuffer[start], end - start);
 }
@@ -104,7 +104,7 @@ void Display::update(int start, int end)
  * @param end End index
  * @param moveCursor Move the cursor to the start position
 */
-void Display::update(int start, int end, bool moveCursor)
+void display::update(int start, int end, bool moveCursor)
 {
     // Check if the start and end are valid
     if (start >= end || end >= this->totalPixels)
@@ -120,10 +120,10 @@ void Display::update(int start, int end, bool moveCursor)
 
 /**
  * @brief Put a pixel in the framebuffer
- * @param Point Points to draw the pixel at
+ * @param point Points to draw the pixel at
  * @param color Color to draw in
 */
-void Display::setPixel(Point point, Color color)
+void display::setPixel(point point, color color)
 {
     // set the framebuffer pixel
     this->frameBuffer[point.x + point.y * this->config->width] = color.to16bit();
@@ -131,10 +131,10 @@ void Display::setPixel(Point point, Color color)
 
 /**
  * @brief Put a pixel in the framebuffer
- * @param Point Buffer index
+ * @param point Buffer index
  * @param color Color to draw in as a 16 bit value
 */
-void Display::setPixel(uint index, ushort color)
+void display::setPixel(uint32_t index, ushort color)
 {
     // set the framebuffer pixel
     this->frameBuffer[index] = color;
@@ -142,29 +142,29 @@ void Display::setPixel(uint index, ushort color)
 
 /**
  * @brief Get a pixel from the framebuffer
- * @param Point Point to get the pixel from
+ * @param point point to get the pixel from
  * @return Color The color of the pixel
 */
-Color Display::getPixel(Point point)
+color display::getPixel(point point)
 {
-    return Color(this->frameBuffer[point.x + point.y * this->config->width]);
+    return color(this->frameBuffer[point.x + point.y * this->config->width]);
 }
 
 /**
  * @brief Get a pixel from the framebuffer
- * @param Point Buffer index
+ * @param point Buffer index
  * @return Color The color of the pixel
 */
-ushort Display::getPixel(uint index)
+ushort display::getPixel(uint32_t index)
 {
     return this->frameBuffer[index];
 }
 
 /**
  * @brief Set the cursor position
- * @param Point Point to set the cursor to
+ * @param point point to set the cursor to
 */
-void Display::setCursor(Point point)
+void display::setCursor(point point)
 {
     // set the pixel x address
     this->columnAddressSet(
@@ -182,31 +182,31 @@ void Display::setCursor(Point point)
 
 /**
  * @brief Get the cursor position
- * @return Point The cursor position
+ * @return point The cursor position
 */
-Point Display::getCursor()
+point display::getCursor()
 {
     return this->cursor;
 }
 
 /**
  * @brief Get the center of the display
- * @return Point The center of the display
+ * @return point The center of the display
 */
-Point Display::getCenter()
+point display::getCenter()
 {
-    Point Point = {
+    point point = {
         this->config->width / 2,
         this->config->height / 2
     };
-    return Point;
+    return point;
 }
 
 /**
  * @brief Set the backlight brightness
  * @param brightness Brightness (0-255) if dimming is enabled, brightness (0-1) if dimming is disabled
 */
-void Display::setBrightness(unsigned char brightness)
+void display::setBrightness(uint8_t brightness)
 {
     if (!this->backlight)
         return;
@@ -234,7 +234,7 @@ void Display::setBrightness(unsigned char brightness)
  * @param data Data to send
  * @param length Length of the data
 */
-void Display::writeData(unsigned char command, const unsigned char* data, size_t length)
+void display::writeData(uint8_t command, const uint8_t* data, size_t length)
 {
     // set the data mode
     this->dataMode = false;
@@ -248,18 +248,18 @@ void Display::writeData(unsigned char command, const unsigned char* data, size_t
  * @param x0 Start column
  * @param x1 End column
 */
-inline void Display::columnAddressSet(uint x0, uint x1)
+inline void display::columnAddressSet(uint32_t x0, uint32_t x1)
 {
     // deny out of bounds
     if (x0 >= x1 || x1 >= this->maxWidth)
         return;
 
     // pack the data
-    unsigned char data[4] = {
-        (unsigned char)(x0 >> 8),
-        (unsigned char)(x0 & 0xff),
-        (unsigned char)(x1 >> 8),
-        (unsigned char)(x1 & 0xff)
+    uint8_t data[4] = {
+        (uint8_t)(x0 >> 8),
+        (uint8_t)(x0 & 0xff),
+        (uint8_t)(x1 >> 8),
+        (uint8_t)(x1 & 0xff)
     };
 
     // write the data
@@ -272,18 +272,18 @@ inline void Display::columnAddressSet(uint x0, uint x1)
  * @param y0 Start row
  * @param y1 End row
 */
-inline void Display::rowAddressSet(uint y0, uint y1)
+inline void display::rowAddressSet(uint32_t y0, uint32_t y1)
 {
     // deny out of bounds
     if (y0 >= y1 || y1 >= this->maxHeight)
         return;
 
     // pack the data
-    unsigned char data[4] = {
-        (unsigned char)(y0 >> 8),
-        (unsigned char)(y0 & 0xff),
-        (unsigned char)(y1 >> 8),
-        (unsigned char)(y1 & 0xff)
+    uint8_t data[4] = {
+        (uint8_t)(y0 >> 8),
+        (uint8_t)(y0 & 0xff),
+        (uint8_t)(y1 >> 8),
+        (uint8_t)(y1 & 0xff)
     };
 
     // write the data
@@ -297,7 +297,7 @@ inline void Display::rowAddressSet(uint y0, uint y1)
  * @param length Length of the data
  * @note length should be number of 16 bit pixels, not bytes!
 */
-void Display::writePixels(const unsigned short* data, size_t length)
+void display::writePixels(const uint16_t* data, size_t length)
 {
     // check if the data mode is set
     if (!this->dataMode)

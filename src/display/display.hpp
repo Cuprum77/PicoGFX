@@ -1,9 +1,9 @@
 #pragma once
 
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <math.h>
-#include <sys/types.h>
 
 #include "pico/stdlib.h"
 #include "pico/divider.h"
@@ -15,44 +15,44 @@
 #include "color.h"
 
 
-class Display
+class display
 {
 public:
-    Display(hardware_driver* spi, display_config_t* config, unsigned short* frameBuffer, unsigned char CASET, unsigned char RASET, unsigned char RAMWR);
-    void setBrightness(unsigned char brightness);
+    display(hardware_driver* spi, display_config_t* config, uint16_t* frameBuffer, uint8_t CASET, uint8_t RASET, uint8_t RAMWR);
+    void setBrightness(uint8_t brightness);
     display_rotation_t getRotation(void) { return this->config->rotation; }
     void clear(void);
 
     void update(bool framecounter = false);
     void update(int start, int end);
     void update(int start, int end, bool moveCursor);
-    void setPixel(Point point, Color color);
-    void setPixel(unsigned int point, unsigned short color);
-    Color getPixel(Point point);
-    unsigned short getPixel(unsigned int point);
+    void setPixel(point point, color color);
+    void setPixel(uint32_t point, uint16_t color);
+    color getPixel(point point);
+    uint16_t getPixel(uint32_t point);
 
-    void setCursor(Point point);
-    Point getCursor(void);
-    Point getCenter(void);
+    void setCursor(point point);
+    point getCursor(void);
+    point getCenter(void);
 
     int getFrameCounter() { return this->frames; }
-    unsigned int getWidth(void) { return this->config->width; }
-    unsigned int getHeight(void)  { return this->config->height; }
-    unsigned short* getFrameBuffer(void) { return this->frameBuffer; }
+    uint32_t getWidth(void) { return this->config->width; }
+    uint32_t getHeight(void)  { return this->config->height; }
+    uint16_t* getFrameBuffer(void) { return this->frameBuffer; }
 
 protected:
     hardware_driver* spi;
     display_config_t* config;
     bool dimmingEnabled = false;
-    unsigned int sliceNum;
-    unsigned int pwmChannel;
+    uint32_t sliceNum;
+    uint32_t pwmChannel;
     bool dataMode = false;
-    unsigned short* frameBuffer;
-    Point cursor = {0, 0};
+    uint16_t* frameBuffer;
+    point cursor = {0, 0};
     bool backlight;
-    unsigned int totalPixels;
-    unsigned int maxWidth;
-    unsigned int maxHeight;
+    uint32_t totalPixels;
+    uint32_t maxWidth;
+    uint32_t maxHeight;
     int CASET;
     int RASET;
     int RAMWR;
@@ -62,10 +62,10 @@ protected:
     int frames = 0;
     unsigned long timer = 0;
 
-    void writeData(unsigned char command, const unsigned char* data, size_t length);
-    void writeData(unsigned char command, unsigned char data) { writeData(command, &data, 1); }
-    void writeData(unsigned char command) { writeData(command, nullptr, 0); }
-    inline void columnAddressSet(unsigned int x0, unsigned int x1);
-    inline void rowAddressSet(unsigned int y0, unsigned int y1);
-    void writePixels(const unsigned short* data, size_t length);
+    void writeData(uint8_t command, const uint8_t* data, size_t length);
+    void writeData(uint8_t command, uint8_t data) { writeData(command, &data, 1); }
+    void writeData(uint8_t command) { writeData(command, nullptr, 0); }
+    inline void columnAddressSet(uint32_t x0, uint32_t x1);
+    inline void rowAddressSet(uint32_t y0, uint32_t y1);
+    void writePixels(const uint16_t* data, size_t length);
 };

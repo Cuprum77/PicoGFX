@@ -6,14 +6,14 @@
 class compression_decoder : public compression
 {
 public:
-	unsigned int decode(stream_metadata_t* metadata, unsigned char* stream, size_t streamSize, unsigned short* frameBuffer);
+	uint32_t decode(stream_metadata_t* metadata, uint8_t* stream, size_t streamSize, uint16_t* frameBuffer);
 
 private:
-    unsigned int decodeMonochrome(stream_metadata_t* metadata, unsigned char* stream, size_t streamSize, unsigned short* frameBuffer);
-	unsigned int decodeMonochromeRLE(stream_metadata_t* metadata, unsigned char* stream, size_t streamSize, unsigned short* frameBuffer);
-	unsigned int decodeRunLengthEncoding(stream_metadata_t* metadata, unsigned char* stream, size_t streamSize, unsigned short* frameBuffer);
-	unsigned int decodeLossy(stream_metadata_t* metadata, unsigned char* stream, size_t streamSize, unsigned short* frameBuffer);
-	unsigned int decodeReducedColor(stream_metadata_t* metadata, unsigned char* stream, size_t streamSize, unsigned short* frameBuffer);
-	unsigned int decodeReducedColorRLE(stream_metadata_t* metadata, unsigned char* stream, size_t streamSize, unsigned short* frameBuffer);
-	unsigned int decodeRaw(stream_metadata_t* metadata, unsigned char* stream, size_t streamSize, unsigned short* frameBuffer);
+    uint32_t decodeMonochrome(stream_metadata_t* metadata, uint8_t* stream, size_t streamSize, uint16_t* frameBuffer);
+	uint32_t decodeMonochromeRLE(stream_metadata_t* metadata, uint8_t* stream, size_t streamSize, uint16_t* frameBuffer);
+	uint32_t decodeRunLengthEncoding(stream_metadata_t* metadata, uint8_t* stream, size_t streamSize, uint16_t* frameBuffer);
+	uint32_t decodeLossy(stream_metadata_t* metadata, uint8_t* stream, size_t streamSize, uint16_t* frameBuffer);
+	uint32_t decodeReducedColor(stream_metadata_t* metadata, uint8_t* stream, size_t streamSize, uint16_t* frameBuffer);
+	uint32_t decodeReducedColorRLE(stream_metadata_t* metadata, uint8_t* stream, size_t streamSize, uint16_t* frameBuffer);
+	uint32_t decodeRaw(stream_metadata_t* metadata, uint8_t* stream, size_t streamSize, uint16_t* frameBuffer);
 };

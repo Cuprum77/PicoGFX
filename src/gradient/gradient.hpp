@@ -5,21 +5,21 @@
 #include "shapes.hpp"
 #include "gfxmath.h"
 
-class Gradient
+class gradient
 {
 public:
-    Gradient(unsigned short* frameBuffer, display_config_t* config);
+    gradient(uint16_t* frameBuffer, display_config_t* config);
 
-    void fillGradient(Color startColor, Color endColor, Point start, Point end);
-    void drawRotCircleGradient(Point center, int radius, int rotationSpeed, Color start, Color end);
-    void drawRotRectGradient(Point center, int width, int height, int rotationSpeed, Color start, Color end);
+    void fillGradient(color startColor, color endColor, point start, point end);
+    void drawRotCircleGradient(point center, int32_t radius, int32_t rotationSpeed, color start, color end);
+    void drawRotRectGradient(point center, int32_t width, int32_t height, int32_t rotationSpeed, color start, color end);
 private:
-    unsigned short* frameBuffer;
+    uint16_t* frameBuffer;
     display_config_t* config;
     size_t totalPixels;
 
-    unsigned int theta; // The angle of the rotating gradient
-    const int firstQuadrant = NUMBER_OF_ANGLES / 4;
-    const int secondQuadrant = NUMBER_OF_ANGLES / 2;
-    const int thirdQuadrant = NUMBER_OF_ANGLES * 3 / 4;
+    uint32_t theta; // The angle of the rotating gradient
+    const int32_t firstQuadrant = NUMBER_OF_ANGLES / 4;
+    const int32_t secondQuadrant = NUMBER_OF_ANGLES / 2;
+    const int32_t thirdQuadrant = NUMBER_OF_ANGLES * 3 / 4;
 };

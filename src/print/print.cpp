@@ -1,14 +1,14 @@
 #include "print.hpp"
 
 /**
- * @brief Construct a new Print object
+ * @brief Construct a new print object
  * @param display Display to print on
 */
-Print::Print(unsigned short* frameBuffer, display_config_t* config)
+printer::printer(uint16_t* frameBuffer, display_config_t* config)
 {
     this->frameBuffer = frameBuffer;
     this->config = config;
-    this->color = Colors::White;
+    this->color_val = colors::black;
     this->font = nullptr;
     this->cursor = 0;
     this->characterBuffer[0] = '\0';
@@ -16,28 +16,28 @@ Print::Print(unsigned short* frameBuffer, display_config_t* config)
 
 /**
  * @brief Set the color to use
- * @param color Color to use
+ * @param color color to use
 */
-void Print::setColor(Color color)
+void printer::setColor(color val)
 {
-	this->color = color.to16bit();
+	this->color_val = val.to16bit();
 }
 
 /**
  * @brief Get the color in use
 */
-Color Print::getColor(void)
+color printer::getColor(void)
 {
-	return Color(this->color);
+	return color(this->color_val);
 }
 
 /**
  * @brief Set the cursor position
- * @param point Point to set the cursor to
+ * @param point point to set the cursor to
 */
-void Print::setCursor(Point point)
+void printer::setCursor(point point)
 {
-    this->cursor = (unsigned long)(point.x + point.y * this->config->width);
+    this->cursor = (uint32_t)(point.x + point.y * this->config->width);
 }
 
 /**
@@ -45,25 +45,25 @@ void Print::setCursor(Point point)
  * @param x X position to modify the cursor by
  * @param y Y position to modify the cursor by
 */
-void Print::moveCursor(int x, int y)
+void printer::moveCursor(int32_t x, int32_t y)
 {
-    this->cursor += (unsigned long)(x + y * this->config->width);
+    this->cursor += (uint32_t)(x + y * this->config->width);
 }
 
 /**
  * @brief Get the cursor position
  * @returns Cursor position
 */
-Point Print::getCursor(void)
+point printer::getCursor(void)
 {
-    return { (unsigned int)(this->cursor % this->config->width), (unsigned int)(this->cursor / this->config->width) };
+    return { (uint32_t)(this->cursor % this->config->width), (uint32_t)(this->cursor / this->config->width) };
 }
 
 /**
  * @brief Set the font to use
  * @param font Font to use
 */
-void Print::setFont(FontStruct* font)
+void printer::setFont(FontStruct* font)
 {
     this->font = font;
 }
@@ -72,7 +72,7 @@ void Print::setFont(FontStruct* font)
  * @brief Put your string into the character buffer
  * @note This is the same as the printf function, but it puts the string into the buffer instead of printing it
  */
-void Print::setString(const char* format, ...)
+void printer::setString(const char* format, ...)
 {
     // Generate the string and store the number of characters in the buffer
     va_list args;
@@ -86,19 +86,19 @@ void Print::setString(const char* format, ...)
  * @param alignment Alignment to use, defaults to Alignment_t::TotalCenter
  * @note This sets the cursor to center the string in the buffer
  */
-void Print::center(Alignment_t alignment)
+void printer::center(Alignment_t alignment)
 {
     // Get the center of the screen
-    int centerX = this->config->width >> 1;
-	int centerY = this->config->height >> 1;
+    int32_t centerX = this->config->width >> 1;
+	int32_t centerY = this->config->height >> 1;
 
     // Initialize the midpoint variables
-    int stringWidthMidpoint = 0;
-    int stringHeightMidpoint = 0;
+    int32_t stringWidthMidpoint = 0;
+    int32_t stringHeightMidpoint = 0;
 
     // Initialize the cursor variables
-    unsigned long cursorX = 0;
-    unsigned long cursorY = 0;
+    uint32_t cursorX = 0;
+    uint32_t cursorY = 0;
 
     // Set the cursor position based on the alignment
     switch (alignment)
@@ -108,14 +108,14 @@ void Print::center(Alignment_t alignment)
         stringWidthMidpoint = this->getStringWidth() >> 1;
         // Set the x position to the center, while keeping the y position the same
         cursorY = this->getCursor().y * this->config->width;
-        this->cursor = (unsigned long)(centerX - stringWidthMidpoint + cursorY);
+        this->cursor = (uint32_t)(centerX - stringWidthMidpoint + cursorY);
         break;
     case Alignment_t::VerticalCenter:
         // Get the midpoint of the string
         stringHeightMidpoint = this->getStringHeight() >> 1;
         // Move only the y position, keeping the x position the same
         cursorX = this->getCursor().x;
-        this->cursor = (unsigned long)(cursorX + (centerY - stringHeightMidpoint) * this->config->width);
+        this->cursor = (uint32_t)(cursorX + (centerY - stringHeightMidpoint) * this->config->width);
         break;
     case Alignment_t::TotalCenter:
     default:
@@ -129,13 +129,13 @@ void Print::center(Alignment_t alignment)
 }
 
 /**
- * @brief Print to the display
+ * @brief print to the display
  * @note This behaves like printf
 */
-void Print::print()
+void printer::print()
 {
     // loop through each character in the string
-    for (int i = 0; i < this->charactersInBuffer; i++)
+    for (int32_t i = 0; i < this->charactersInBuffer; i++)
     {
         // draw the character
         this->drawAscii(this->characterBuffer[i]);
@@ -146,13 +146,13 @@ void Print::print()
  * @brief Get the width of a string in pixels
  * @returns Width of the string in the buffer, in pixels
 */
-unsigned int Print::getStringWidth()
+uint32_t printer::getStringWidth()
 {
     // store the number of pixels
     size_t pixels = 0;
 
     // loop through each character in the string
-    for (int i = 0; i < this->charactersInBuffer; i++)
+    for (int32_t i = 0; i < this->charactersInBuffer; i++)
     {
         // get the character
         char c = this->characterBuffer[i];
@@ -177,13 +177,13 @@ unsigned int Print::getStringWidth()
  * @brief Get the height of a string in pixels
  * @returns Height of the string in the buffer, in pixels
 */
-unsigned int Print::getStringHeight()
+uint32_t printer::getStringHeight()
 {
     // store the number of pixels
     size_t pixels = 0;
 
     // loop through each character in the string
-    for (int i = 0; i < this->charactersInBuffer; i++)
+    for (int32_t i = 0; i < this->charactersInBuffer; i++)
     {
         // get the character
         char c = this->characterBuffer[i];
@@ -207,10 +207,10 @@ unsigned int Print::getStringHeight()
 }
 
 /**
- * @brief Print to the display
+ * @brief print to the display
  * @note This behaves like printf, and prints at the current cursor position
 */
-void Print::print(const char* format, ...)
+void printer::print(const char* format, ...)
 {
 	// Generate the string
 	va_list args;
@@ -219,7 +219,7 @@ void Print::print(const char* format, ...)
 	va_end(args);
 
 	// loop through each character in the string
-    for (int i = 0; i < this->charactersInBuffer; i++)
+    for (int32_t i = 0; i < this->charactersInBuffer; i++)
     {
 		// draw the character
 		this->drawAscii(this->characterBuffer[i]);
@@ -231,11 +231,11 @@ void Print::print(const char* format, ...)
  * @private
  * @brief Draw an ascii character on the display
  * @param character Character to draw
- * @param Point Point to draw at
+ * @param point point to draw at
  * @param size Text size
- * @param color Color to draw the character
+ * @param color color to draw the character
 */
-void Print::drawAscii(const char character)
+void printer::drawAscii(const char character)
 {
     // check if the font is a null pointer
     if(this->font == nullptr)
@@ -246,7 +246,7 @@ void Print::drawAscii(const char character)
 		return;
     
     // get the bitmap data
-    const unsigned int* bitmap = this->font->bitmap;
+    const uint32_t* bitmap = this->font->bitmap;
     // get the character
     FontCharacter charData = this->font->characters[character - 0x20];
 
@@ -281,9 +281,9 @@ void Print::drawAscii(const char character)
     }
 
     // get our current framebuffer pointer location
-    unsigned int bufferPosition = this->cursor;
+    uint32_t bufferPosition = this->cursor;
     // calculate the row size
-    unsigned int rowSize = charData.width;
+    uint32_t rowSize = charData.width;
 
     // make sure the character is not placed off screen in the x direction, if so, move the character to the next line
     if (((bufferPosition % this->config->width) + charData.width) > this->config->width)
@@ -301,22 +301,22 @@ void Print::drawAscii(const char character)
     // move the cursor by the y offset
     bufferPosition += charData.yOffset * this->config->width;
     // keep track of the current row position
-    unsigned int rowPosition = 0;
+    uint32_t rowPosition = 0;
 
     // loop constraints
-    unsigned int loopEnd = charData.length - charData.pointer;
+    uint32_t loopEnd = charData.length - charData.pointer;
 
     // loop through the bitmap data
-    for (int j = 0; j < loopEnd; j++)
+    for (int32_t j = 0; j < loopEnd; j++)
     {
         // get the distance to move the cursor
-        unsigned int data = bitmap[j + charData.pointer];
+        uint32_t data = bitmap[j + charData.pointer];
 
         // move the pointer by the number of pixels as defined by the distance
-        for (int i = 0; i < data; i++)
+        for (int32_t i = 0; i < data; i++)
         {
             // every other distance should be drawn, the first distance is always the number of pixels to skip
-            if (j & 0x1) this->frameBuffer[rowPosition + bufferPosition] = this->color;
+            if (j & 0x1) this->frameBuffer[rowPosition + bufferPosition] = this->color_val;
 
             // increment the row position
             rowPosition++;

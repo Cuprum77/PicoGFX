@@ -5,6 +5,8 @@ extern "C"
 {
 #endif
     
+#include <stdint.h>
+
 #define MAX_COLOR_DIFF 255
 
 /**
@@ -13,46 +15,46 @@ extern "C"
 */
 typedef enum
 {
-    Black = 0x0000,
-    Navy = 0x000f,
-    DarkGreen = 0x03e0,
-    DarkCyan = 0x03ef,
-    Maroon = 0x7800,
-    Purple = 0x780f,
-    Olive = 0x7be0,
-    LightGreen = 0xc618,
-    DarkGrey = 0x7bef,
-    Blue = 0x001f,
-    Green = 0x07e0,
-    Cyan = 0x07ff,
-    Red = 0xf800,
-    Magenta = 0xf81f,
-    Yellow = 0xffe0,
-    White = 0xffff,
-    Orange = 0xfd20,
-    GreenYellow = 0xafe5,
-    Pink = 0xf81f,
-    Cum = 0xffbd,
-    RaspberryRed = 0x9861,
-    DarkOrange = 0xfc60,
-    Gold = 0xfea0,
-    Piss = 0xe702,
-    Derg = 0x0dfb,
-    OrangeRed = 0xf9e0,
-    DarkYellow = 0xfe00
-} Colors;
+    black = 0x0000,
+    navy = 0x000f,
+    darkGreen = 0x03e0,
+    darkCyan = 0x03ef,
+    maroon = 0x7800,
+    purple = 0x780f,
+    olive = 0x7be0,
+    lightGreen = 0xc618,
+    darkGrey = 0x7bef,
+    blue = 0x001f,
+    green = 0x07e0,
+    cyan = 0x07ff,
+    red = 0xf800,
+    magenta = 0xf81f,
+    yellow = 0xffe0,
+    white = 0xffff,
+    orange = 0xfd20,
+    greenYellow = 0xafe5,
+    pink = 0xf81f,
+    cum = 0xffbd,
+    raspberryRed = 0x9861,
+    darkOrange = 0xfc60,
+    gold = 0xfea0,
+    piss = 0xe702,
+    derg = 0x0dfb,
+    orangeRed = 0xf9e0,
+    darkYellow = 0xfe00
+} colors;
 
-struct Color
+struct color
 {
-    unsigned short r : 5;
-    unsigned short g : 6;
-    unsigned short b : 5;
-    unsigned short a : 8;
+    uint16_t r : 5;
+    uint16_t g : 6;
+    uint16_t b : 5;
+    uint16_t a : 8;
 
     /**
      * @brief Creates a black color
     */
-    Color()
+    color()
     {
         this->r = 0;
         this->g = 0;
@@ -64,11 +66,11 @@ struct Color
      * @brief Creates a color from a Colors enum
      * @param color Colors enum
     */
-    Color(Colors color)
+    color(colors c)
     {
-        this->r = (color >> 11) & 0x1F;
-        this->g = (color >> 5) & 0x3F;
-        this->b = color & 0x1F;
+        this->r = (c >> 11) & 0x1F;
+        this->g = (c >> 5) & 0x3F;
+        this->b = c & 0x1F;
         this->a = 255;
     }
 
@@ -76,11 +78,11 @@ struct Color
      * @brief Creates a color from a 8 bit value
      * @param color 8-bit color
     */
-    Color(unsigned char color)
+    color(uint8_t c)
     {
-        this->r = (color >> 5) & 0x03;
-        this->g = (color >> 2) & 0x03;
-        this->b = color & 0x02;
+        this->r = (c >> 5) & 0x03;
+        this->g = (c >> 2) & 0x03;
+        this->b = c & 0x02;
         this->a = 255;
     }
 
@@ -88,11 +90,11 @@ struct Color
      * @brief Creates a color from a 16 bit value
      * @param color 16-bit color
     */
-    Color(unsigned short color)
+    color(uint16_t c)
     {
-        this->r = (color >> 11) & 0x1F;
-        this->g = (color >> 5) & 0x3F;
-        this->b = color & 0x1F;
+        this->r = (c >> 11) & 0x1F;
+        this->g = (c >> 5) & 0x3F;
+        this->b = c & 0x1F;
         this->a = 255;
     }
 
@@ -101,12 +103,12 @@ struct Color
      * @param color 24-bit color
      * @param multiplier Multiplier (0-31)
     */
-    Color(Color color, unsigned short multiplier)
+    color(color c, uint16_t multiplier)
     {
-        this->r = color.r * multiplier;
-        this->g = color.g * multiplier;
-        this->b = color.b * multiplier;
-        this->a = color.a;
+        this->r = c.r * multiplier;
+        this->g = c.g * multiplier;
+        this->b = c.b * multiplier;
+        this->a = c.a;
     }
 
     /**
@@ -114,11 +116,11 @@ struct Color
      * @param color 16-bit color
      * @param multiplier Multiplier (0-31)
     */
-    Color(unsigned short color, unsigned short multiplier)
+    color(uint16_t c, uint16_t multiplier)
     {
-        this->r = ((color >> 11) & 0x1F) * multiplier;
-        this->g = ((color >> 5) & 0x3F) * multiplier;
-        this->b = (color & 0x1F) * multiplier;
+        this->r = ((c >> 11) & 0x1F) * multiplier;
+        this->g = ((c >> 5) & 0x3F) * multiplier;
+        this->b = (c & 0x1F) * multiplier;
         this->a = 255;
     }
 
@@ -128,8 +130,8 @@ struct Color
      * @param g Green value (6 bits)
      * @param b Blue value (5 bits)
     */
-    Color(unsigned short r, unsigned short g, 
-        unsigned short b, unsigned short a = 255)
+    color(uint16_t r, uint16_t g, 
+        uint16_t b, uint16_t a = 255)
     {
         this->r = r;
         this->g = g;
@@ -141,7 +143,7 @@ struct Color
      * @brief Returns the color as a 16 bit value
      * @return 16-bit color
     */
-    unsigned short to16bit()
+    uint16_t to16bit()
     {
         return (this->r << 11) | (this->g << 5) | this->b;
     }
@@ -151,11 +153,11 @@ struct Color
      * @param color 24-bit color
      * @return 16-bit color
      */
-    Color hexToColor(unsigned int color)
+    color hexToColor(unsigned int c)
     {
-        unsigned char r = (color >> 16) & 0xFF;
-        unsigned char g = (color >> 8) & 0xFF;
-        unsigned char b = color & 0xFF;
+        uint8_t r = (c >> 16) & 0xFF;
+        uint8_t g = (c >> 8) & 0xFF;
+        uint8_t b = c & 0xFF;
 
         this->r = r >> 3 & 0x1F;
         this->g = g >> 2 & 0x3F;
@@ -169,88 +171,89 @@ struct Color
      * @brief Gets the opposite color
      * @return Opposite color
     */
-    Color getOppositeColor()
+    color getOppositeColor()
     {
-        return Color(0x1f - this->r, 0x3f - this->g, 0x1f - this->b);
+        return color(0x1f - this->r, 0x3f - this->g, 0x1f - this->b);
     }
 
     /**
      * @brief Blend two colors
-     * @param color Color to blend with
+     * @param color color to blend with
      * @param ratio Ratio of the blend (0-1)
      * @return Blended color
     */
-    Color blend(Color color, unsigned short ratio)
+    color blend(color c, uint16_t ratio)
     {
         // split blue and red
-        unsigned short rb = color.to16bit() & 0xf81f;
+        uint16_t rb = c.to16bit() & 0xf81f;
         rb += ((this->to16bit() & 0xf81f) - rb) * (ratio >> 2) >> 6;
         // split out green
-        unsigned short g = color.to16bit() & 0x07e0;
+        uint16_t g = c.to16bit() & 0x07e0;
         g += ((this->to16bit() & 0x07e0) - g) * ratio  >> 8;
         // recombine
-        unsigned short result = (rb & 0xf81f) | (g & 0x07e0);
-        return Color(result);
+        uint16_t result = (rb & 0xf81f) | (g & 0x07e0);
+
+        return color(result);
     }
 
-    bool operator==(Color color)
+    bool operator==(color c)
     {
-        return this->r == color.r && this->g == color.g && this->b == color.b;
+        return this->r == c.r && this->g == c.g && this->b == c.b;
     }
 
-    bool operator!=(Color color)
+    bool operator!=(color c)
     {
-        return this->r != color.r || this->g != color.g || this->b != color.b;
+        return this->r != c.r || this->g != c.g || this->b != c.b;
     }
 
-    Color operator+(Color color)
+    color operator+(color c)
     {
-        return Color(this->r + color.r, this->g + color.g, this->b + color.b);
+        return color(this->r + c.r, this->g + c.g, this->b + c.b);
     }
 
-    Color operator-(Color color)
+    color operator-(color c)
     {
-        return Color(this->r - color.r, this->g - color.g, this->b - color.b);
+        return color(this->r - c.r, this->g - c.g, this->b - c.b);
     }
 
-    Color operator*(Color color)
+    color operator*(color c)
     {
-        return Color(this->r * color.r, this->g * color.g, this->b * color.b);
+        return color(this->r * c.r, this->g * c.g, this->b * c.b);
     }
 
-    Color operator/(Color color)
+    color operator/(color c)
     {
-        return Color(this->r / color.r, this->g / color.g, this->b / color.b);
+        return color(this->r / c.r, this->g / c.g, this->b / c.b);
     }
 
-    Color operator<(Color color)
+    color operator<(color c)
     {
-        return Color(this->r < color.r, this->g < color.g, this->b < color.b);
+        return color(this->r < c.r, this->g < c.g, this->b < c.b);
     }
 
-    Color operator>(Color color)
+    color operator>(color c)
     {
-        return Color(this->r > color.r, this->g > color.g, this->b > color.b);
+        return color(this->r > c.r, this->g > c.g, this->b > c.b);
     }
 
-    Color operator<=(Color color)
+    color operator<=(color c)
     {
-        return Color(this->r <= color.r, this->g <= color.g, this->b <= color.b);
+        return color(this->r <= c.r, this->g <= c.g, this->b <= c.b);
     }
 
-    Color operator>=(Color color)
+    color operator>=(color c)
     {
-        return Color(this->r >= color.r, this->g >= color.g, this->b >= color.b);
+        return color(this->r >= c.r, this->g >= c.g, this->b >= c.b);
     }
 
-    Color biggest(Color color)
+    color biggest(color c)
     {
-        return Color(this->r > color.r ? this->r : color.r, this->g > color.g ? this->g : color.g, this->b > color.b ? this->b : color.b);
+        return color(this->r > c.r ? this->r : c.r, this->g > c.g ? this->g : c.g, this->b > c.b ? this->b : c.b);
     }
 
-    Color smallest(Color color)
+    color smallest(color c)
     {
-        return Color(this->r < color.r ? this->r : color.r, this->g < color.g ? this->g : color.g, this->b < color.b ? this->b : color.b);
+        return color(this->r < c.r ? this->r : c.r, this->g < c.g ? this->g : c.g, this->b < c.b ? this->b : c.b);
     }
 };
 

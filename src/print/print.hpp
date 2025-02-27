@@ -20,39 +20,39 @@ typedef enum
 	TotalCenter
 } Alignment_t;
 
-class Print
+class printer 
 {
 public:
     // Constructor
-    Print(unsigned short* frameBuffer, display_config_t* config);
+    printer(uint16_t* frameBuffer, display_config_t* config);
 
     // Configuration functions
-    void setColor(Color color);
-    Color getColor(void);
-    void setCursor(Point point);
-    void moveCursor(int x, int y);
-    Point getCursor(void);
+    void setColor(color val);
+    color getColor(void);
+    void setCursor(point val);
+    void moveCursor(int32_t x, int32_t y);
+    point getCursor(void);
     void setFont(FontStruct* font);
 
-    // Print functions with helper functions
+    // print functions with helper functions
     void setString(const char* format, ...);
     void center(Alignment_t alignment = Alignment_t::TotalCenter);
     void print();
-    unsigned int getStringWidth();
-    unsigned int getStringHeight();
+    uint32_t getStringWidth();
+    uint32_t getStringHeight();
 
-    // Print function without helper functions
+    // print function without helper functions
     void print(const char* format, ...);
 private:
     // Display variables
-    unsigned short* frameBuffer;
+    uint16_t* frameBuffer;
     display_config_t* config;
 
-    // Print variables
+    // print variables
     char characterBuffer[CHARACTER_BUFFER_SIZE];
-    int charactersInBuffer = 0;
-    unsigned long cursor;
-    unsigned short color;
+    int32_t charactersInBuffer = 0;
+    uint32_t cursor;
+    uint16_t color_val;
     FontStruct* font;
 
     // Private helper functions

@@ -9,11 +9,11 @@ cst816* cst816::instance = nullptr;  // Define the static instance
  * @param display Display pointer
  * @note This constructor will setup a IRQ handler for the CST816 as the CST816 will not respond unless touch is detected!
  */
-cst816::cst816(display_touch_config_t* config, Display* display) : touch(config)
+cst816::cst816(display_touch_config_t* config, display* display_ptr) : touch(config)
 {
     this->irq_pin = config->irq_pin;
     this->rst_pin = config->rst_pin;
-    this->display = display;
+    this->display_ptr = display_ptr;
     this->instance = this;
 }
 
@@ -99,10 +99,10 @@ void cst816::fetch()
     uint16_t x = (uint16_t)(((data[2] & 0x0f) << 8) | data[3]);
     uint16_t y = (uint16_t)(((data[4] & 0x0f) << 8) | data[5]);
 
-    if (this->display != nullptr)
+    if (this->display_ptr != nullptr)
     {    
         // Translate the X and Y to the display
-        display_rotation_t rotation = this->display->getRotation();
+        display_rotation_t rotation = this->display_ptr->getRotation();
 
         switch (rotation)
         {
@@ -110,15 +110,15 @@ void cst816::fetch()
                 break;
             case display_rotation_t::ROTATION_90:
                 std::swap(x, y);
-                y = this->display->getHeight() - y;
+                y = this->display_ptr->getHeight() - y;
                 break;
             case display_rotation_t::ROTATION_180:
-                x = this->display->getWidth() - x;
-                y = this->display->getHeight() - y;
+                x = this->display_ptr->getWidth() - x;
+                y = this->display_ptr->getHeight() - y;
                 break;
             case display_rotation_t::ROTATION_270:
                 std::swap(x, y);
-                x = this->display->getHeight() - x;
+                x = this->display_ptr->getHeight() - x;
                 break;
         }
     }

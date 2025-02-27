@@ -3,7 +3,7 @@
 /**
  * @brief Initialize the display
 */
-void GC9A01::init()
+void gc9a01::init()
 {
     // Apply constants
     this->maxWidth = MAX_WIDTH;
@@ -76,7 +76,7 @@ void GC9A01::init()
  * @private
  * @brief Reset the display, but not the chip
 */
-void GC9A01::softReset()
+void gc9a01::softReset()
 {
 	this->writeData(0x01, (const uint8_t *) NULL, 0);
 	sleep_ms(120);
@@ -85,7 +85,7 @@ void GC9A01::softReset()
 /**
  * @brief Reset the display
 */
-void GC9A01::reset()
+void gc9a01::reset()
 {
 	// Hardware reset
 	gpio_put(this->config->spi.rst, 1);
@@ -99,14 +99,14 @@ void GC9A01::reset()
  * @brief Set the rotation of the display
  * @param rotation Rotation to set
 */
-void GC9A01::setRotation(display_rotation_t rotation)
+void gc9a01::setRotation(display_rotation_t rotation)
 {
 	// save the rotation
     this->config->rotation = rotation;
-    unsigned int width = this->config->width;
-	unsigned int height = this->config->height;
-    unsigned int maxWidth = this->maxWidth;
-    unsigned int maxHeight = this->maxHeight;
+    uint32_t width = this->config->width;
+	uint32_t height = this->config->height;
+    uint32_t maxWidth = this->maxWidth;
+    uint32_t maxHeight = this->maxHeight;
 
 	switch(rotation)
     {
@@ -144,7 +144,7 @@ void GC9A01::setRotation(display_rotation_t rotation)
 /**
  * @brief Turn the display on
 */
-void GC9A01::setDisplayState(bool on)
+void gc9a01::setDisplayState(bool on)
 {
     if(on) this->writeData(0x29);
     else this->writeData(0x28);

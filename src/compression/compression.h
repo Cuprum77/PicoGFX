@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdint.h>
+
 enum encoding_type_t
 {
 	MONOCHROME,
@@ -15,15 +17,15 @@ enum encoding_type_t
 #define METADATA_BYTES 9
 struct stream_metadata_t
 {
-	unsigned char type;			// 1 byte
-	unsigned short width;		// 2 bytes
-	unsigned short height;		// 2 bytes
-	unsigned int totalBytes;	// 4 bytes
+	uint8_t type;			// 1 byte
+	uint16_t width;			// 2 bytes
+	uint16_t height;		// 2 bytes
+	uint32_t totalBytes;	// 4 bytes
 };
 
 struct stream_config_t
 {
-	unsigned short monochromeCutoff;
+	uint16_t monochromeCutoff;
 	bool monochromeDithering;
 	bool isReceiverBigEndian;
 };
@@ -31,6 +33,6 @@ struct stream_config_t
 class compression
 {
 public:
-    void addMetadata(stream_metadata_t* metadata, unsigned char* stream);
-	void stripMetadata(stream_metadata_t* metadata, unsigned char* stream);
+    void addMetadata(stream_metadata_t* metadata, uint8_t* stream);
+	void stripMetadata(stream_metadata_t* metadata, uint8_t* stream);
 };
