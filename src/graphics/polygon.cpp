@@ -9,6 +9,12 @@
 */
 void graphics::drawRectangle(point start, point end, color color)
 {
+    // limit the start and end points to the display
+    start.x = imax(0, imin(start.x, this->config->width - 1));
+    start.y = imax(0, imin(start.y, this->config->height - 1));
+    end.x = imax(0, imin(end.x, this->config->width - 1));
+    end.y = imax(0, imin(end.y, this->config->height - 1));
+
     // draw the rectangle
     this->drawLine({start.x, start.y}, {end.x, start.y}, color);
     this->drawLine({end.x, start.y}, {end.x, end.y}, color);

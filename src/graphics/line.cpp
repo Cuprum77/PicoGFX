@@ -20,19 +20,31 @@ void graphics::drawLine(point start, point end, color color)
     // Get the uint16_t color
     uint16_t color16 = color.to16bit();
 
+    uint32_t x = start.x;
+    uint32_t y = start.y;
+
     // Loop until we break
     for (;;)
     {
         // Set the pixel at the current position
-        this->frameBuffer[start.x + start.y * this->config->width] = color16;
+        this->frameBuffer[x + y * this->config->width] = color16;
         // Check if we are at the end
-        if (start.x == end.x && start.y == end.y) break;
+        if (x == end.x && y == end.y) 
+            break;
         // Calculate the new error
         e2 = 2 * err;
         // Check if we should move in the x direction
-        if (e2 >= dy) err += dy; start.x += sx;
+        if (e2 >= dy) 
+        {
+            err += dy; 
+            x += sx; 
+        }
         // Check if we should move in the y direction
-        if (e2 <= dx) err += dx; start.y += sy;
+        if (e2 <= dx) 
+        { 
+            err += dx; 
+            y += sy; 
+        }
     }
 }
 
