@@ -30,7 +30,7 @@ struct point
      * @param other The other point
      * @return unsigned int The distance between the two points
     */
-    unsigned int Distance(point other)
+    unsigned int distance(point other)
     {
         return isqrt(ipow(this->x - other.x, 2) + ipow(this->y - other.y, 2));
     }
@@ -95,16 +95,16 @@ struct point
 struct rect
 {
 private:
-    point x;
-    point y;
+    point px;
+    point py;
 
-    unsigned int width;
-    unsigned int height;
+    unsigned int width_val;
+    unsigned int height_val;
 
-    unsigned int bottom;
-    unsigned int left;
-    unsigned int right;
-    unsigned int top;
+    unsigned int bottom_val;
+    unsigned int left_val;
+    unsigned int right_val;
+    unsigned int top_val;
 
 public:
     /**
@@ -112,14 +112,14 @@ public:
     */
     rect()
     {
-        this->x = point();
-        this->y = point();
-        this->width = 0;
-        this->height = 0;
-        this->bottom = 0;
-        this->left = 0;
-        this->right = 0;
-        this->top = 0;
+        this->px = point();
+        this->py = point();
+        this->width_val = 0;
+        this->height_val = 0;
+        this->bottom_val = 0;
+        this->left_val = 0;
+        this->right_val = 0;
+        this->top_val = 0;
     }
 
     /**
@@ -130,15 +130,15 @@ public:
     rect(point corner1, point corner2)
     {
         // Set the corners of the rect
-        this->x = point(corner1.x, corner2.y);
-        this->y = point(corner2.x, corner1.y);
+        this->px = point(corner1.x, corner2.y);
+        this->py = point(corner2.x, corner1.y);
         // Set the other variables of the rect
-        this->width = corner2.x - corner1.x;
-        this->height = corner2.y - corner1.y;
-        this->bottom = this->y.y;
-        this->left = this->x.x;
-        this->right = this->y.x;
-        this->top = this->x.y;
+        this->width_val = corner2.x - corner1.x;
+        this->height_val = corner2.y - corner1.y;
+        this->bottom_val = this->px.y;
+        this->left_val = this->px.x;
+        this->right_val = this->py.x;
+        this->top_val = this->py.y;
     }
 
     /**
@@ -151,26 +151,46 @@ public:
     rect(point center, unsigned int width, unsigned int height)
     {
         // Calculate the corners of the rect
-        this->x = point(center.x - (width / 2), center.y - (height / 2));
-        this->y = point(center.x + (width / 2), center.y + (height / 2));
+        this->px = point(center.x - (width / 2), center.y - (height / 2));
+        this->py = point(center.x + (width / 2), center.y + (height / 2));
         // Set the other variables of the rect
-        this->width = width;
-        this->height = height;
-        this->bottom = this->y.y;
-        this->left = this->x.x;
-        this->right = this->y.x;
-        this->top = this->x.y;
+        this->width_val = width;
+        this->height_val = height;
+        this->bottom_val = this->px.y;
+        this->left_val = this->px.x;
+        this->right_val = this->py.x;
+        this->top_val = this->py.y;
+    }
+
+    /**
+     * @brief Construct a new rect object based on two rects
+     * @param rect1 First rect
+     * @param rect2 Second rect
+     * @note This concatenates the two rects into one rect
+     */
+    rect(rect rect1, rect rect2)
+    {
+        // Calculate the corners of the rect
+        this->px = point(imin(rect1.left(), rect2.left()), imin(rect1.top(), rect2.top()));
+        this->py = point(imax(rect1.right(), rect2.right()), imax(rect1.bottom(), rect2.bottom()));
+        // Set the other variables of the rect
+        this->width_val = this->py.x - this->px.x;
+        this->height_val = this->py.y - this->px.y;
+        this->bottom_val = this->px.y;
+        this->left_val = this->px.x;
+        this->right_val = this->py.x;
+        this->top_val = this->py.y;
     }
 
     /**
      * @brief Get the center of the rect
      * @return point
     */
-    point GetCenter()
+    point getCenter()
     {
         return point(
-            (x.x + y.x) / 2,
-            (x.y + y.y) / 2
+            (px.x + py.x) / 2,
+            (px.y + py.y) / 2
         );
     }
 
@@ -178,72 +198,125 @@ public:
      * @brief Get the first corner of the rect
      * @return point
     */
-    point X()
+    point x()
     {
-        return x;
+        return px;
     }
 
     /**
      * @brief Get the second corner of the rect
      * @return point
     */
-    point Y()
+    point y()
     {
-        return y;
+        return py;
     }
 
     /**
      * @brief Get the width of the rect
      * @return unsigned int
     */
-    unsigned int Width()
+    unsigned int width()
     {
-        return width;
+        return width_val;
     }
 
     /**
      * @brief Get the height of the rect
      * @return unsigned int
     */
-    unsigned int Height()
+    unsigned int height()
     {
-        return height;
+        return height_val;
     }
 
     /**
      * @brief Get the bottom of the rect
      * @return unsigned int that is the Y coordinate of the bottom of the rect
     */
-    unsigned int Bottom()
+    unsigned int bottom()
     {
-        return bottom;
+        return bottom_val;
+    }
+
+    /**
+     * @brief Get the bottom
+     * @return point that is the bottom of the rect, middle of the rect
+     */
+    point bottomPoint()
+    {
+        return point((left_val + right_val) >> 1, bottom_val);
     }
 
     /**
      * @brief Get the left of the rect
      * @return unsigned int that is the X coordinate of the left of the rect
     */
-    unsigned int Left()
+    unsigned int left()
     {
-        return left;
+        return left_val;
+    }
+
+    /**
+     * @brief Get the left of the rect
+     * @return point that is the left of the rect, middle of the rect
+     */
+    point leftPoint()
+    {
+        return point(left_val, (top_val + bottom_val) >> 1);
     }
 
     /**
      * @brief Get the right of the rect
      * @return unsigned int that is the X coordinate of the right of the rect
     */
-    unsigned int Right()
+    unsigned int right()
     {
-        return right;
+        return right_val;
+    }
+
+    /**
+     * @brief Get the top of the rect
+     * @return point that is the right of the rect, middle of the rect
+     */
+    point rightPoint()
+    {
+        return point(right_val, (top_val + bottom_val) >> 1);
     }
 
     /**
      * @brief Get the top of the rect
      * @return unsigned int that is the Y coordinate of the top of the rect
     */
-    unsigned int Top()
+    unsigned int top()
     {
-        return top;
+        return top_val;
+    }
+
+    /**
+     * @brief Get the top of the rect, as a point
+     * @return point that is the top of the rect, middle of the rect
+     */
+    point topPoint()
+    {
+        return point((left_val + right_val) >> 1, top_val);
+    }
+
+    /**
+     * @brief Clamp the rect to limits
+     * @param min Minimum point
+     * @param max Maximum point
+     */
+    rect clamp(point min, point max)
+    {
+        // Clamp the sides of the rect
+        uint32_t x1 = imax(this->px.x, min.x);
+        uint32_t y1 = imax(this->px.y, min.y);
+        uint32_t x2 = imin(this->py.x, max.x);
+        uint32_t y2 = imin(this->py.y, max.y);
+
+        // Return the new rect
+        return rect(point(x1, y1), point(x2, y2));
     }
 };
 

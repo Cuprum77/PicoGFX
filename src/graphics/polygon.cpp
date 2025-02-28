@@ -31,7 +31,7 @@ void graphics::drawRectangle(point start, point end, color color)
 void graphics::drawRectangle(rect rect, color color)
 {
     // draw the rectangle
-    this->drawRectangle(rect.X(), rect.Y(), color);
+    this->drawRectangle(rect.x(), rect.y(), color);
 }
 
 /**
