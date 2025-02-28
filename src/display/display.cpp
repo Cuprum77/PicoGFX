@@ -175,12 +175,15 @@ void display::frameCounter()
 */
 bool display::frameLimiter(uint32_t frameRate)
 {
+    if (frameRate == 0)
+        return true;
+
     if ((time_us_64() - this->lastFrame) >= (1'000'000 / frameRate))
     {
         this->lastFrame = time_us_64();
         return true;
     }
-    
+
     return false;
 }
 
