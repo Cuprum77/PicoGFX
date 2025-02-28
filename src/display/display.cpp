@@ -63,7 +63,7 @@ void display::clear()
     // set the cursor position to the top left
     this->setCursor({ 0, 0 });
     // fill the frame buffer
-    for (int i = 0; i < this->totalPixels; i++)
+    for (int32_t i = 0; i < this->totalPixels; i++)
         this->frameBuffer[i] = 0x0000;
     this->setCursor({ 0, 0 });
     this->update();
@@ -71,20 +71,11 @@ void display::clear()
 
 /**
  * @brief Print the frame buffer to the display
-*/
-void display::update(bool framecounter)
+ */
+void display::update()
 {
     this->setCursor({ 0, 0 });
     this->writePixels(this->frameBuffer, this->totalPixels);
-    if (!framecounter) return;
-
-    this->framecounter++;
-    if ((time_us_64() - this->timer) >= 1000000)
-    {
-        this->timer = time_us_64();
-        this->frames = this->framecounter;
-        this->framecounter = 0;
-    }
 }
 
 /**
@@ -93,7 +84,7 @@ void display::update(bool framecounter)
  * @param end End index
  * @note No checks are done to speed up the process, make sure the start and end are valid!
 */
-void display::update(int start, int end)
+void display::update(int32_t start, int32_t end)
 {
     this->writePixels(&this->frameBuffer[start], end - start);
 }
@@ -104,7 +95,7 @@ void display::update(int start, int end)
  * @param end End index
  * @param moveCursor Move the cursor to the start position
 */
-void display::update(int start, int end, bool moveCursor)
+void display::update(int32_t start, int32_t end, bool moveCursor)
 {
     // Check if the start and end are valid
     if (start >= end || end >= this->totalPixels)
@@ -116,6 +107,81 @@ void display::update(int start, int end, bool moveCursor)
 
     // Write the pixels
     this->writePixels(&this->frameBuffer[start], end - start);
+}
+
+/**
+ * @brief Partially update the display with a section of the frame buffer
+ * @param start Start point
+ * @param end End point
+*/
+void display::update(point start, point end)
+{
+    // Check if the start and end are valid
+    if (end.x < start.x || end.y < start.y || start.x < 0 || start.y < 0)
+        return;
+    if (end.x >= this->config->width || end.y >= this->config->height)
+        return;
+
+    // Move cursor
+    this->setCursor(start);
+
+    // Calculate the start and end index
+    int32_t startIndex = start.x + (start.y * (this->config->width));
+    int32_t endIndex = end.x + (end.y * (this->config->width));
+    
+    // Write the pixels
+    this->update(startIndex, endIndex);
+}
+
+/**
+ * @brief Partially update the display with a section of the frame buffer
+ * @param rect Rectangle to update
+*/
+void display::update(rect r)
+{
+    // Check if the start and end are valid
+    if (r.left() < 0 || r.top() < 0)
+        return;
+        
+    // clamp the box to the display
+    point min = point(0, 0);
+    point max = point(this->config->width - 1, this->config->height - 1);
+    r = r.clamp(min, max);
+        
+    for (int32_t y = r.top(); y <= r.bottom(); y++)
+    {
+        this->update({r.left(), y}, {r.right(), y});
+    }
+}
+
+/**
+ * @brief Run after each frame to calculate the framerate
+*/
+void display::frameCounter()
+{
+    this->framecounter++;
+    if ((time_us_64() - this->timer) >= 1000000)
+    {
+        this->timer = time_us_64();
+        this->frames = this->framecounter;
+        this->framecounter = 0;
+    }
+}
+
+/**
+ * @brief Limit the frame rate
+ * @param frameRate Frame rate to limit to
+ * @return bool True if the next frame can be drawn
+*/
+bool display::frameLimiter(uint32_t frameRate)
+{
+    if ((time_us_64() - this->lastFrame) >= (1'000'000 / frameRate))
+    {
+        this->lastFrame = time_us_64();
+        return true;
+    }
+    
+    return false;
 }
 
 /**

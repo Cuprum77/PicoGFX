@@ -23,9 +23,15 @@ public:
     display_rotation_t getRotation(void) { return this->config->rotation; }
     void clear(void);
 
-    void update(bool framecounter = false);
-    void update(int start, int end);
-    void update(int start, int end, bool moveCursor);
+    void update();
+    void update(int32_t start, int32_t end);
+    void update(int32_t start, int32_t end, bool moveCursor);
+    void update(point start, point end);
+    void update(rect rect);
+    
+    void frameCounter(void);
+    bool frameLimiter(uint32_t frameRate);
+
     void setPixel(point point, color color);
     void setPixel(uint32_t point, uint16_t color);
     color getPixel(point point);
@@ -35,7 +41,7 @@ public:
     point getCursor(void);
     point getCenter(void);
 
-    int getFrameCounter() { return this->frames; }
+    int32_t getFrameCounter() { return this->frames; }
     uint32_t getWidth(void) { return this->config->width; }
     uint32_t getHeight(void)  { return this->config->height; }
     uint16_t* getFrameBuffer(void) { return this->frameBuffer; }
@@ -53,14 +59,15 @@ protected:
     uint32_t totalPixels;
     uint32_t maxWidth;
     uint32_t maxHeight;
-    int CASET;
-    int RASET;
-    int RAMWR;
+    int32_t CASET;
+    int32_t RASET;
+    int32_t RAMWR;
 
     // timer for the framerate calculation
-    int framecounter = 0;
-    int frames = 0;
-    unsigned long timer = 0;
+    int32_t framecounter = 0;
+    int32_t frames = 0;
+    uint64_t timer = 0;
+    uint64_t lastFrame = 0;
 
     void writeData(uint8_t command, const uint8_t* data, size_t length);
     void writeData(uint8_t command, uint8_t data) { writeData(command, &data, 1); }
