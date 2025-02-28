@@ -16,34 +16,34 @@ class dialGauge
 {
 public:
     // Constructor
-    dialGauge(graphics* graphics, int screenWidth, int screenHeight, point center, int radius, 
-        int minValue, int maxValue, color* valueColors, size_t numberOfValueColors, dialGaugeType_t type, int angle = DIAL_ANGLE);
+    dialGauge(graphics* graphics, int32_t screenWidth, int32_t screenHeight, point center, int32_t radius, 
+        int32_t minValue, int32_t maxValue, color* valueColors, size_t numberOfValueColors, dialGaugeType_t type, int32_t angle = DIAL_ANGLE);
 
     // Add extra functionality
     void setNeedleColor(color value);
     void attachBackgroundColor(color value);
 
     // Draw a line on the dial at a given value
-    void drawLine(int value, int width, color color);
+    void drawLine(int32_t value, int32_t width, color color);
 
     // Update the dial value
-	void update(int value);
+	void update(int32_t value);
 
 private:
     // Display variables
     graphics* graphics_ptr = nullptr;
-    unsigned int width = 0;
-    unsigned int height = 0;
+    uint32_t width = 0;
+    uint32_t height = 0;
     size_t totalPixels = 0;
 
     // Dial variables
     point center = { 0,0 };
-    int angle = 0;
-    int halfAngle = 0;
-    int radius = 0;
-    int innerRadius = 0;
-    int minValue = 0;
-    int maxValue = 0;
+    int32_t angle = 0;
+    int32_t halfAngle = 0;
+    int32_t radius = 0;
+    int32_t innerRadius = 0;
+    int32_t minValue = 0;
+    int32_t maxValue = 0;
     color* valueColors = nullptr;
     size_t numberOfValueColors = 0;
     dialGaugeType_t type = dialGaugeType_t::DialSimple;
@@ -52,7 +52,8 @@ private:
     bool hasBackground = false;
 
     // Private helper functions
-    void drawNeedle(int value);
-    void drawSimpleDial(int value);
-    void drawSimpleDial2(int value);
+    void drawNeedle(int32_t value);
+    void drawSimpleDial(int32_t value);
+    void drawSimpleDial2(int32_t value);
+    point getPointOnCircle(point p, int32_t radius, int32_t angle);
 };
