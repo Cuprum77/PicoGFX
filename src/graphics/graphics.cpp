@@ -10,6 +10,7 @@ graphics::graphics(uint16_t* frameBuffer, display_config_t* config)
     this->frameBuffer = frameBuffer;
     this->config = config;
     this->totalPixels = config->width * config->height;
+    fillLookupTables();
 }
 
 /**
