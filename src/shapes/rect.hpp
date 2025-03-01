@@ -74,6 +74,27 @@ public:
     }
 
     /**
+     * @brief Construct a new rect object
+     * @param x0 Upper left X coordinate of the rect
+     * @param y0 Upper left Y coordinate of the rect
+     * @param x1 Lower right X coordinate of the rect
+     * @param y1 Lower right Y coordinate of the rect
+     */
+    rect(numeric auto x0, numeric auto y0, numeric auto x1, numeric auto y1)
+    {
+        // Set the corners of the rect
+        this->px = point(x0, y1);
+        this->py = point(x1, y0);
+        // Set the other variables of the rect
+        this->width_val = x1 - x0;
+        this->height_val = y1 - y0;
+        this->bottom_val = this->px.y;
+        this->left_val = this->px.x;
+        this->right_val = this->py.x;
+        this->top_val = this->py.y;
+    }
+
+    /**
      * @brief Construct a new rect object based on two rects
      * @param rect1 First rect
      * @param rect2 Second rect

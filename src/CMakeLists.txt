@@ -20,6 +20,7 @@ add_library(${PROJECT_NAME}
     graphics/line.cpp
     graphics/polygon.cpp
     graphics/triangle.cpp
+    graphics/filter.cpp
     graphics/gfxmath.c
     graphics/trig.c
     hardware_driver/hardware_driver.cpp

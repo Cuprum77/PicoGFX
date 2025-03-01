@@ -45,13 +45,24 @@ public:
     void drawBitmap(const uint8_t* bitmap, uint32_t width, uint32_t height, point start);
     void drawBitmap(const uint16_t* bitmap, uint32_t width, uint32_t height, point start);
 
-    void antiAliasingFilter(void);
+    void addBayerFilter(void);
+    void addFloydSteinbergDithering(void);
+    void addAntiAliasingFilter(void);
+    void addBlur(void);
+    void addBlur(rect area);
 private:
     uint16_t* frameBuffer;
     display_config_t* config;
     size_t totalPixels;
     uint32_t width;
     uint32_t height;
+
+    const uint8_t bayerMatrix[16] = {
+        0, 8, 2, 10,
+        12, 4, 14, 6,
+        3, 11, 1, 9,
+        15, 7, 13, 5
+    };
 
     inline void setPixel(uint32_t x, uint32_t y, uint16_t color) { this->frameBuffer[x + y * this->config->width] = color; }
     void setPixelBlend(uint32_t x, uint32_t y, uint16_t background, uint8_t alpha);
