@@ -44,6 +44,8 @@ public:
     int32_t getFrameCounter() { return this->frames; }
     uint32_t getWidth(void) { return this->config->width; }
     uint32_t getHeight(void)  { return this->config->height; }
+    rect getScreenArea(void) { return rect(point(0, 0), point(this->config->width, this->config->height)); }
+
     uint16_t* getFrameBuffer(void) { return this->frameBuffer; }
 
 protected:
