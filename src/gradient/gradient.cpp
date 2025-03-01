@@ -21,6 +21,17 @@ gradient::gradient(uint16_t* frameBuffer, display_config_t* config)
  * @brief Fill the display with a color gradient
  * @param startColor color to start with
  * @param endColor color to end with
+ * @param area The area to fill
+*/
+void gradient::fillGradient(color startColor, color endColor, rect area)
+{
+    this->fillGradient(startColor, endColor, area.x(), area.y());
+}
+
+/**
+ * @brief Fill the display with a color gradient
+ * @param startColor color to start with
+ * @param endColor color to end with
  * @param start Start point
  * @param end End point
  * @note The start and end points are only used to find the direction of the gradient, it will still fill the entire display!
@@ -89,14 +100,15 @@ void gradient::fillGradient(color startColor, color endColor, point start, point
 }
 
 /**
- * @brief Fill the display with a color gradient
- * @param startColor color to start with
- * @param endColor color to end with
- * @param area The area to fill
-*/
-void gradient::fillGradient(color startColor, color endColor, rect area)
+ * @brief Draw a circle gradient
+ * @param c Circle to draw
+ * @param rotationSpeed The speed at which the gradient rotates
+ * @param start The color to start the gradient with
+ * @param end The color to end the gradient with
+ */
+void gradient::drawRotCircleGradient(circle c, int32_t rotationSpeed, color start, color end)
 {
-    this->fillGradient(startColor, endColor, area.x(), area.y());
+    this->drawRotCircleGradient(c.getCenter(), c.getRadius(), rotationSpeed, start, end);
 }
 
 /**

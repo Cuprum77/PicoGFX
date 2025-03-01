@@ -28,8 +28,11 @@ public:
     void drawPolygon(point* points, size_t numberOfPoints, color color = colors::white);
     void drawFilledPolygon(point* points, size_t numberOfPoints, color color = colors::white);
 
+    void drawCircle(circle c, color color = colors::white, uint32_t thickness = 1);
     void drawCircle(point center, uint32_t radius, color color = colors::white, uint32_t thickness = 1);
+    void drawFilledCircle(circle c, color color = colors::white);
     void drawFilledCircle(point center, uint32_t radius, color color = colors::white);
+    void drawFilledCircleWithStroke(circle c, color fillColor, color strokeColor, uint32_t strokeThickness);
     void drawFilledCircleWithStroke(point center, uint32_t radius, color fillColor, color strokeColor, uint32_t strokeThickness);
 
     void drawArc(point center, uint32_t radius, uint32_t start_angle, uint32_t end_angle, color color = colors::white);

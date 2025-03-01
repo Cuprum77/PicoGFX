@@ -2,6 +2,17 @@
 
 /**
  * @brief Draw a circle on the display
+ * @param c Circle to draw
+ * @param color color to draw in
+ * @param thickness Thickness of the circle
+ */
+void graphics::drawCircle(circle c, color color, uint32_t thickness)
+{
+    this->drawCircle(c.getCenter(), c.getRadius(), color, thickness);
+}
+
+/**
+ * @brief Draw a circle on the display
  * @param center Center point
  * @param radius Radius of the circle
  * @param color color to draw in
@@ -12,6 +23,16 @@ void graphics::drawCircle(point center, uint32_t radius, color color, uint32_t t
         this->drawCircle1(center, radius, color);
     else
         this->drawCircle2(center, radius, color, thickness);
+}
+
+/**
+ * @brief Draw a filled circle on the display
+ * @param c Circle to draw
+ * @param color color to draw in
+ */
+void graphics::drawFilledCircle(circle c, color color)
+{
+    this->drawFilledCircle(c.getCenter(), c.getRadius(), color);
 }
 
 /**
@@ -80,6 +101,19 @@ void graphics::drawFilledCircle(point center, uint32_t radius, color color)
         else
             error += 4 * y + 6;
     }
+}
+
+/**
+ * @brief Draw a filled circle with a stroke on the display
+ * @param c Circle to draw
+ * @param fillColor color to fill in
+ * @param strokeColor color of the stroke
+ * @param strokeThickness Thickness of the stroke
+ */
+void graphics::drawFilledCircleWithStroke(circle c, color fillColor, color strokeColor, uint32_t strokeThickness)
+{
+    this->drawFilledCircle(c, fillColor);
+    this->drawCircle(c, strokeColor, strokeThickness);
 }
 
 /**
