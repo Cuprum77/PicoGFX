@@ -256,10 +256,6 @@ void graphics::drawArc(point center, uint32_t radius, uint32_t start_angle, uint
         start_angle = temp;
     }
 
-	// clamp the input variables to be between 0 and 3600
-	start_angle = imin(start_angle, NUMBER_OF_ANGLES);
-	end_angle = imin(end_angle, NUMBER_OF_ANGLES);
-
 	// convert the color to 16 bit
     uint16_t color16bit = color.to16bit();
 
@@ -269,7 +265,7 @@ void graphics::drawArc(point center, uint32_t radius, uint32_t start_angle, uint
 		// Get the coordinates of the pixel
         int32_t x = 0;
         int32_t y = 0;
-		pointOnCircle(radius, angle, center.x, center.y, &x, &y);
+		pcircle(radius, angle, center.x, center.y, &x, &y);
 
 		// avoid overflowing the buffer
         if (x >= 0 && x < imageWidth && y >= 0 && y < imageHeight)
@@ -297,12 +293,8 @@ void graphics::drawFilledDualArc(point center, uint32_t innerRadius, uint32_t ou
 
     for (int32_t angleLUT = startAngle * 10; angleLUT <= endAngle * 10; angleLUT++)
     {
-        // Handle the angle wrap at 3600 manually
-        int32_t wrappedAngleLUT = angleLUT;
-        if (wrappedAngleLUT >= 3600) wrappedAngleLUT -= 3600;
-
-        int32_t cosValue = cosTable[wrappedAngleLUT];
-        int32_t sinValue = sinTable[wrappedAngleLUT];
+        int32_t cosValue = icosd(angleLUT);
+        int32_t sinValue = isind(angleLUT);
 
         for (int32_t radius = innerRadius; radius <= outerRadius; radius++)
         {

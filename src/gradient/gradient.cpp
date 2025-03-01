@@ -89,6 +89,17 @@ void gradient::fillGradient(color startColor, color endColor, point start, point
 }
 
 /**
+ * @brief Fill the display with a color gradient
+ * @param startColor color to start with
+ * @param endColor color to end with
+ * @param area The area to fill
+*/
+void gradient::fillGradient(color startColor, color endColor, rect area)
+{
+    this->fillGradient(startColor, endColor, area.x(), area.y());
+}
+
+/**
  * @brief Draw a circle gradient
  * @param center The center of the circle
  * @param radius The radius of the circle
@@ -99,19 +110,22 @@ void gradient::fillGradient(color startColor, color endColor, point start, point
 void gradient::drawRotCircleGradient(point center, int32_t radius, int32_t rotationSpeed, color start, color end)
 {
     this->theta += rotationSpeed;
-    this->theta = this->theta % NUMBER_OF_ANGLES;
+    this->theta = this->theta % 360;
 
-    int32_t cosTheta = cosTable[theta];
-    int32_t sinTheta = sinTable[theta];
+    int32_t cosTheta = icos(this->theta);
+    int32_t sinTheta = isin(this->theta);
 
     point rotGradStart = point(
-        center.x - (radius * cosTheta) / FIXED_POINT_SCALE,
-        center.y - (radius * sinTheta) / FIXED_POINT_SCALE
+        center.x - (radius * cosTheta),
+        center.y - (radius * sinTheta)
     );
+    rotGradStart >>= SIN_MULTIPLIER_BITS;
+    
     point rotGradEnd = point(
-        center.x + (radius * cosTheta) / FIXED_POINT_SCALE,
-        center.y + (radius * sinTheta) / FIXED_POINT_SCALE
+        center.x + (radius * cosTheta),
+        center.y + (radius * sinTheta)
     );
+    rotGradEnd >>= SIN_MULTIPLIER_BITS;
 
     this->fillGradient(start, end, rotGradStart, rotGradEnd);
 }
@@ -128,7 +142,7 @@ void gradient::drawRotCircleGradient(point center, int32_t radius, int32_t rotat
 void gradient::drawRotRectGradient(point center, int32_t width, int32_t height, int32_t rotationSpeed, color start, color end)
 {
     this->theta += rotationSpeed;
-    this->theta = this->theta % NUMBER_OF_ANGLES;
+    this->theta = this->theta % 360;
     point rotGradStart, rotGradEnd;
 
     // follow the quadrants of the unit circle
@@ -160,4 +174,17 @@ void gradient::drawRotRectGradient(point center, int32_t width, int32_t height, 
     );
 
     this->fillGradient(start, end, rotGradStart, rotGradEnd);
+}
+
+/**
+ * @brief Draw a rectangle gradient
+ * @param center The center of the rectangle
+ * @param area The area to fill
+ * @param rotationSpeed The speed at which the gradient rotates
+ * @param start The color to start the gradient with
+ * @param end The color to end the gradient with
+ */
+void gradient::drawRotRectGradient(point center, rect area, int32_t rotationSpeed, color start, color end)
+{
+    this->drawRotRectGradient(center, area.width(), area.height(), rotationSpeed, start, end);
 }
