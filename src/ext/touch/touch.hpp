@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <hardware/i2c.h>
 #include "pico/stdlib.h"
-#include "structs.h"
+#include "display_struct.h"
 
 class touch
 {

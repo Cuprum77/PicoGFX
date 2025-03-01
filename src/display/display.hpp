@@ -7,7 +7,7 @@
 #include "pico/divider.h"
 #include "hardware/pwm.h"
 #include "hardware_driver.hpp"
-#include "structs.h"
+#include "display_struct.h"
 #include "shapes.hpp"
 #include "color.h"
 #include "gfxmath.h"

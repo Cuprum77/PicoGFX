@@ -8,7 +8,7 @@
 #include "hardware/pio.h"
 #include "hardware/clocks.h"
 #include "pio_spi.pio.h"
-#include "structs.h"
+#include "display_struct.h"
 
 typedef enum
 {

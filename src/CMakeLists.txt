@@ -41,7 +41,7 @@ target_include_directories(${PROJECT_NAME}
     PUBLIC ${PROJECT_SOURCE_DIR}/gradient
     PUBLIC ${PROJECT_SOURCE_DIR}/graphics
     PUBLIC ${PROJECT_SOURCE_DIR}/hardware_driver
-    PUBLIC ${PROJECT_SOURCE_DIR}/misc
+    PUBLIC ${PROJECT_SOURCE_DIR}/shapes
     PUBLIC ${PROJECT_SOURCE_DIR}/print
     PUBLIC ${PROJECT_SOURCE_DIR}/print/fonts
     PUBLIC ${PROJECT_SOURCE_DIR}/ext/touch

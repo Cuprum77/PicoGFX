@@ -1,7 +1,7 @@
 #pragma once
 
 #include "color.h"
-#include "structs.h"
+#include "display_struct.h"
 #include "shapes.hpp"
 #include "gfxmath.h"
 

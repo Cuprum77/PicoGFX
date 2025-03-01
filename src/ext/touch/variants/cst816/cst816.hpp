@@ -1,7 +1,7 @@
 #pragma once
 
 #include "touch.hpp"
-#include "structs.h"
+#include "display_struct.h"
 #include "display.hpp"
 
 #define CST816_ADDR 0x15
