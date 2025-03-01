@@ -3,16 +3,14 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <math.h>
-
 #include "pico/stdlib.h"
 #include "pico/divider.h"
 #include "hardware/pwm.h"
-
 #include "hardware_driver.hpp"
 #include "structs.h"
 #include "shapes.hpp"
 #include "color.h"
+#include "gfxmath.h"
 
 
 class display
@@ -44,7 +42,9 @@ public:
     int32_t getFrameCounter() { return this->frames; }
     uint32_t getWidth(void) { return this->config->width; }
     uint32_t getHeight(void)  { return this->config->height; }
-    rect getScreenArea(void) { return rect(point(0, 0), point(this->config->width, this->config->height)); }
+    uint32_t getShortestSide(void) { return imin(this->config->width, this->config->height); }
+    uint32_t getLongestSide(void) { return imax(this->config->width, this->config->height); }
+    rect getArea(void) { return rect(point(0, 0), point(this->config->width, this->config->height)); }
 
     uint16_t* getFrameBuffer(void) { return this->frameBuffer; }
 
