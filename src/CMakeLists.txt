@@ -21,6 +21,7 @@ add_library(${PROJECT_NAME}
     graphics/polygon.cpp
     graphics/triangle.cpp
     graphics/gfxmath.c
+    graphics/trig.c
     hardware_driver/hardware_driver.cpp
     print/print.cpp
     ext/touch/touch.cpp
