@@ -285,13 +285,16 @@ void graphics::drawArc(point center, uint32_t radius, uint32_t start_angle, uint
 void graphics::drawFilledDualArc(point center, uint32_t innerRadius, uint32_t outerRadius, uint32_t startAngle, uint32_t endAngle, color color)
 {
     // Transform angles from [-180, 180] to [0, 360)
-    if (startAngle < 0) startAngle += 360;
-    if (endAngle < 0) endAngle += 360;
-    if (endAngle < startAngle) endAngle += 360;
+    startAngle = inorm(startAngle);
+    endAngle = inorm(endAngle);
+    startAngle *= 10;
+    endAngle *= 10;
+    
+    if (endAngle < startAngle) endAngle += 3600;
 
     uint16_t color16 = color.to16bit();
 
-    for (int32_t angleLUT = startAngle * 10; angleLUT <= endAngle * 10; angleLUT++)
+    for (int32_t angleLUT = startAngle; angleLUT <= endAngle; angleLUT++)
     {
         int32_t cosValue = icosd(angleLUT);
         int32_t sinValue = isind(angleLUT);
@@ -299,11 +302,11 @@ void graphics::drawFilledDualArc(point center, uint32_t innerRadius, uint32_t ou
         for (int32_t radius = innerRadius; radius <= outerRadius; radius++)
         {
             int32_t x = cosValue * radius;
-            x >>= FIXED_POINT_SCALE_BITS;
+            x >>= COS_MULTIPLIER_BITS;
             x += center.x;
 
             int32_t y = sinValue * radius;
-            y >>= FIXED_POINT_SCALE_BITS;
+            y >>= SIN_MULTIPLIER_BITS;
             y += center.y;
 
             if (x >= 0 && x < config->width && y >= 0 && y < config->height)
