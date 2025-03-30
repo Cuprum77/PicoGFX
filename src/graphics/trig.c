@@ -63,7 +63,7 @@ int32_t isind(int32_t angle)
 int32_t icos(int32_t angle)
 {
 	// normalize the angle
-    angle += 90;
+    angle -= 90;
     return isin(angle);
 }
 

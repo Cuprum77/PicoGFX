@@ -203,7 +203,7 @@ void display::setPixel(point point, color color)
  * @param point Buffer index
  * @param color Color to draw in as a 16 bit value
 */
-void display::setPixel(uint32_t index, ushort color)
+void display::setPixel(uint32_t index, uint16_t color)
 {
     // set the framebuffer pixel
     this->frameBuffer[index] = color;
@@ -224,7 +224,7 @@ color display::getPixel(point point)
  * @param point Buffer index
  * @return Color The color of the pixel
 */
-ushort display::getPixel(uint32_t index)
+uint16_t display::getPixel(uint32_t index)
 {
     return this->frameBuffer[index];
 }
