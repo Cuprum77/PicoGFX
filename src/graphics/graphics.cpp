@@ -25,6 +25,82 @@ void graphics::fill(color color)
         this->frameBuffer[i] = color16;
 }
 
+/**
+ * @brief Fill the display with a test pattern
+*/
+void graphics::testPattern(void)
+{
+    	color top_row[] = {
+		colors::argent, colors::acidGreen, colors::turquoiseSurf,
+		colors::islamicGreen, colors::deepMagenta, colors::ueRed,
+		colors::mediumBlue
+	};
+
+	color middle_row[] = {
+		colors::mediumBlue, colors::chineseBlack, colors::deepMagenta,
+		colors::chineseBlack, colors::turquoiseSurf, colors::chineseBlack,
+		colors::argent
+	};
+
+	color bottom_row[] = {
+		colors::oxfordBlue, colors::white, colors::deepViolet,
+		colors::chineseBlack, colors::chineseBlack
+	};
+
+	color bottom_black_band[] = {
+		colors::vampireBlack, colors::chineseBlack, colors::eerieBlack
+	};
+
+	uint32_t top_height = 0;
+	uint32_t middle_height = (this->height / 3) * 2;
+	uint32_t bottom_height = (this->height / 4) * 3;
+
+	uint32_t top_width = this->width / 7;
+	uint32_t middle_width = this->width / 7;
+	uint32_t bottom_width1 = (middle_width * 5) / 4;
+	uint32_t bottom_width2 = middle_width / 3;
+
+	for (size_t i = 0; i < 7; i++)
+	{
+		uint32_t x_start = top_width * i;
+		uint32_t x_end = (i == 6) ? this->width : top_width * (i + 1);
+		point start = point(x_start, top_height);
+		point end = point(x_end, imin(middle_height, this->height));
+		this->drawFilledRectangle(start, end, top_row[i]);
+	}
+
+	for (size_t i = 0; i < 7; i++)
+	{
+		uint32_t x_start = middle_width * i;
+		uint32_t x_end = (i == 6) ? this->width : middle_width * (i + 1);
+		point start = point(x_start, middle_height);
+		point end = point(x_end, imin(bottom_height, this->height));
+		this->drawFilledRectangle(start, end, middle_row[i]);
+	}
+
+	for (size_t i = 0; i < 4; i++)
+	{
+		uint32_t x_start = bottom_width1 * i;
+		uint32_t x_end = (i == 3) ? this->width : bottom_width1 * (i + 1);
+		point start = point(x_start, bottom_height);
+		point end = point(x_end, this->height);
+		this->drawFilledRectangle(start, end, bottom_row[i]);
+	}
+
+	for (size_t i = 0; i < 3; i++)
+	{
+		uint32_t x_start = (middle_width * 5) + (this->width - (middle_width * 6)) / 3 * i;
+		uint32_t x_end = (i == 2) ? this->width : x_start + (this->width - (middle_width * 5)) / 3;
+		point start = point(x_start, bottom_height);
+		point end = point(x_end, this->height);
+		this->drawFilledRectangle(start, end, bottom_black_band[i]);
+	}
+
+	point start = point((middle_width * 6), bottom_height);
+	point end = point(this->width, this->height);
+	this->drawFilledRectangle(start, end, bottom_row[4]);
+}
+
 //   rrrrrggggggbbbbb
 #define RB_MASK      63519  // 0b1111100000011111        --> hex :F81F
 #define G_MASK        2016  // 0b0000011111100000        --> hex :07E0

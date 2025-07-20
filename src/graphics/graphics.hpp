@@ -13,6 +13,8 @@ public:
 
     void fill(color color);
 
+    void testPattern(void);
+
     void drawLine(point start, point end, color color = colors::white);
     void drawLineAntiAliased(point start, point end, color color = colors::white);
     void drawLineThickAntiAliased(point start, point end, uint32_t thickness, color color = colors::white);

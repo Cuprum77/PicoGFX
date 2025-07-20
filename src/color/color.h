@@ -41,7 +41,19 @@ typedef enum
     piss = 0xe702,
     derg = 0x0dfb,
     orangeRed = 0xf9e0,
-    darkYellow = 0xfe00
+    darkYellow = 0xfe00,
+    argent = 0xc618,
+    acidGreen = 0xc600,
+    islamicGreen = 0x0600,
+    turquoiseSurf = 0x0618,
+    deepMagenta = 0xc018,
+    ueRed = 0xc000,
+    mediumBlue = 0x0018,
+    chineseBlack = 0x1082,
+    oxfordBlue = 0x0109,
+    deepViolet = 0x300d,
+    vampireBlack = 0x0841,
+    eerieBlack = 0x18e3
 } colors;
 
 struct color
