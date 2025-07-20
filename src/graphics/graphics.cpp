@@ -10,6 +10,8 @@ graphics::graphics(uint16_t* frameBuffer, display_config_t* config)
     this->frameBuffer = frameBuffer;
     this->config = config;
     this->totalPixels = config->width * config->height;
+    this->width = config->width;
+    this->height = config->height;
 }
 
 /**
@@ -30,7 +32,7 @@ void graphics::fill(color color)
 */
 void graphics::testPattern(void)
 {
-    	color top_row[] = {
+	color top_row[] = {
 		colors::argent, colors::acidGreen, colors::turquoiseSurf,
 		colors::islamicGreen, colors::deepMagenta, colors::ueRed,
 		colors::mediumBlue
