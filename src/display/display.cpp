@@ -7,7 +7,6 @@ display::display(hardware_driver* hw, display_config_t* config, uint16_t* frameB
 {
     this->hw = hw;
     this->config = config;
-    this->totalPixels = config->width * config->height;
     this->frameBuffer = frameBuffer;
     this->CASET = CASET;
     this->RASET = RASET;
@@ -63,7 +62,8 @@ void display::clear()
     // set the cursor position to the top left
     this->setCursor({ 0, 0 });
     // fill the frame buffer
-    for (int32_t i = 0; i < this->totalPixels; i++)
+    uint32_t totalPixels = this->config->width * this->config->height;
+    for (int32_t i = 0; i < totalPixels; i++)
         this->frameBuffer[i] = 0x0000;
     this->setCursor({ 0, 0 });
     this->update();
@@ -75,7 +75,8 @@ void display::clear()
 void display::update()
 {
     this->setCursor({ 0, 0 });
-    this->writePixels(this->frameBuffer, this->totalPixels);
+    uint32_t totalPixels = this->config->width * this->config->height;
+    this->writePixels(this->frameBuffer, totalPixels);
 }
 
 /**
@@ -97,8 +98,10 @@ void display::update(int32_t start, int32_t end)
 */
 void display::update(int32_t start, int32_t end, bool moveCursor)
 {
+    uint32_t totalPixels = this->config->width * this->config->height;
+
     // Check if the start and end are valid
-    if (start >= end || end >= this->totalPixels)
+    if (start >= end || end >= totalPixels)
         return;
 
     // Move the cursor if needed

@@ -55,6 +55,7 @@ void graphics::drawFilledCircle(point center, uint32_t radius, color color)
 
     // convert the color to 16 bit
     uint16_t color16 = color.to16bit(this->config->inverseColors);
+    uint32_t totalPixels = this->config->width * this->config->height;
 
     while (y <= x)
     {
@@ -63,12 +64,12 @@ void graphics::drawFilledCircle(point center, uint32_t radius, color color)
             int32_t index1 = (y0 + y) * this->config->width + i;
             int32_t index2 = (y0 - y) * this->config->width + i;
             
-            if (index1 >= 0 && index1 < this->totalPixels)
+            if (index1 >= 0 && index1 < totalPixels)
             {
                 this->frameBuffer[index1] = color16;
             }
             
-            if (index2 >= 0 && index2 < this->totalPixels)
+            if (index2 >= 0 && index2 < totalPixels)
             {
                 this->frameBuffer[index2] = color16;
             }
@@ -79,12 +80,12 @@ void graphics::drawFilledCircle(point center, uint32_t radius, color color)
             int32_t index1 = (y0 + x) * this->config->width + i;
             int32_t index2 = (y0 - x) * this->config->width + i;
 
-            if (index1 >= 0 && index1 < this->totalPixels)
+            if (index1 >= 0 && index1 < totalPixels)
             {
                 this->frameBuffer[index1] = color16;
             }
             
-            if (index2 >= 0 && index2 < this->totalPixels)
+            if (index2 >= 0 && index2 < totalPixels)
             {
                 this->frameBuffer[index2] = color16;
             }

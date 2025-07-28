@@ -13,7 +13,6 @@ gradient::gradient(uint16_t* frameBuffer, display_config_t* config)
 {
     this->frameBuffer = frameBuffer;
     this->config = config;
-    this->totalPixels = config->width * config->height;
     this->theta = 0;
 }
 
@@ -42,7 +41,8 @@ void gradient::fillGradient(color startColor, color endColor, point start, point
     if(start == end)
     {
         uint16_t startColor16 = startColor.to16bit(this->config->inverseColors);
-        for(int32_t i = 0; i < this->totalPixels; i++)
+        uint32_t totalPixels = this->config->width * this->config->height;
+        for(int32_t i = 0; i < totalPixels; i++)
             this->frameBuffer[i] = startColor16;
 
         return;

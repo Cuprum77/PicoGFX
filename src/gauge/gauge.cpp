@@ -23,7 +23,6 @@ dialGauge::dialGauge(graphics* graphics_ptr, int32_t screenWidth, int32_t screen
 	this->graphics_ptr = graphics_ptr;
 	this->width = screenWidth;
 	this->height = screenHeight;
-	this->totalPixels = (size_t)(screenWidth) * (size_t)(screenHeight);
 
 	// Copy the dial parameters to the object
 	this->center = center;

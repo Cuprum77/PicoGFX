@@ -55,7 +55,6 @@ public:
 private:
     uint16_t* frameBuffer;
     display_config_t* config;
-    size_t totalPixels;
     uint32_t width;
     uint32_t height;
 
