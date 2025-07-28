@@ -18,7 +18,7 @@ void graphics::drawLine(point start, point end, color color)
     // Calculate the error
     int32_t err = dx + dy, e2;
     // Get the uint16_t color
-    uint16_t color16 = color.to16bit();
+    uint16_t color16 = color.to16bit(this->config->inverseColors);
 
     uint32_t x = start.x;
     uint32_t y = start.y;
@@ -70,7 +70,7 @@ void graphics::drawLineAntiAliased(point start, point end, color color)
     // Precalculate the inverse of ed for faster calculations
     int32_t edInv = (FIXED_POINT_SCALE + (ed / 2)) / ed;
     // Get the uint16_t color
-    uint16_t color16 = color.to16bit();
+    uint16_t color16 = color.to16bit(this->config->inverseColors);
 
     // Loop until we break
     for (;;)
@@ -138,5 +138,5 @@ void graphics::drawLineThickAntiAliased(point start, point end, uint32_t thickne
     int32_t e2, x2, y2;
     int32_t ed = dx + dy == 0 ? 1 : isqrt(dx * dx + dy * dy);
     // Get the uint16_t color
-    uint16_t color16 = color.to16bit();
+    uint16_t color16 = color.to16bit(this->config->inverseColors);
 }

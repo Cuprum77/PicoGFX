@@ -155,9 +155,23 @@ struct color
      * @brief Returns the color as a 16 bit value
      * @return 16-bit color
     */
-    uint16_t to16bit()
+    uint16_t to16bit(bool inv = false) const
     {
-        return (this->r << 11) | (this->g << 5) | this->b;
+        if (inv)
+        {
+            uint16_t color = (this->r << 11) | (this->g << 5) | this->b;
+
+            color = ((color & 0xaaaa) >> 1) | ((color & 0x5555) << 1);
+            color = ((color & 0xcccc) >> 2) | ((color & 0x3333) << 2);
+            color = ((color & 0xf0f0) >> 4) | ((color & 0x0f0f) << 4);
+            color = (color >> 8) | (color << 8);
+
+            return color;
+        }
+        else
+        {
+            return (this->r << 11) | (this->g << 5) | this->b;
+        }
     }
 
     /**
@@ -165,7 +179,7 @@ struct color
      * @param color 24-bit color
      * @return 16-bit color
      */
-    color hexToColor(unsigned int c)
+    color hexToColor(uint32_t c)
     {
         uint8_t r = (c >> 16) & 0xFF;
         uint8_t g = (c >> 8) & 0xFF;

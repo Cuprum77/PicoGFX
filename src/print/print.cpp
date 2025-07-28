@@ -20,7 +20,7 @@ printer::printer(uint16_t* frameBuffer, display_config_t* config)
 */
 void printer::setColor(color val)
 {
-	this->color_val = val.to16bit();
+	this->color_val = val.to16bit(this->config->inverseColors);
 }
 
 /**

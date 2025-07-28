@@ -21,7 +21,7 @@ graphics::graphics(uint16_t* frameBuffer, display_config_t* config)
 void graphics::fill(color color)
 {
     // convert color to 16 bit
-    uint16_t color16 = color.to16bit();
+    uint16_t color16 = color.to16bit(this->config->inverseColors);
     // fill the frame buffer
     for (int32_t i = 0; i < this->totalPixels; i++)
         this->frameBuffer[i] = color16;
