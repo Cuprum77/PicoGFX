@@ -60,8 +60,8 @@ display_touch_config_t i2c_config {
 };
 
 // Create the display object
-hardware_driver spi(&config);
-st7789 display(&spi, &config);
+hardware_driver hw(&config);
+st7789 display(&hw, &config);
 graphics draw(display.getFrameBuffer(), &config);
 cst816 touch(&i2c_config, &display);
 
@@ -75,7 +75,7 @@ int main()
     gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
 
     // Initialize the display
-    spi.init();
+    hw.init();
     display.init();
     draw.fill(colors::white);
 

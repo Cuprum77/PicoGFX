@@ -14,8 +14,8 @@
 class st7789 : public display
 {
 public:
-    st7789(hardware_driver* spi, display_config_t* config) : 
-        display(spi, config, this->framebuffer, COMMAND_CASET, COMMAND_RASET, COMMAND_RAMWR) {} // Constructor
+    st7789(hardware_driver* hw, display_config_t* config) : 
+        display(hw, config, this->framebuffer, COMMAND_CASET, COMMAND_RASET, COMMAND_RAMWR) {} // Constructor
     void init();
 
     void setRotation(display_rotation_t rotation);

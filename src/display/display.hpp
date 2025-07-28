@@ -16,7 +16,7 @@
 class display
 {
 public:
-    display(hardware_driver* spi, display_config_t* config, uint16_t* frameBuffer, uint8_t CASET, uint8_t RASET, uint8_t RAMWR);
+    display(hardware_driver* hw, display_config_t* config, uint16_t* frameBuffer, uint8_t CASET, uint8_t RASET, uint8_t RAMWR);
     void setBrightness(uint8_t brightness);
     display_rotation_t getRotation(void) { return this->config->rotation; }
     void clear(void);
@@ -49,7 +49,7 @@ public:
     uint16_t* getFrameBuffer(void) { return this->frameBuffer; }
 
 protected:
-    hardware_driver* spi;
+    hardware_driver* hw;
     display_config_t* config;
     bool dimmingEnabled = false;
     uint32_t sliceNum;

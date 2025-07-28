@@ -45,8 +45,8 @@ display_config_t config = {
 };
 
 // Create the display object
-hardware_driver spi(&config);
-st7789 display(&spi, &config);
+hardware_driver hw(&config);
+st7789 display(&hw, &config);
 graphics draw(display.getFrameBuffer(), &config);
 
 int main()
@@ -55,7 +55,7 @@ int main()
     stdio_init_all();
 
     // Initialize the display
-    spi.init();
+    hw.init();
     display.init();
 	draw.drawBitmap(background_image, 240, 280);
     display.update();

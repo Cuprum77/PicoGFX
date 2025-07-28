@@ -155,9 +155,9 @@ struct color
      * @brief Returns the color as a 16 bit value
      * @return 16-bit color
     */
-    uint16_t to16bit(bool inv = false) const
+    uint16_t to16bit(uint16_t invert)
     {
-        if (inv)
+        if (invert)
         {
             uint16_t color = (this->r << 11) | (this->g << 5) | this->b;
 
@@ -208,14 +208,14 @@ struct color
      * @param ratio Ratio of the blend (0-1)
      * @return Blended color
     */
-    color blend(color c, uint16_t ratio)
+    color blend(color c, uint16_t ratio, bool invert)
     {
         // split blue and red
-        uint16_t rb = c.to16bit() & 0xf81f;
-        rb += ((this->to16bit() & 0xf81f) - rb) * (ratio >> 2) >> 6;
+        uint16_t rb = c.to16bit(invert) & 0xf81f;
+        rb += ((this->to16bit(invert) & 0xf81f) - rb) * (ratio >> 2) >> 6;
         // split out green
-        uint16_t g = c.to16bit() & 0x07e0;
-        g += ((this->to16bit() & 0x07e0) - g) * ratio  >> 8;
+        uint16_t g = c.to16bit(invert) & 0x07e0;
+        g += ((this->to16bit(invert) & 0x07e0) - g) * ratio  >> 8;
         // recombine
         uint16_t result = (rb & 0xf81f) | (g & 0x07e0);
 

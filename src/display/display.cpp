@@ -3,9 +3,9 @@
 /**
  * @brief display initialization
 */
-display::display(hardware_driver* spi, display_config_t* config, uint16_t* frameBuffer, uint8_t CASET, uint8_t RASET, uint8_t RAMWR)
+display::display(hardware_driver* hw, display_config_t* config, uint16_t* frameBuffer, uint8_t CASET, uint8_t RASET, uint8_t RAMWR)
 {
-    this->spi = spi;
+    this->hw = hw;
     this->config = config;
     this->totalPixels = config->width * config->height;
     this->frameBuffer = frameBuffer;
@@ -308,7 +308,7 @@ void display::writeData(uint8_t command, const uint8_t* data, size_t length)
     // set the data mode
     this->dataMode = false;
     // write the command
-    this->spi->writeData(command, data, length);
+    this->hw->writeData(command, data, length);
 }
 
 /**
@@ -372,9 +372,9 @@ void display::writePixels(const uint16_t* data, size_t length)
     if (!this->dataMode)
     {
         // set the data mode
-        this->spi->setDataMode(this->RAMWR);
+        this->hw->setDataMode(this->RAMWR);
         this->dataMode = true;
     }
     // write the pixels
-    this->spi->writePixels(data, length);
+    this->hw->writePixels(data, length);
 }

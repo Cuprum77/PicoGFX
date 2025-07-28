@@ -14,10 +14,9 @@
 class gc9a01 : public display
 {
 public:
-    gc9a01(hardware_driver* spi, display_config_t* config) : 
-        display(spi, config, this->framebuffer, COMMAND_CASET, COMMAND_RASET, COMMAND_RAMWR) {} // Constructor
+    gc9a01(hardware_driver* hw, display_config_t* config) : 
+        display(hw, config, this->framebuffer, COMMAND_CASET, COMMAND_RASET, COMMAND_RAMWR) {} // Constructor
     void init();
-    void reset();
     void softReset();
 
     void setRotation(display_rotation_t rotation);

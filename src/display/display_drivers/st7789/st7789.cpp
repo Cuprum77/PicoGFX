@@ -5,7 +5,6 @@ void st7789::init()
     // Apply constants
     this->maxWidth = MAX_WIDTH;
     this->maxHeight = MAX_HEIGHT;
-    this->config->interface = display_interface_t::DISPLAY_SPI;
 
     // reset the display
     this->writeData(0x01, NULL, 0);

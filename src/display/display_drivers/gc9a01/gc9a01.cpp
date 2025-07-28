@@ -11,7 +11,7 @@ void gc9a01::init()
 	this->config->interface = display_interface_t::DISPLAY_SPI;
 
 	// initialize the display
-    this->reset();
+    this->hw->reset(50);
     sleep_ms(100);
 
     this->writeData(0xef, (const uint8_t *) NULL, 0);
@@ -80,19 +80,6 @@ void gc9a01::softReset()
 {
 	this->writeData(0x01, (const uint8_t *) NULL, 0);
 	sleep_ms(120);
-}
-
-/**
- * @brief Reset the display
-*/
-void gc9a01::reset()
-{
-	// Hardware reset
-	gpio_put(this->config->spi.rst, 1);
-	sleep_ms(50);
-	gpio_put(this->config->spi.rst, 0);
-	sleep_ms(50);
-	gpio_put(this->config->spi.rst, 1);
 }
 
 /**
