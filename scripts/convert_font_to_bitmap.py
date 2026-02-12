@@ -62,7 +62,7 @@ def Compress(data):
         else:
             blacks += 1
 
-        if i == 0 or data[i - 1] == pixel:
+        if data[i - 1] == pixel:
             continue
 
         if pixel == 1:
