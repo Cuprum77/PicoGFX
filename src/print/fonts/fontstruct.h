@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 
-// Estimated total memory usage: 107804 bytes
+// Estimated total memory usage: 107860 bytes
 
 // Struct for storing the location of the bitmap in memory
 // Offset is the number of pixels from the upper left corner
