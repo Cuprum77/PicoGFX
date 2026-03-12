@@ -8,7 +8,7 @@
 #include "hardware/pio.h"
 #include "hardware/clocks.h"
 #include "pio_spi.pio.h"
-#include "display_struct.h"
+#include "lcd_config.h"
 
 typedef enum
 {
@@ -26,7 +26,6 @@ typedef struct pio_spi_inst
 class hardware_driver
 {
 public:
-    hardware_driver(display_config_t* config);
     void init(void);
     void reset(uint32_t time_ms);
 
@@ -35,14 +34,15 @@ public:
     void writePixels(const uint16_t* data, size_t length);
 
 private:
-    // general stuff
-    display_config_t* config;
-    display_interface_t interface;
-    bool pioMode = false;   // hw mode only
-
     // dma stuff
     uint32_t dma_tx;
     dma_channel_config dma_config;
+
+#if defined(LCD_PROTOCOL_PARALLEL_24) \
+    || defined(LCD_PROTOCOL_PARALLEL_16) \
+    || defined(LCD_PROTOCOL_PARALLEL_8)
+    uint32_t parallel_data_pins[LCD_PIN_DB_COUNT] = LCD_PIN_DB_ARRAY;
+#endif
 
     // pio stuff
     PIO pio;
@@ -59,12 +59,8 @@ private:
     uint32_t parallel_interface_max_pin = 0;
 
     // private functions
-    void initSPI(void);
-    void initSPIwPIO(void);
-    void init8080(void);
     void changeSPIbits(spi_bit_length_t bits);
     void write8080(uint32_t data, bool command, bool bit16);
     inline void setSPIdataCommandPins(bool dc, bool cs);
-    bool isSequential(uint32_t* arr, size_t size);
     uint16_t flipBits(uint16_t value);
 };

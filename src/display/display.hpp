@@ -6,7 +6,8 @@
 #include "pico/stdlib.h"
 #include "pico/divider.h"
 #include "hardware/pwm.h"
-#include "hardware_driver.hpp"
+#include "driver.h"
+#include "lcd_config.h"
 #include "display_struct.h"
 #include "shapes.hpp"
 #include "color.h"
@@ -17,7 +18,6 @@ class display
 {
 public:
     display(hardware_driver* hw, display_config_t* config, uint16_t* frameBuffer, uint8_t CASET, uint8_t RASET, uint8_t RAMWR);
-    void setBrightness(uint8_t brightness);
     display_rotation_t getRotation(void) { return this->config->rotation; }
     void clear(void);
 
@@ -51,7 +51,6 @@ public:
 protected:
     hardware_driver* hw;
     display_config_t* config;
-    bool dimmingEnabled = false;
     uint32_t sliceNum;
     uint32_t pwmChannel;
     bool dataMode = false;

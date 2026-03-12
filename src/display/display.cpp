@@ -11,47 +11,6 @@ display::display(hardware_driver* hw, display_config_t* config, uint16_t* frameB
     this->CASET = CASET;
     this->RASET = RASET;
     this->RAMWR = RAMWR;
-
-    // init the rest of the pins if we are using a compatible screen
-    if (config->interface == display_interface_t::DISPLAY_SPI)
-    {
-        gpio_init(this->config->spi.rst);
-        // set the rest of the pins to GPIO output
-        gpio_set_dir(this->config->spi.rst, GPIO_OUT);
-        // set the pins to high
-        gpio_put(this->config->spi.rst, 1);
-    }
-
-    // set up the backlight pin depending on the dimming setting
-    this->backlight = this->config->backlightPin != -1;
-    if (this->backlight)
-    {
-        if (config->dimming)
-        {
-            // enable dimming
-            this->dimmingEnabled = true;
-            gpio_set_function(this->config->backlightPin, GPIO_FUNC_PWM);
-            // get the PWM slice number
-            uint32_t sliceNum = pwm_gpio_to_slice_num(this->config->backlightPin);
-            this->sliceNum = sliceNum;
-            // get the PWM channel
-            uint32_t chan = pwm_gpio_to_channel(this->config->backlightPin);
-            this->pwmChannel = chan;
-            // turn on the PWM slice
-            pwm_set_enabled(sliceNum, true);
-            // set the PWM wrap value
-            pwm_set_wrap(sliceNum, 255);
-            // set the PWM value
-            pwm_set_chan_level(sliceNum, chan, 127);
-        }
-        else
-        {
-            this->dimmingEnabled = false;
-            gpio_init(this->config->backlightPin);
-            gpio_set_dir(this->config->backlightPin, GPIO_OUT);
-            gpio_put(this->config->backlightPin, 1);
-        }
-    }
 }
 
 /**
@@ -273,31 +232,6 @@ point display::getCenter()
     };
     return point;
 }
-
-/**
- * @brief Set the backlight brightness
- * @param brightness Brightness (0-255) if dimming is enabled, brightness (0-1) if dimming is disabled
-*/
-void display::setBrightness(uint8_t brightness)
-{
-    if (!this->backlight)
-        return;
-
-    // check if dimming is enabled
-    if (this->dimmingEnabled)
-    {
-        // set the brightness
-        pwm_set_chan_level(this->sliceNum, this->pwmChannel, brightness);
-    }
-    else
-    {
-        // make sure the brightness is between 0 and 1
-        brightness = brightness & 0x01;
-        // toggle the backlight pin based on the brightness
-        gpio_put(this->config->backlightPin, brightness);
-    }
-}
-
 
 /**
  * @private

@@ -8,7 +8,6 @@ void gc9a01::init()
     // Apply constants
     this->maxWidth = MAX_WIDTH;
     this->maxHeight = MAX_HEIGHT;
-	this->config->interface = display_interface_t::DISPLAY_SPI;
 
 	// initialize the display
     this->hw->reset(50);

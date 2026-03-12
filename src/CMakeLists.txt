@@ -11,8 +11,10 @@ add_library(${PROJECT_NAME}
     compression/compression_decoder.cpp
     compression/compression_encoder.cpp
     display/display.cpp
+    drivers/driver.cpp
     drivers/st7789/st7789.cpp
     drivers/gc9a01/gc9a01.cpp
+    drivers/touch/touch.cpp
     drivers/touch/cst816/cst816.cpp
     drivers/touch/gt911/gt911.cpp
     gauge/gauge.cpp
@@ -26,9 +28,7 @@ add_library(${PROJECT_NAME}
     graphics/filter.cpp
     graphics/gfxmath.c
     graphics/trig.c
-    hardware_driver/hardware_driver.cpp
     print/print.cpp
-    ext/touch/touch.cpp
 )
 
 add_library(sub::Display ALIAS ${PROJECT_NAME})
@@ -37,21 +37,21 @@ target_include_directories(${PROJECT_NAME}
     PUBLIC ${PROJECT_SOURCE_DIR}/color
     PUBLIC ${PROJECT_SOURCE_DIR}/compression
     PUBLIC ${PROJECT_SOURCE_DIR}/display
+    PUBLIC ${PROJECT_SOURCE_DIR}/drivers
     PUBLIC ${PROJECT_SOURCE_DIR}/drivers/st7789
     PUBLIC ${PROJECT_SOURCE_DIR}/drivers/gc9a01
+    PUBLIC ${PROJECT_SOURCE_DIR}/drivers/touch
     PUBLIC ${PROJECT_SOURCE_DIR}/drivers/touch/cst816
     PUBLIC ${PROJECT_SOURCE_DIR}/drivers/touch/gt911
     PUBLIC ${PROJECT_SOURCE_DIR}/gauge
     PUBLIC ${PROJECT_SOURCE_DIR}/gradient
     PUBLIC ${PROJECT_SOURCE_DIR}/graphics
-    PUBLIC ${PROJECT_SOURCE_DIR}/hardware_driver
     PUBLIC ${PROJECT_SOURCE_DIR}/shapes
     PUBLIC ${PROJECT_SOURCE_DIR}/print
     PUBLIC ${PROJECT_SOURCE_DIR}/print/fonts
-    PUBLIC ${PROJECT_SOURCE_DIR}/ext/touch
 )
 
-pico_generate_pio_header(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/hardware_driver/pio_spi.pio)
+pico_generate_pio_header(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/drivers/pio_spi.pio)
 
 target_link_libraries(${PROJECT_NAME} 
     pico_stdlib
