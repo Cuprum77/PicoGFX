@@ -4,14 +4,18 @@ cmake_minimum_required(VERSION 3.15)
 # Set the project name
 project(PicoGFX)
 
+add_subdirectory(config)
+
 # Add the library with the above sources
 add_library(${PROJECT_NAME} 
     compression/compression.cpp
     compression/compression_decoder.cpp
     compression/compression_encoder.cpp
     display/display.cpp
-    display/display_drivers/st7789/st7789.cpp
-    display/display_drivers/gc9a01/gc9a01.cpp
+    drivers/st7789/st7789.cpp
+    drivers/gc9a01/gc9a01.cpp
+    drivers/touch/cst816/cst816.cpp
+    drivers/touch/gt911/gt911.cpp
     gauge/gauge.cpp
     gradient/gradient.cpp
     graphics/graphics.cpp
@@ -26,8 +30,6 @@ add_library(${PROJECT_NAME}
     hardware_driver/hardware_driver.cpp
     print/print.cpp
     ext/touch/touch.cpp
-    ext/touch/variants/cst816/cst816.cpp
-    ext/touch/variants/gt911/gt911.cpp
 )
 
 add_library(sub::Display ALIAS ${PROJECT_NAME})
@@ -36,8 +38,10 @@ target_include_directories(${PROJECT_NAME}
     PUBLIC ${PROJECT_SOURCE_DIR}/color
     PUBLIC ${PROJECT_SOURCE_DIR}/compression
     PUBLIC ${PROJECT_SOURCE_DIR}/display
-    PUBLIC ${PROJECT_SOURCE_DIR}/display/display_drivers/st7789
-    PUBLIC ${PROJECT_SOURCE_DIR}/display/display_drivers/gc9a01
+    PUBLIC ${PROJECT_SOURCE_DIR}/drivers/st7789
+    PUBLIC ${PROJECT_SOURCE_DIR}/drivers/gc9a01
+    PUBLIC ${PROJECT_SOURCE_DIR}/drivers/touch/cst816
+    PUBLIC ${PROJECT_SOURCE_DIR}/drivers/touch/gt911
     PUBLIC ${PROJECT_SOURCE_DIR}/gauge
     PUBLIC ${PROJECT_SOURCE_DIR}/gradient
     PUBLIC ${PROJECT_SOURCE_DIR}/graphics
@@ -46,8 +50,6 @@ target_include_directories(${PROJECT_NAME}
     PUBLIC ${PROJECT_SOURCE_DIR}/print
     PUBLIC ${PROJECT_SOURCE_DIR}/print/fonts
     PUBLIC ${PROJECT_SOURCE_DIR}/ext/touch
-    PUBLIC ${PROJECT_SOURCE_DIR}/ext/touch/variants/cst816
-    PUBLIC ${PROJECT_SOURCE_DIR}/ext/touch/variants/gt911
 )
 
 pico_generate_pio_header(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/hardware_driver/pio_spi.pio)
@@ -60,4 +62,5 @@ target_link_libraries(${PROJECT_NAME}
     hardware_pwm
     hardware_pio
     pico_multicore
+    lcd_config
 )
