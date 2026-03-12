@@ -3,7 +3,6 @@ cmake_minimum_required(VERSION 3.15)
 
 # Set the project name
 project(PicoGFX)
-
 add_subdirectory(config)
 
 # Add the library with the above sources

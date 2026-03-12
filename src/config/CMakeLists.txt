@@ -18,6 +18,7 @@ string(APPEND CONFIG_CONTENT "#define LCD_ROTATION_${LCD_ROTATION}\n\n")
 # Protocol
 # ==========================================
 string(APPEND CONFIG_CONTENT "#define LCD_DRIVER_${LCD_DRIVER}\n")
+string(APPEND CONFIG_CONTENT "#define LCD_HARDWARE_${LCD_HARDWARE}\n")
 string(APPEND CONFIG_CONTENT "#define LCD_COLOR_DEPTH_${LCD_COLOR_DEPTH}\n")
 string(APPEND CONFIG_CONTENT "#define LCD_PROTOCOL_${LCD_PROTOCOL}\n\n")
 
@@ -78,15 +79,29 @@ if(LCD_PROTOCOL STREQUAL "PARALLEL_8" OR
         set(PREV_PIN ${pin})
     endforeach()
 
+    string(APPEND CONFIG_CONTENT "#define LCD_PIN_DB_COUNT   ${DB_COUNT}\n")
+
     if(IS_SEQUENTIAL)
         list(GET DB_PINS 0 DB_BASE_PIN)
-        string(APPEND CONFIG_CONTENT "\n#define LCD_PIN_DB_BASE    ${DB_BASE_PIN}\n")
         string(APPEND CONFIG_CONTENT "#define LCD_PIN_DB_SEQUENTIAL\n")
     elseif(IS_REVERSED)
         list(GET DB_PINS 0 DB_BASE_PIN)
-        string(APPEND CONFIG_CONTENT "\n#define LCD_PIN_DB_BASE    ${DB_BASE_PIN}\n")
+        string(APPEND CONFIG_CONTENT "#define LCD_PIN_DB_SEQUENTIAL\n")
         string(APPEND CONFIG_CONTENT "#define LCD_PIN_DB_REVERSED\n")
     endif()
+
+    set(DB_ARRAY_CONTENT "")
+    if(IS_REVERSED)
+        list(REVERSE DB_PINS)
+    endif()
+
+    set(DB_ARRAY_CONTENT "")
+    foreach(i RANGE 0 ${DB_MAX})
+        list(APPEND DB_ARRAY_CONTENT ${LCD_PIN_DB${i}})
+    endforeach()
+
+    string(JOIN ", " DB_ARRAY_CONTENT ${DB_ARRAY_CONTENT})
+    string(APPEND CONFIG_CONTENT "\n#define LCD_PIN_DB_ARRAY { ${DB_ARRAY_CONTENT} }\n")
 
 elseif(LCD_PROTOCOL STREQUAL "SPI")
 
@@ -102,6 +117,17 @@ elseif(LCD_PROTOCOL STREQUAL "SPI")
         string(APPEND CONFIG_CONTENT "#define LCD_PIN_DAT3 ${LCD_PIN_DAT3}\n")
     else()
         string(APPEND CONFIG_CONTENT "#define LCD_PIN_SDA  ${LCD_PIN_SDA}\n")
+
+        if (DEFINED LCD_SPI_INSTANCE)
+            string(APPEND CONFIG_CONTENT "#define LCD_SPI_INSTANCE ${LCD_SPI_INSTANCE}\n")
+        else()
+            message(FATAL_ERROR "LCD_SPI_INSTANCE must be defined for SPI protocol with HW hardware")
+        endif()
+        if (DEFINED LCD_SPI_RATE)
+            string(APPEND CONFIG_CONTENT "#define LCD_SPI_RATE ${LCD_SPI_RATE}\n")
+        else()
+            message(FATAL_ERROR "LCD_SPI_RATE must be defined for SPI protocol with HW hardware")
+        endif()
     endif()
 
 else()
@@ -113,7 +139,11 @@ endif()
 # ==========================================
 if(DEFINED TOUCH_DRIVER)
     string(APPEND CONFIG_CONTENT "\n#define TOUCH_DRIVER_${TOUCH_DRIVER}\n")
-    string(APPEND CONFIG_CONTENT "#define TOUCH_PROTOCOL_${TOUCH_PROTOCOL}\n\n")
+    string(APPEND CONFIG_CONTENT "#define TOUCH_PROTOCOL_${TOUCH_PROTOCOL}\n")
+    if (DEFINED TOUCH_I2C_INSTANCE)
+        string(APPEND CONFIG_CONTENT "#define TOUCH_I2C_INSTANCE ${TOUCH_I2C_INSTANCE}\n")
+    endif()
+    string(APPEND CONFIG_CONTENT "\n")
     string(APPEND CONFIG_CONTENT "#define TOUCH_I2C_SDA_PIN ${TOUCH_I2C_SDA_PIN}\n")
     string(APPEND CONFIG_CONTENT "#define TOUCH_I2C_SCL_PIN ${TOUCH_I2C_SCL_PIN}\n")
     string(APPEND CONFIG_CONTENT "#define TOUCH_I2C_IRQ_PIN ${TOUCH_I2C_IRQ_PIN}\n")
