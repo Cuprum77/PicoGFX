@@ -5,6 +5,12 @@ set(LCD_DRIVER      ?)
 
 # Protocol used to communicate with the display
 set(LCD_PROTOCOL    SPI)
+# Set the hardware interface used to communicate with the display (PIO, GPIO, or HW)
+set(LCD_HARDWARE    HW)
+# Set SPI instance to use (SPI0 or SPI1)
+set(LCD_SPI_INSTANCE ?)
+# Set the SPI rate to use when communicating with the display (i.e. 40000000 for 40 MHz)
+set(LCD_SPI_RATE ?)
 # Set the color depth of the display (1, 8, 16, or 24 bits per pixel)
 set(LCD_COLOR_DEPTH 16)
 

@@ -5,6 +5,8 @@ set(LCD_DRIVER      ?)
 
 # Protocol used to communicate with the display
 set(LCD_PROTOCOL    SPI)
+# Set the hardware interface used to communicate with the display (PIO, GPIO, or HW)
+set(LCD_HARDWARE    PIO)
 # Set the color depth of the display (1, 8, 16, or 24 bits per pixel)
 set(LCD_COLOR_DEPTH 16)
 
@@ -28,8 +30,5 @@ set(LCD_OFFSET_Y1   ?)
 set(LCD_PIN_DC      ?)
 set(LCD_PIN_CS      ?)
 set(LCD_PIN_SCL     ?)
-set(LCD_PIN_DAT0    ?)
-set(LCD_PIN_DAT1    ?)
-set(LCD_PIN_DAT2    ?)
-set(LCD_PIN_DAT3    ?)
+set(LCD_PIN_SDA     ?)
 set(LCD_PIN_RST     ?)
