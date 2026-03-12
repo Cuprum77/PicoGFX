@@ -100,7 +100,16 @@ void graphics::drawBitmap(const uint16_t* bitmap, uint32_t width, uint32_t heigh
     {
         for (int x = startX + offsetX, bx = offsetX; x < endX; ++x, ++bx)
         {
-            this->frameBuffer[y * this->config->width + x] = bitmap[by * width + bx];
+            uint16_t color16 = bitmap[by * width + bx];
+            if (this->config->inverseColors)
+            {
+                color16 = ((color16 & 0xaaaa) >> 1) | ((color16 & 0x5555) << 1);
+                color16 = ((color16 & 0xcccc) >> 2) | ((color16 & 0x3333) << 2);
+                color16 = ((color16 & 0xf0f0) >> 4) | ((color16 & 0x0f0f) << 4);
+                color16 = (color16 >> 8) | (color16 << 8);
+            }
+
+            this->frameBuffer[y * this->config->width + x] = color16;
         }
     }
 }

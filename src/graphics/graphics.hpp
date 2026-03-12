@@ -12,6 +12,7 @@ public:
     graphics(uint16_t* frameBuffer, display_config_t* config);
 
     void fill(color color);
+    void fill(uint16_t color);
 
     void testPattern(void);
 

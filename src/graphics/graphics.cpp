@@ -28,6 +28,28 @@ void graphics::fill(color color)
 }
 
 /**
+ * @brief Fill the display with a color
+ * @param color color to fill with
+*/
+void graphics::fill(uint16_t color)
+{
+	uint16_t color16 = color;
+
+	if (this->config->inverseColors)
+	{
+		color16 = ((color16 & 0xaaaa) >> 1) | ((color16 & 0x5555) << 1);
+		color16 = ((color16 & 0xcccc) >> 2) | ((color16 & 0x3333) << 2);
+		color16 = ((color16 & 0xf0f0) >> 4) | ((color16 & 0x0f0f) << 4);
+		color16 = (color16 >> 8) | (color16 << 8);
+	}
+
+	uint32_t totalPixels = this->config->width * this->config->height;
+    // fill the frame buffer
+    for (int32_t i = 0; i < totalPixels; i++)
+        this->frameBuffer[i] = color16;
+}
+
+/**
  * @brief Fill the display with a test pattern
 */
 void graphics::testPattern(void)
