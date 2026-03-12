@@ -1,6 +1,6 @@
 #pragma once
 
-#include "display.hpp"
+#include "display.h"
 
 // Driver constants
 #define COMMAND_RAMWR 0x2c
@@ -14,12 +14,12 @@
 class gc9a01 : public display
 {
 public:
-    gc9a01(hardware_driver* hw, display_config_t* config) : 
-        display(hw, config, this->framebuffer, COMMAND_CASET, COMMAND_RASET, COMMAND_RAMWR) {} // Constructor
+    gc9a01(hardware_driver* hw) : 
+        display(hw, this->framebuffer, COMMAND_CASET, COMMAND_RASET, COMMAND_RAMWR) {} // Constructor
     void init();
     void softReset();
 
-    void setRotation(display_rotation_t rotation);
+    void setRotation(uint32_t rotation);
     void setDisplayState(bool on);
 
 private:

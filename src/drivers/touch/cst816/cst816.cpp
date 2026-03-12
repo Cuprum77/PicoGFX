@@ -102,23 +102,25 @@ void cst816::fetch()
     if (this->display_ptr != nullptr)
     {    
         // Translate the X and Y to the display
-        display_rotation_t rotation = this->display_ptr->getRotation();
+        uint32_t rotation = this->display_ptr->getRotation();
 
         switch (rotation)
         {
-            case display_rotation_t::ROTATION_0:
+            case 0:
                 break;
-            case display_rotation_t::ROTATION_90:
+            case 90:
                 std::swap(x, y);
                 y = this->display_ptr->getHeight() - y;
                 break;
-            case display_rotation_t::ROTATION_180:
+            case 180:
                 x = this->display_ptr->getWidth() - x;
                 y = this->display_ptr->getHeight() - y;
                 break;
-            case display_rotation_t::ROTATION_270:
+            case 270:
                 std::swap(x, y);
                 x = this->display_ptr->getHeight() - x;
+                break;
+            default:
                 break;
         }
     }

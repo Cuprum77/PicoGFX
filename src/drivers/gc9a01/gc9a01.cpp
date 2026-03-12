@@ -31,7 +31,7 @@ void gc9a01::init()
 	this->writeData(0x8e, (const uint8_t *) "\xFF", 1);
 	this->writeData(0x8f, (const uint8_t *) "\xFF", 1);
 	this->writeData(0xb6, (const uint8_t *) "\x00\x00", 2);
-	this->setRotation(this->config->rotation);
+	this->setRotation(this->rotation);
 	this->writeData(0x3a, (const uint8_t *) "\x55", 1);
 	this->writeData(0x90, (const uint8_t *) "\x08\x08\x08\x08", 4);
 	this->writeData(0xbd, (const uint8_t *) "\x06", 1);
@@ -85,44 +85,46 @@ void gc9a01::softReset()
  * @brief Set the rotation of the display
  * @param rotation Rotation to set
 */
-void gc9a01::setRotation(display_rotation_t rotation)
+void gc9a01::setRotation(uint32_t rotation)
 {
 	// save the rotation
-    this->config->rotation = rotation;
-    uint32_t width = this->config->width;
-	uint32_t height = this->config->height;
+    this->rotation = rotation;
+    uint32_t width = this->width;
+	uint32_t height = this->height;
     uint32_t maxWidth = this->maxWidth;
     uint32_t maxHeight = this->maxHeight;
 
 	switch(rotation)
     {
-		case display_rotation_t::ROTATION_0:
+		case 0:
             this->writeData(0x36, 0x48);
-			this->config->height = height;
-			this->config->width = width;
+			this->height = height;
+			this->width = width;
             this->maxWidth = MAX_WIDTH;
             this->maxHeight = MAX_HEIGHT;
             break;
-        case display_rotation_t::ROTATION_90:
+        case 90:
 			this->writeData(0x36, 0x60);
-			this->config->height = width;
-			this->config->width = height;
+			this->height = width;
+			this->width = height;
             this->maxWidth = MAX_HEIGHT;
             this->maxHeight = MAX_WIDTH;
             break;
-        case display_rotation_t::ROTATION_180:
+        case 180:
 			this->writeData(0x36, 0x88);
-			this->config->height = height;
-			this->config->width = width;
+			this->height = height;
+			this->width = width;
             this->maxWidth = MAX_WIDTH;
             this->maxHeight = MAX_HEIGHT;
             break;
-        case display_rotation_t::ROTATION_270:
+        case 270:
 			this->writeData(0x36, 0xa8);
-			this->config->height = width;
-			this->config->width = height;
+			this->height = width;
+			this->width = height;
             this->maxWidth = MAX_HEIGHT;
             this->maxHeight = MAX_WIDTH;
+            break;
+        default:
             break;
     }
 }

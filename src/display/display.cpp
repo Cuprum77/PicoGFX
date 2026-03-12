@@ -1,16 +1,17 @@
-#include "display.hpp"
+#include "display.h"
 
 /**
  * @brief display initialization
 */
-display::display(hardware_driver* hw, display_config_t* config, uint16_t* frameBuffer, uint8_t CASET, uint8_t RASET, uint8_t RAMWR)
+display::display(hardware_driver* hw, uint16_t* frameBuffer, uint8_t CASET, uint8_t RASET, uint8_t RAMWR)
 {
     this->hw = hw;
-    this->config = config;
     this->frameBuffer = frameBuffer;
     this->CASET = CASET;
     this->RASET = RASET;
     this->RAMWR = RAMWR;
+    this->width = LCD_WIDTH;
+    this->height = LCD_HEIGHT;
 }
 
 /**
@@ -21,7 +22,7 @@ void display::clear()
     // set the cursor position to the top left
     this->setCursor({ 0, 0 });
     // fill the frame buffer
-    uint32_t totalPixels = this->config->width * this->config->height;
+    uint32_t totalPixels = this->width * this->height;
     for (int32_t i = 0; i < totalPixels; i++)
         this->frameBuffer[i] = 0x0000;
     this->setCursor({ 0, 0 });
@@ -34,7 +35,7 @@ void display::clear()
 void display::update()
 {
     this->setCursor({ 0, 0 });
-    uint32_t totalPixels = this->config->width * this->config->height;
+    uint32_t totalPixels = this->width * this->height;
     this->writePixels(this->frameBuffer, totalPixels);
 }
 
@@ -57,7 +58,7 @@ void display::update(int32_t start, int32_t end)
 */
 void display::update(int32_t start, int32_t end, bool moveCursor)
 {
-    uint32_t totalPixels = this->config->width * this->config->height;
+    uint32_t totalPixels = this->width * this->height;
 
     // Check if the start and end are valid
     if (start >= end || end >= totalPixels)
@@ -65,7 +66,7 @@ void display::update(int32_t start, int32_t end, bool moveCursor)
 
     // Move the cursor if needed
     if (moveCursor)
-        this->setCursor({ start % this->config->width, start / this->config->width });
+        this->setCursor({ start % this->width, start / this->width });
 
     // Write the pixels
     this->writePixels(&this->frameBuffer[start], end - start);
@@ -81,15 +82,15 @@ void display::update(point start, point end)
     // Check if the start and end are valid
     if (end.x < start.x || end.y < start.y || start.x < 0 || start.y < 0)
         return;
-    if (end.x >= this->config->width || end.y >= this->config->height)
+    if (end.x >= this->width || end.y >= this->height)
         return;
 
     // Move cursor
     this->setCursor(start);
 
     // Calculate the start and end index
-    int32_t startIndex = start.x + (start.y * (this->config->width));
-    int32_t endIndex = end.x + (end.y * (this->config->width));
+    int32_t startIndex = start.x + (start.y * (this->width));
+    int32_t endIndex = end.x + (end.y * (this->width));
     
     // Write the pixels
     this->update(startIndex, endIndex);
@@ -107,7 +108,7 @@ void display::update(rect r)
         
     // clamp the box to the display
     point min = point(0, 0);
-    point max = point(this->config->width - 1, this->config->height - 1);
+    point max = point(this->width - 1, this->height - 1);
     r = r.clamp(min, max);
         
     for (int32_t y = r.top(); y <= r.bottom(); y++)
@@ -157,7 +158,7 @@ bool display::frameLimiter(uint32_t frameRate)
 void display::setPixel(point point, color color)
 {
     // set the framebuffer pixel
-    this->frameBuffer[point.x + point.y * this->config->width] = color.to16bit(this->config->inverseColors);
+    this->frameBuffer[point.x + point.y * this->width] = color.to16bit(this->inverseColors);
 }
 
 /**
@@ -178,7 +179,7 @@ void display::setPixel(uint32_t index, uint16_t color)
 */
 color display::getPixel(point point)
 {
-    return color(this->frameBuffer[point.x + point.y * this->config->width]);
+    return color(this->frameBuffer[point.x + point.y * this->width]);
 }
 
 /**
@@ -199,13 +200,13 @@ void display::setCursor(point point)
 {
     // set the pixel x address
     this->columnAddressSet(
-        point.x + this->config->columnOffset1,
-        (this->config->width - 1) + this->config->columnOffset2
+        point.x + this->columnOffset1,
+        (this->width - 1) + this->columnOffset2
     );
     // set the pixel y address
     this->rowAddressSet(
-        point.y + this->config->rowOffset1,
-        (this->config->height - 1) + this->config->rowOffset2
+        point.y + this->rowOffset1,
+        (this->height - 1) + this->rowOffset2
     );
     // set the internal cursor position
     this->cursor = point;
@@ -227,8 +228,8 @@ point display::getCursor()
 point display::getCenter()
 {
     point point = {
-        this->config->width / 2,
-        this->config->height / 2
+        this->width / 2,
+        this->height / 2
     };
     return point;
 }

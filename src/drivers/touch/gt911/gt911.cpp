@@ -164,23 +164,25 @@ void gt911::fetch()
         if (this->display_ptr != nullptr)
         {
             // Translate the X and Y to the display
-            display_rotation_t rotation = this->display_ptr->getRotation();
+            uint32_t rotation = this->display_ptr->getRotation();
 
             switch (rotation)
             {
-                case display_rotation_t::ROTATION_0:
+                case 0:
                     break;
-                case display_rotation_t::ROTATION_90:
+                case 90:
                     std::swap(this->report[i].x, this->report[i].y);
                     this->report[i].y = this->display_ptr->getHeight() - this->report[i].y;
                     break;
-                case display_rotation_t::ROTATION_180:
+                case 180:
                     this->report[i].x = this->display_ptr->getWidth() - this->report[i].x;
                     this->report[i].y = this->display_ptr->getHeight() - this->report[i].y;
                     break;
-                case display_rotation_t::ROTATION_270:
+                case 270:
                     std::swap(this->report[i].x, this->report[i].y);
                     this->report[i].x = this->display_ptr->getHeight() - this->report[i].x;
+                    break;
+                default:
                     break;
             }
         }

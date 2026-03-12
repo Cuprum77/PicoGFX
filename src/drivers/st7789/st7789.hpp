@@ -1,6 +1,6 @@
 #pragma once
 
-#include "display.hpp"
+#include "display.h"
 
 // Driver constants
 #define COMMAND_RAMWR 0x2c
@@ -14,11 +14,11 @@
 class st7789 : public display
 {
 public:
-    st7789(hardware_driver* hw, display_config_t* config) : 
-        display(hw, config, this->framebuffer, COMMAND_CASET, COMMAND_RASET, COMMAND_RAMWR) {} // Constructor
+    st7789(hardware_driver* hw) : 
+        display(hw, this->framebuffer, COMMAND_CASET, COMMAND_RASET, COMMAND_RAMWR) {} // Constructor
     void init();
 
-    void setRotation(display_rotation_t rotation);
+    void setRotation(uint32_t rotation);
     void setDisplayState(bool on);
 
 private:

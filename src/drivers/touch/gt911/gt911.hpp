@@ -2,7 +2,7 @@
 
 #include "touch.hpp"
 #include "display_struct.h"
-#include "display.hpp"
+#include "display.h"
 
 #define GT911_ADDR              0x5d
 
