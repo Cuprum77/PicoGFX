@@ -5,7 +5,7 @@
  * @param frameBuffer Pointer to the frame buffer
  * @param display_ptr Pointer to the display object
 */
-graphics::graphics(void *frameBuffer, display *display_ptr)
+graphics::graphics(void *frameBuffer, display_obj *display_ptr)
 {
 #if defined(LCD_COLOR_DEPTH_1)
     this->frameBuffer = (bool *)frameBuffer;

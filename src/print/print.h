@@ -25,7 +25,7 @@ class printer
 {
 public:
     // Constructor
-    printer(uint16_t *frameBuffer, display *display_ptr = nullptr);
+    printer(uint16_t *frameBuffer, display_obj *display_ptr = nullptr);
 
     // Configuration functions
     void setColor(color val);
@@ -47,7 +47,7 @@ public:
 private:
     // Display variables
     uint16_t *frameBuffer;
-    display *display_ptr;
+    display_obj *display_ptr;
 
     // print variables
     char characterBuffer[CHARACTER_BUFFER_SIZE];

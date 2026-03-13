@@ -28,7 +28,7 @@ typedef struct
 class cst816 : public touch
 {
 public:
-    cst816(display *display = nullptr);
+    cst816(display_obj *display = nullptr);
     void init();
     void reset();
     void disableStandby();
@@ -41,7 +41,7 @@ private:
     uint32_t rst_pin;
     uint32_t irq_pin;
     cst816_report_t report;
-    display *display_ptr;
+    display_obj *display_ptr;
 
     static cst816 *instance;
 

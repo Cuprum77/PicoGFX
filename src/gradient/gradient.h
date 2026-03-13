@@ -6,10 +6,10 @@
 #include "display.h"
 #include "lcd_config.h"
 
-class gradient
+class gradient_obj
 {
 public:
-    gradient(uint16_t *frameBuffer, display *display_ptr = nullptr);
+    gradient_obj(uint16_t *frameBuffer, display_obj *display_ptr = nullptr);
 
     void fillGradient(color startColor, color endColor, rect area);
     void fillGradient(color startColor, color endColor, point start, point end);
@@ -19,7 +19,7 @@ public:
     void drawRotRectGradient(point center, rect area, int32_t rotationSpeed, color start, color end);
 private:
     uint16_t *frameBuffer;
-    display *display_ptr;
+    display_obj *display_ptr;
     size_t totalPixels;
 
     uint32_t theta; // The angle of the rotating gradient

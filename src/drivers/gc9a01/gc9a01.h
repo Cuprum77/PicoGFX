@@ -13,11 +13,11 @@
 
 #define FRAMEBUFFER_SIZE MAX_WIDTH * MAX_HEIGHT
 
-class gc9a01 : public display
+class gc9a01 : public display_obj
 {
 public:
     gc9a01(hardware_driver *hw) : 
-        display(hw, this->framebuffer, COMMAND_CASET, COMMAND_RASET, COMMAND_RAMWR) {}
+        display_obj(hw, this->framebuffer, COMMAND_CASET, COMMAND_RASET, COMMAND_RAMWR) {}
     void init();
     void softReset();
 

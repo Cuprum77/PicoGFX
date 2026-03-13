@@ -13,11 +13,11 @@
 
 #define FRAMEBUFFER_SIZE MAX_WIDTH * MAX_HEIGHT
 
-class st7789 : public display
+class st7789 : public display_obj
 {
 public:
     st7789(hardware_driver *hw) : 
-        display(hw, this->framebuffer, COMMAND_CASET, COMMAND_RASET, COMMAND_RAMWR) {}
+        display_obj(hw, this->framebuffer, COMMAND_CASET, COMMAND_RASET, COMMAND_RAMWR) {}
     void init();
 
     void set_rotation(uint32_t rotation);

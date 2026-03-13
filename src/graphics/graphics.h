@@ -10,7 +10,7 @@
 class graphics
 {
 public:
-    graphics(void *frameBuffer, display *display_ptr = nullptr);
+    graphics(void *frameBuffer, display_obj *display_ptr = nullptr);
 
     void fill(color color);
     void fill8(uint8_t color);
@@ -60,7 +60,7 @@ public:
     void addBlur(void);
     void addBlur(rect area);
 private:
-    display *display_ptr;
+    display_obj *display_ptr;
 
 #if defined(LCD_COLOR_DEPTH_1)
     bool *frameBuffer;

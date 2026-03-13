@@ -30,11 +30,13 @@ add_library(${PROJECT_NAME}
     graphics/gfxmath.c
     graphics/trig.c
     print/print.cpp
+    picogfx.cpp
 )
 
 add_library(sub::Display ALIAS ${PROJECT_NAME})
 
 target_include_directories(${PROJECT_NAME}
+    PUBLIC ${PROJECT_SOURCE_DIR}
     PUBLIC ${PROJECT_SOURCE_DIR}/color
     PUBLIC ${PROJECT_SOURCE_DIR}/compression
     PUBLIC ${PROJECT_SOURCE_DIR}/display
@@ -66,3 +68,6 @@ target_link_libraries(${PROJECT_NAME}
     pico_multicore
     lcd_config
 )
+
+target_link_options(${PROJECT_NAME} INTERFACE -Wl,--wrap=stdio_init_all)
+target_compile_options(${PROJECT_NAME} INTERFACE -include picogfx.h)

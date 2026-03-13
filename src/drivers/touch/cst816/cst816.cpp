@@ -9,7 +9,7 @@ cst816 *cst816::instance = nullptr;  // Define the static instance
  * @param display Display pointer
  * @note This constructor will setup a IRQ handler for the CST816 as the CST816 will not respond unless touch is detected!
  */
-cst816::cst816(display *display_ptr) : touch()
+cst816::cst816(display_obj *display_ptr) : touch()
 {
     this->display_ptr = display_ptr;
     this->instance = this;

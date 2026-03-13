@@ -4,6 +4,30 @@ include(${CMAKE_SOURCE_DIR}/lcd.config.cmake)
 set(CONFIG_CONTENT "/* Auto-generated */\n\n")
 
 # ==========================================
+# PicoGFX configuration
+# ==========================================
+if(PICO_GFX_PRINT)
+    string(APPEND CONFIG_CONTENT "#define PICO_GFX_PRINT\n")
+endif()
+
+if(PICO_GFX_GAUGE)
+    string(APPEND CONFIG_CONTENT "#define PICO_GFX_GAUGE\n")
+endif()
+
+if(PICO_GFX_GRADIENT)
+    string(APPEND CONFIG_CONTENT "#define PICO_GFX_GRADIENT\n")
+endif()
+
+if(PICO_GFX_GRAPHICS)
+    string(APPEND CONFIG_CONTENT "#define PICO_GFX_GRAPHICS\n")
+endif()
+
+# If no touch driver is defined, set TOUCH_ENABLED to 0
+if(NOT DEFINED TOUCH_DRIVER)
+    string(APPEND CONFIG_CONTENT "#define TOUCH_DISABLED\n")
+endif()
+
+# ==========================================
 # Display geometry
 # ==========================================
 string(APPEND CONFIG_CONTENT "#define LCD_WIDTH       ${LCD_WIDTH}\n")

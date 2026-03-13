@@ -9,7 +9,7 @@ uint16_t colorLUT[MAX_COLOR_DIFF + 1];
  * @param frameBuffer Pointer to the frame buffer
  * @param params Display parameters
 */
-gradient::gradient(uint16_t *frameBuffer, display *display_ptr)
+gradient_obj::gradient_obj(uint16_t *frameBuffer, display_obj *display_ptr)
 {
     this->frameBuffer = frameBuffer;
     this->display_ptr = display_ptr;
@@ -22,7 +22,7 @@ gradient::gradient(uint16_t *frameBuffer, display *display_ptr)
  * @param endColor color to end with
  * @param area The area to fill
 */
-void gradient::fillGradient(color startColor, color endColor, rect area)
+void gradient_obj::fillGradient(color startColor, color endColor, rect area)
 {
     this->fillGradient(startColor, endColor, area.x(), area.y());
 }
@@ -35,7 +35,7 @@ void gradient::fillGradient(color startColor, color endColor, rect area)
  * @param end End point
  * @note The start and end points are only used to find the direction of the gradient, it will still fill the entire display!
 */
-void gradient::fillGradient(color startColor, color endColor, point start, point end)
+void gradient_obj::fillGradient(color startColor, color endColor, point start, point end)
 {
     // check if the start and end Points are the same
     if(start == end)
@@ -106,7 +106,7 @@ void gradient::fillGradient(color startColor, color endColor, point start, point
  * @param start The color to start the gradient with
  * @param end The color to end the gradient with
  */
-void gradient::drawRotCircleGradient(circle c, int32_t rotationSpeed, color start, color end)
+void gradient_obj::drawRotCircleGradient(circle c, int32_t rotationSpeed, color start, color end)
 {
     this->drawRotCircleGradient(c.getCenter(), c.getRadius(), rotationSpeed, start, end);
 }
@@ -119,7 +119,7 @@ void gradient::drawRotCircleGradient(circle c, int32_t rotationSpeed, color star
  * @param start The color to start the gradient with
  * @param end The color to end the gradient with
 */
-void gradient::drawRotCircleGradient(point center, int32_t radius, int32_t rotationSpeed, color start, color end)
+void gradient_obj::drawRotCircleGradient(point center, int32_t radius, int32_t rotationSpeed, color start, color end)
 {
     this->theta += rotationSpeed;
     this->theta = this->theta % 360;
@@ -151,7 +151,7 @@ void gradient::drawRotCircleGradient(point center, int32_t radius, int32_t rotat
  * @param start The color to start the gradient with
  * @param end The color to end the gradient with
 */
-void gradient::drawRotRectGradient(point center, int32_t width, int32_t height, int32_t rotationSpeed, color start, color end)
+void gradient_obj::drawRotRectGradient(point center, int32_t width, int32_t height, int32_t rotationSpeed, color start, color end)
 {
     this->theta += rotationSpeed;
     this->theta = this->theta % 360;
@@ -196,7 +196,7 @@ void gradient::drawRotRectGradient(point center, int32_t width, int32_t height, 
  * @param start The color to start the gradient with
  * @param end The color to end the gradient with
  */
-void gradient::drawRotRectGradient(point center, rect area, int32_t rotationSpeed, color start, color end)
+void gradient_obj::drawRotRectGradient(point center, rect area, int32_t rotationSpeed, color start, color end)
 {
     this->drawRotRectGradient(center, area.width(), area.height(), rotationSpeed, start, end);
 }

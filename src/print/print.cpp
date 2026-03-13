@@ -4,7 +4,7 @@
  * @brief Construct a new print object
  * @param display Display to print on
 */
-printer::printer(uint16_t *frameBuffer, display *display_ptr)
+printer::printer(uint16_t *frameBuffer, display_obj *display_ptr)
 {
     this->frameBuffer = frameBuffer;
     this->color_val = colors::black;

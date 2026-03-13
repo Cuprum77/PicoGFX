@@ -3,7 +3,7 @@
 /**
  * @brief display initialization
 */
-display::display(hardware_driver *hw, void *frameBuffer, uint8_t CASET, uint8_t RASET, uint8_t RAMWR)
+display_obj::display_obj(hardware_driver *hw, void *frameBuffer, uint8_t CASET, uint8_t RASET, uint8_t RAMWR)
 {
     this->hw = hw;
 #if defined(LCD_COLOR_DEPTH_1)
@@ -25,7 +25,7 @@ display::display(hardware_driver *hw, void *frameBuffer, uint8_t CASET, uint8_t 
 /**
  * @brief Clear the display by drawing a black rectangle
 */
-void display::clear()
+void display_obj::clear()
 {
     // set the cursor position to the top left
     this->setCursor({ 0, 0 });
@@ -40,7 +40,7 @@ void display::clear()
 /**
  * @brief Print the frame buffer to the display
  */
-void display::update()
+void display_obj::update()
 {
     this->setCursor({ 0, 0 });
     uint32_t totalPixels = this->width * this->height;
@@ -53,7 +53,7 @@ void display::update()
  * @param end End index
  * @note No checks are done to speed up the process, make sure the start and end are valid!
 */
-void display::update(int32_t start, int32_t end)
+void display_obj::update(int32_t start, int32_t end)
 {
     this->writePixels(&this->frameBuffer[start], end - start);
 }
@@ -64,7 +64,7 @@ void display::update(int32_t start, int32_t end)
  * @param end End index
  * @param moveCursor Move the cursor to the start position
 */
-void display::update(int32_t start, int32_t end, bool moveCursor)
+void display_obj::update(int32_t start, int32_t end, bool moveCursor)
 {
     uint32_t totalPixels = this->width * this->height;
 
@@ -85,7 +85,7 @@ void display::update(int32_t start, int32_t end, bool moveCursor)
  * @param start Start point
  * @param end End point
 */
-void display::update(point start, point end)
+void display_obj::update(point start, point end)
 {
     // Check if the start and end are valid
     if (end.x < start.x || end.y < start.y || start.x < 0 || start.y < 0)
@@ -108,7 +108,7 @@ void display::update(point start, point end)
  * @brief Partially update the display with a section of the frame buffer
  * @param rect Rectangle to update
 */
-void display::update(rect r)
+void display_obj::update(rect r)
 {
     // Check if the start and end are valid
     if (r.left() < 0 || r.top() < 0)
@@ -128,7 +128,7 @@ void display::update(rect r)
 /**
  * @brief Run after each frame to calculate the framerate
 */
-void display::frameCounter()
+void display_obj::frameCounter()
 {
     this->framecounter++;
     if ((time_us_64() - this->timer) >= 1000000)
@@ -144,7 +144,7 @@ void display::frameCounter()
  * @param frameRate Frame rate to limit to
  * @return bool True if the next frame can be drawn
 */
-bool display::frameLimiter(uint32_t frameRate)
+bool display_obj::frameLimiter(uint32_t frameRate)
 {
     if (frameRate == 0)
         return true;
@@ -163,7 +163,7 @@ bool display::frameLimiter(uint32_t frameRate)
  * @param point Points to draw the pixel at
  * @param color Color to draw in
 */
-void display::setPixel(point point, color color)
+void display_obj::setPixel(point point, color color)
 {
     // set the framebuffer pixel
     this->frameBuffer[point.x + point.y * this->width] = color.toWord();
@@ -174,7 +174,7 @@ void display::setPixel(point point, color color)
  * @param point Buffer index
  * @param color Color to draw in as a 16 bit value
 */
-void display::setPixel(uint32_t index, uint16_t color)
+void display_obj::setPixel(uint32_t index, uint16_t color)
 {
     // set the framebuffer pixel
     this->frameBuffer[index] = color;
@@ -185,7 +185,7 @@ void display::setPixel(uint32_t index, uint16_t color)
  * @param point point to get the pixel from
  * @return Color The color of the pixel
 */
-color display::getPixel(point point)
+color display_obj::getPixel(point point)
 {
     return color(this->frameBuffer[point.x + point.y * this->width]);
 }
@@ -196,7 +196,7 @@ color display::getPixel(point point)
  * @param point Buffer index
  * @return Color The color of the pixel as a bool
 */
-bool display::getPixel(uint32_t index)
+bool display_obj::getPixel(uint32_t index)
 {
     return this->frameBuffer[index];
 }
@@ -208,7 +208,7 @@ bool display::getPixel(uint32_t index)
  * @param length Length of the data
  * @note length should be number of 16 bit pixels, not bytes!
 */
-void display::writePixels(const bool *data, size_t length)
+void display_obj::writePixels(const bool *data, size_t length)
 {
     // check if the data mode is set
     if (!this->dataMode)
@@ -227,7 +227,7 @@ void display::writePixels(const bool *data, size_t length)
  * @param point Buffer index
  * @return Color The color of the pixel as an 8 bit value
 */
-uint8_t display::getPixel(uint32_t index)
+uint8_t display_obj::getPixel(uint32_t index)
 {
     return this->frameBuffer[index];
 }
@@ -239,7 +239,7 @@ uint8_t display::getPixel(uint32_t index)
  * @param length Length of the data
  * @note length should be number of 16 bit pixels, not bytes!
 */
-void display::writePixels(const uint8_t *data, size_t length)
+void display_obj::writePixels(const uint8_t *data, size_t length)
 {
     // check if the data mode is set
     if (!this->dataMode)
@@ -258,7 +258,7 @@ void display::writePixels(const uint8_t *data, size_t length)
  * @param point Buffer index
  * @return Color The color of the pixel as a 16 bit value
 */
-uint16_t display::getPixel(uint32_t index)
+uint16_t display_obj::getPixel(uint32_t index)
 {
     return this->frameBuffer[index];
 }
@@ -270,7 +270,7 @@ uint16_t display::getPixel(uint32_t index)
  * @param length Length of the data
  * @note length should be number of 16 bit pixels, not bytes!
 */
-void display::writePixels(const uint16_t *data, size_t length)
+void display_obj::writePixels(const uint16_t *data, size_t length)
 {
     // check if the data mode is set
     if (!this->dataMode)
@@ -289,7 +289,7 @@ void display::writePixels(const uint16_t *data, size_t length)
  * @param point Buffer index
  * @return Color The color of the pixel as a 18 or 24 bit value
 */
-uint32_t display::getPixel(uint32_t index)
+uint32_t display_obj::getPixel(uint32_t index)
 {
     return this->frameBuffer[index];
 }
@@ -301,7 +301,7 @@ uint32_t display::getPixel(uint32_t index)
  * @param length Length of the data
  * @note length should be number of 16 bit pixels, not bytes!
 */
-void display::writePixels(const uint32_t *data, size_t length)
+void display_obj::writePixels(const uint32_t *data, size_t length)
 {
     // check if the data mode is set
     if (!this->dataMode)
@@ -320,7 +320,7 @@ void display::writePixels(const uint32_t *data, size_t length)
  * @brief Set the cursor position
  * @param point point to set the cursor to
 */
-void display::setCursor(point point)
+void display_obj::setCursor(point point)
 {
     // set the pixel x address
     this->columnAddressSet(
@@ -340,7 +340,7 @@ void display::setCursor(point point)
  * @brief Get the cursor position
  * @return point The cursor position
 */
-point display::getCursor()
+point display_obj::getCursor()
 {
     return this->cursor;
 }
@@ -349,7 +349,7 @@ point display::getCursor()
  * @brief Get the center of the display
  * @return point The center of the display
 */
-point display::getCenter()
+point display_obj::getCenter()
 {
     point point = {
         this->width / 2,
@@ -365,7 +365,7 @@ point display::getCenter()
  * @param data Data to send
  * @param length Length of the data
 */
-void display::writeData(uint8_t command, const uint8_t *data, size_t length)
+void display_obj::writeData(uint8_t command, const uint8_t *data, size_t length)
 {
     // set the data mode
     this->dataMode = false;
@@ -379,7 +379,7 @@ void display::writeData(uint8_t command, const uint8_t *data, size_t length)
  * @param x0 Start column
  * @param x1 End column
 */
-inline void display::columnAddressSet(uint32_t x0, uint32_t x1)
+inline void display_obj::columnAddressSet(uint32_t x0, uint32_t x1)
 {
     // deny out of bounds
     if (x0 >= x1 || x1 >= this->maxWidth)
@@ -403,7 +403,7 @@ inline void display::columnAddressSet(uint32_t x0, uint32_t x1)
  * @param y0 Start row
  * @param y1 End row
 */
-inline void display::rowAddressSet(uint32_t y0, uint32_t y1)
+inline void display_obj::rowAddressSet(uint32_t y0, uint32_t y1)
 {
     // deny out of bounds
     if (y0 >= y1 || y1 >= this->maxHeight)

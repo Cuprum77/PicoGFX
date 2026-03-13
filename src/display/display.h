@@ -12,10 +12,10 @@
 #include "color.h"
 #include "gfxmath.h"
 
-class display
+class display_obj
 {
 public:
-    display(hardware_driver *hw, void *frameBuffer, uint8_t CASET, uint8_t RASET, uint8_t RAMWR);
+    display_obj(hardware_driver *hw, void *frameBuffer, uint8_t CASET, uint8_t RASET, uint8_t RAMWR);
     uint32_t getRotation(void) { return this->rotation; }
     void clear(void);
 

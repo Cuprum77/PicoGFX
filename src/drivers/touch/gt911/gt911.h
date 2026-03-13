@@ -39,7 +39,7 @@ typedef struct
 class gt911 : public touch
 {
 public:
-    gt911(display *display_ptr = nullptr);
+    gt911(display_obj *display_ptr = nullptr);
     void init();
     void reset();
 
@@ -48,7 +48,7 @@ public:
     uint32_t getFingers();
 
 private:
-    display *display_ptr;
+    display_obj *display_ptr;
     gt911_report_t report[5] = { 0 };
 
     uint8_t buffer_status;
