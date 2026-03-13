@@ -1,12 +1,4 @@
-#include "touch.hpp"
-
-touch::touch(display_touch_config_t* config)
-{
-    this->i2c_inst = config->i2c_inst;
-    this->sda_pin = config->sda_pin;
-    this->scl_pin = config->scl_pin;
-    this->speed = config->speed;
-}
+#include "touch.h"
 
 /**
  * @protected
@@ -14,13 +6,15 @@ touch::touch(display_touch_config_t* config)
  */
 void touch::initI2C()
 {
-    i2c_init(this->i2c_inst, this->speed);
+#if defined(TOUCH_ENABLED)
+    i2c_init(TOUCH_I2C_INSTANCE, TOUCH_I2C_SPEED);
 
-    gpio_set_function(this->sda_pin, GPIO_FUNC_I2C);
-    gpio_set_function(this->scl_pin, GPIO_FUNC_I2C);
+    gpio_set_function(TOUCH_I2C_SDA_PIN, GPIO_FUNC_I2C);
+    gpio_set_function(TOUCH_I2C_SCL_PIN, GPIO_FUNC_I2C);
 
-    gpio_pull_up(this->sda_pin);
-    gpio_pull_up(this->scl_pin);
+    gpio_pull_up(TOUCH_I2C_SDA_PIN);
+    gpio_pull_up(TOUCH_I2C_SCL_PIN);
+#endif
 }
 
 /**
@@ -60,12 +54,16 @@ uint32_t touch::touchRead(uint8_t addr, uint8_t reg, uint8_t* data)
  */
 uint32_t touch::touchRead(uint8_t addr, uint8_t reg, uint8_t* data, size_t len)
 {
+#if defined(TOUCH_ENABLED)
     uint32_t bytes_written = 0;
 
-    bytes_written = i2c_write_blocking(this->i2c_inst, addr, &reg, 1, true);
-    bytes_written += i2c_read_blocking(this->i2c_inst, addr, data, len, false);
+    bytes_written = i2c_write_blocking(TOUCH_I2C_INSTANCE, addr, &reg, 1, true);
+    bytes_written += i2c_read_blocking(TOUCH_I2C_INSTANCE, addr, data, len, false);
 
     return bytes_written;
+#else
+    return 0;
+#endif
 }
 
 /**
@@ -92,6 +90,7 @@ uint32_t touch::touchRead(uint8_t addr, uint16_t reg, uint8_t* data, bool msb_fi
  */
 uint32_t touch::touchRead(uint8_t addr, uint16_t reg, uint8_t* data, size_t len, bool msb_first)
 {
+#if defined(TOUCH_ENABLED)
     uint32_t bytes_written = 0;
     uint8_t buf[2] = { 0 };
 
@@ -106,10 +105,13 @@ uint32_t touch::touchRead(uint8_t addr, uint16_t reg, uint8_t* data, size_t len,
         buf[1] = (uint8_t)(reg >> 8);
     }
 
-    bytes_written = i2c_write_blocking(this->i2c_inst, addr, buf, 2, true);
-    bytes_written += i2c_read_blocking(this->i2c_inst, addr, data, len, false);
+    bytes_written = i2c_write_blocking(TOUCH_I2C_INSTANCE, addr, buf, 2, true);
+    bytes_written += i2c_read_blocking(TOUCH_I2C_INSTANCE, addr, data, len, false);
 
     return bytes_written;
+#else
+    return 0;
+#endif
 }
 
 /**
@@ -136,12 +138,16 @@ uint32_t touch::touchWrite(uint8_t addr, uint8_t reg, uint8_t data)
  */
 uint32_t touch::touchWrite(uint8_t addr, uint8_t reg, uint8_t* data, size_t len)
 {
+#if defined(TOUCH_ENABLED)
     uint32_t bytes_written = 0;
 
-    bytes_written = i2c_write_blocking(this->i2c_inst, addr, &reg, 1, true);
-    bytes_written += i2c_write_blocking(this->i2c_inst, addr, data, len, false);
+    bytes_written = i2c_write_blocking(TOUCH_I2C_INSTANCE, addr, &reg, 1, true);
+    bytes_written += i2c_write_blocking(TOUCH_I2C_INSTANCE, addr, data, len, false);
 
     return bytes_written;
+#else
+    return 0;
+#endif
 }
 
 /**
@@ -168,6 +174,7 @@ uint32_t touch::touchWrite(uint8_t addr, uint16_t reg, uint8_t data, bool msb_fi
  */
 uint32_t touch::touchWrite(uint8_t addr, uint16_t reg, uint8_t* data, size_t len, bool msb_first)
 {
+#if defined(TOUCH_ENABLED)
     uint32_t bytes_written = 0;
     uint8_t buf[2] = { 0 };
 
@@ -182,8 +189,11 @@ uint32_t touch::touchWrite(uint8_t addr, uint16_t reg, uint8_t* data, size_t len
         buf[1] = (uint8_t)(reg >> 8);
     }
     
-    bytes_written = i2c_write_blocking(this->i2c_inst, addr, buf, 2, true);
-    bytes_written += i2c_write_blocking(this->i2c_inst, addr, data, len, false);
+    bytes_written = i2c_write_blocking(TOUCH_I2C_INSTANCE, addr, buf, 2, true);
+    bytes_written += i2c_write_blocking(TOUCH_I2C_INSTANCE, addr, data, len, false);
 
     return bytes_written;
+#else
+    return 0;
+#endif
 }

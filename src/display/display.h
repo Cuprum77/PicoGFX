@@ -8,7 +8,7 @@
 #include "hardware/pwm.h"
 #include "driver.h"
 #include "lcd_config.h"
-#include "shapes.hpp"
+#include "shapes.h"
 #include "color.h"
 #include "gfxmath.h"
 

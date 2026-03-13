@@ -138,6 +138,8 @@ endif()
 # Touch (optional)
 # ==========================================
 if(DEFINED TOUCH_DRIVER)
+    string(APPEND CONFIG_CONTENT "\n/* Touch configuration */\n\n")
+    string(APPEND CONFIG_CONTENT "#define TOUCH_ENABLED\n")
     string(APPEND CONFIG_CONTENT "\n#define TOUCH_DRIVER_${TOUCH_DRIVER}\n")
     string(APPEND CONFIG_CONTENT "#define TOUCH_PROTOCOL_${TOUCH_PROTOCOL}\n")
     if (DEFINED TOUCH_I2C_INSTANCE)

@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
-#include "st7789.hpp"
-#include "graphics.hpp"
-#include "cst816.hpp"
+#include "st7789.h"
+#include "graphics.h"
+#include "cst816.h"
 
 // Display pins
 #define DISP_PIN_DC         16

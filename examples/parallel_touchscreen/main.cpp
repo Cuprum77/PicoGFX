@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
-#include "st7789.hpp"
-#include "graphics.hpp"
+#include "st7789.h"
+#include "graphics.h"
 
 // Display pins
 #define DISP_DB0    15

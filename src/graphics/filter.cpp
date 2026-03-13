@@ -1,4 +1,4 @@
-#include "graphics.hpp"
+#include "graphics.h"
 
 #define ERR_RIGHT  7
 #define ERR_DOWN   5
@@ -12,9 +12,9 @@ void graphics::addBayerFilter(void)
 {
     // loop through each and every pixel
     uint16_t* ptr = this->frameBuffer;
-    for (size_t y = 0; y < this->config->height; y++)
+    for (size_t y = 0; y < this->display_ptr->getHeight(); y++)
     {
-        for (size_t x = 0; x < this->config->width; x++)
+        for (size_t x = 0; x < this->display_ptr->getWidth(); x++)
         {
             uint8_t threshold = this->bayerMatrix[(x & 3) + ((y & 3) << 2)];
             color c = *ptr;
@@ -30,7 +30,7 @@ void graphics::addBayerFilter(void)
             c.b &= 0x1f;
 
             // set the pixel
-            *ptr++ = c.to16bit(this->config->inverseColors);
+            *ptr++ = c.to16bit(this->inverseColors);
         }
     }
 }
@@ -40,7 +40,7 @@ void graphics::addBayerFilter(void)
  */
 void graphics::addFloydSteinbergDithering(void)
 {
-    int16_t error_buffer[this->config->width * 3] = {0};
+    int16_t error_buffer[this->display_ptr->getWidth() * 3] = {0};
     
     for (int y = 0; y < height - 1; y++) {
         for (int x = 1; x < width - 1; x++) {
@@ -99,18 +99,18 @@ void graphics::addAntiAliasingFilter(void)
     )
 
     // Loop through all the pixels in the framebuffer
-    for (int32_t y = 1; y < (this->config->height - 1); y++)
+    for (int32_t y = 1; y < (this->display_ptr->getHeight() - 1); y++)
     {
-        for (int32_t x = 1; x < (this->config->width - 1); x++)
+        for (int32_t x = 1; x < (this->display_ptr->getWidth() - 1); x++)
         {
             // Get the index of the current pixel
-            int32_t pixelIndex = y * this->config->width + x;
+            int32_t pixelIndex = y * this->display_ptr->getWidth() + x;
 
             // Get the surrounding pixels
             uint16_t leftPixel = this->frameBuffer[pixelIndex - 1];
             uint16_t rightPixel = this->frameBuffer[pixelIndex + 1];
-            uint16_t upPixel = this->frameBuffer[pixelIndex - this->config->width];
-            uint16_t downPixel = this->frameBuffer[pixelIndex + this->config->width];            
+            uint16_t upPixel = this->frameBuffer[pixelIndex - this->display_ptr->getWidth()];
+            uint16_t downPixel = this->frameBuffer[pixelIndex + this->display_ptr->getWidth()];            
 
             // Calculate the  difference between the left and right pixel and the up and down pixel
             int32_t horizontalDiff = COLOR_DIFF(leftPixel, rightPixel);
@@ -139,7 +139,7 @@ void graphics::addAntiAliasingFilter(void)
  */
 void graphics::addBlur(void)
 {
-    rect area = rect(0, 0, this->config->width, this->config->height);
+    rect area = rect(0, 0, this->display_ptr->getWidth(), this->display_ptr->getHeight());
     this->addBlur(area);
 }
 
@@ -149,11 +149,11 @@ void graphics::addBlur(void)
  */
 void graphics::addBlur(rect area)
 {
-    for (int32_t y = 1; y < this->config->height - 1; y++) 
+    for (int32_t y = 1; y < this->display_ptr->getHeight() - 1; y++) 
     {
-        for (int32_t x = 1; x < this->config->width - 1; x++) 
+        for (int32_t x = 1; x < this->display_ptr->getWidth() - 1; x++) 
         {
-            int32_t i = x + y * this->config->width;
+            int32_t i = x + y * this->display_ptr->getWidth();
 
             // Sum up 3x3 neighborhood
             uint32_t r_sum = 0, g_sum = 0, b_sum = 0;

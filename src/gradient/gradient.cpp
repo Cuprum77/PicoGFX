@@ -1,4 +1,4 @@
-#include "gradient.hpp"
+#include "gradient.h"
 #include <stdio.h>
 
 // create a global instance of the lookup tables
@@ -40,8 +40,8 @@ void gradient::fillGradient(color startColor, color endColor, point start, point
     // check if the start and end Points are the same
     if(start == end)
     {
-        uint16_t startColor16 = startColor.to16bit(this->config->inverseColors);
-        uint32_t totalPixels = this->config->width * this->config->height;
+        uint16_t startColor16 = startColor.to16bit(this->inverseColors);
+        uint32_t totalPixels = this->display_ptr->getWidth() * this->display_ptr->getHeight();
         for(int32_t i = 0; i < totalPixels; i++)
             this->frameBuffer[i] = startColor16;
 
@@ -76,9 +76,9 @@ void gradient::fillGradient(color startColor, color endColor, point start, point
     int32_t magnitudeInverse = (FIXED_POINT_SCALE_HIGH_RES + (magnitudeSquared / 2)) / magnitudeSquared;
 
     // loop through each pixel in the buffer
-    for(int32_t x = 0; x < this->config->width; x++)
+    for(int32_t x = 0; x < this->display_ptr->getWidth(); x++)
     {
-        for (int32_t y = 0; y < this->config->height; y++)
+        for (int32_t y = 0; y < this->display_ptr->getHeight(); y++)
         {
             // calculate the vector from the start to the current pixel
             int32_t vectorX = x - start.x;
@@ -94,7 +94,7 @@ void gradient::fillGradient(color startColor, color endColor, point start, point
             position = (position < 0) ? 0 : (position > maxDiff) ? maxDiff : position;
 
             // draw the pixel
-			this->frameBuffer[x + y * this->config->width] = colorLUT[position];
+			this->frameBuffer[x + y * this->display_ptr->getWidth()] = colorLUT[position];
         }
     }
 }

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
-#include "st7789.hpp"
-#include "graphics.hpp"
+#include "st7789.h"
+#include "graphics.h"
 #include "wee_bg.h"
 
 // Display pins

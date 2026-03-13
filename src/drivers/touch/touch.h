@@ -4,19 +4,13 @@
 #include <stdlib.h>
 #include <hardware/i2c.h>
 #include "pico/stdlib.h"
-#include "display_struct.h"
 
 class touch
 {
 public:
-    touch(display_touch_config_t* config);
     bool ready();
 
 protected:
-    i2c_inst_t* i2c_inst;
-    uint32_t sda_pin;
-    uint32_t scl_pin;
-    uint32_t speed;
     bool available = false;
 
     void initI2C();

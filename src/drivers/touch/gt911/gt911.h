@@ -1,7 +1,6 @@
 #pragma once
 
-#include "touch.hpp"
-#include "display_struct.h"
+#include "touch.h"
 #include "display.h"
 
 #define GT911_ADDR              0x5d
@@ -40,7 +39,7 @@ typedef struct
 class gt911 : public touch
 {
 public:
-    gt911(display_touch_config_t* config, display* display_ptr = nullptr);
+    gt911(display* display_ptr = nullptr);
     void init();
     void reset();
 
@@ -49,8 +48,6 @@ public:
     uint32_t getFingers();
 
 private:
-    uint32_t rst_pin;
-    uint32_t irq_pin;
     display* display_ptr;
     gt911_report_t report[5] = { 0 };
 

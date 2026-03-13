@@ -1,4 +1,4 @@
-#include "gauge.hpp"
+#include "gauge.h"
 
 /**
  * @brief Construct a new Dials object

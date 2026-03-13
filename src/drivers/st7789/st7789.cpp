@@ -1,4 +1,4 @@
-#include "st7789.hpp"
+#include "st7789.h"
 
 void st7789::init()
 {    

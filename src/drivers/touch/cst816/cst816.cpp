@@ -1,4 +1,4 @@
-#include "cst816.hpp"
+#include "cst816.h"
 
 cst816* cst816::instance = nullptr;  // Define the static instance
 
@@ -9,10 +9,8 @@ cst816* cst816::instance = nullptr;  // Define the static instance
  * @param display Display pointer
  * @note This constructor will setup a IRQ handler for the CST816 as the CST816 will not respond unless touch is detected!
  */
-cst816::cst816(display_touch_config_t* config, display* display_ptr) : touch(config)
+cst816::cst816(display* display_ptr) : touch()
 {
-    this->irq_pin = config->irq_pin;
-    this->rst_pin = config->rst_pin;
     this->display_ptr = display_ptr;
     this->instance = this;
 }
@@ -23,17 +21,19 @@ cst816::cst816(display_touch_config_t* config, display* display_ptr) : touch(con
  */
 void cst816::init()
 {
+#if defined(TOUCH_ENABLED)
     this->initI2C();
 
-    gpio_init(this->irq_pin);
-    gpio_set_dir(this->irq_pin, GPIO_IN);
-    gpio_pull_up(this->irq_pin);
+    gpio_init(TOUCH_I2C_IRQ_PIN);
+    gpio_set_dir(TOUCH_I2C_IRQ_PIN, GPIO_IN);
+    gpio_pull_up(TOUCH_I2C_IRQ_PIN);
 
-    gpio_init(this->rst_pin);
-    gpio_set_dir(this->rst_pin, GPIO_OUT);
+    gpio_init(TOUCH_I2C_RST_PIN);
+    gpio_set_dir(TOUCH_I2C_RST_PIN, GPIO_OUT);
     this->reset();
 
-    gpio_set_irq_enabled_with_callback(this->irq_pin, GPIO_IRQ_EDGE_FALL, true, &cst816::static_irq_handler);
+    gpio_set_irq_enabled_with_callback(TOUCH_I2C_IRQ_PIN, GPIO_IRQ_EDGE_FALL, true, &cst816::static_irq_handler);
+#endif
 }
 
 /**
@@ -42,11 +42,13 @@ void cst816::init()
  */
 void cst816::reset()
 {
-    gpio_put(this->rst_pin, 1);
+#if defined(TOUCH_ENABLED)
+    gpio_put(TOUCH_I2C_RST_PIN, 1);
     sleep_ms(50);
-    gpio_put(this->rst_pin, 0);
+    gpio_put(TOUCH_I2C_RST_PIN, 0);
     sleep_ms(5);
-    gpio_put(this->rst_pin, 1);
+    gpio_put(TOUCH_I2C_RST_PIN, 1);
+#endif
 }
 
 /**

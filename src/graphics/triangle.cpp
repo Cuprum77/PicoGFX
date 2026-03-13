@@ -1,4 +1,4 @@
-#include "graphics.hpp"
+#include "graphics.h"
 
 /**
  * @brief Draw a triangle on the display
@@ -31,7 +31,7 @@ void graphics::drawFilledTriangle(point p1, point p2, point p3, color color)
     int32_t maxY = imax(imax(p1.y, p2.y), p3.y);
 
     // convert the color to uint16_t
-    uint16_t color16 = color.to16bit(this->config->inverseColors);
+    uint16_t color16 = color.to16bit(this->inverseColors);
 
     // iterate over each row within the bounding box
     for (int32_t y = minY; y <= maxY; y++)
@@ -53,12 +53,12 @@ void graphics::drawFilledTriangle(point p1, point p2, point p3, color color)
 
 		// clamp the start and end points the screen
         startX = imax(startX, 0);
-		endX = imin(endX, this->config->width);
+		endX = imin(endX, this->display_ptr->getWidth());
 
         // fill the pixels between the intersection points
         for (int32_t x = startX; x <= endX; x++)
         {
-            this->frameBuffer[x + y * this->config->width] = color16;
+            this->frameBuffer[x + y * this->display_ptr->getWidth()] = color16;
         }
     }
 }

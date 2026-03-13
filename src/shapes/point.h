@@ -1,7 +1,7 @@
 #pragma once
 
 #include "gfxmath.h"
-#include "shapes.hpp"
+#include "shapes.h"
 
 template <typename T>
 concept numeric = requires(T t) 

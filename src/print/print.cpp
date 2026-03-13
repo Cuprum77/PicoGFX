@@ -1,15 +1,15 @@
-#include "print.hpp"
+#include "print.h"
 
 /**
  * @brief Construct a new print object
  * @param display Display to print on
 */
-printer::printer(uint16_t* frameBuffer, display_config_t* config)
+printer::printer(uint16_t* frameBuffer, display *display_ptr)
 {
     this->frameBuffer = frameBuffer;
-    this->config = config;
     this->color_val = colors::black;
     this->font = nullptr;
+    this->display_ptr = display_ptr;
     this->cursor = 0;
     this->characterBuffer[0] = '\0';
 }
@@ -20,7 +20,7 @@ printer::printer(uint16_t* frameBuffer, display_config_t* config)
 */
 void printer::setColor(color val)
 {
-	this->color_val = val.to16bit(this->config->inverseColors);
+	this->color_val = val.to16bit(this->inverseColors);
 }
 
 /**
@@ -37,7 +37,7 @@ color printer::getColor(void)
 */
 void printer::setCursor(point point)
 {
-    this->cursor = (uint32_t)(point.x + point.y * this->config->width);
+    this->cursor = (uint32_t)(point.x + point.y * this->display_ptr->getWidth());
 }
 
 /**
@@ -47,7 +47,7 @@ void printer::setCursor(point point)
 */
 void printer::moveCursor(int32_t x, int32_t y)
 {
-    this->cursor += (uint32_t)(x + y * this->config->width);
+    this->cursor += (uint32_t)(x + y * this->display_ptr->getWidth());
 }
 
 /**
@@ -56,7 +56,7 @@ void printer::moveCursor(int32_t x, int32_t y)
 */
 point printer::getCursor(void)
 {
-    return { (uint32_t)(this->cursor % this->config->width), (uint32_t)(this->cursor / this->config->width) };
+    return { (uint32_t)(this->cursor % this->display_ptr->getWidth()), (uint32_t)(this->cursor / this->display_ptr->getWidth()) };
 }
 
 /**
@@ -89,8 +89,8 @@ void printer::setString(const char* format, ...)
 void printer::center(Alignment_t alignment)
 {
     // Get the center of the screen
-    int32_t centerX = this->config->width >> 1;
-	int32_t centerY = this->config->height >> 1;
+    int32_t centerX = this->display_ptr->getWidth() >> 1;
+	int32_t centerY = this->display_ptr->getHeight() >> 1;
 
     // Initialize the midpoint variables
     int32_t stringWidthMidpoint = 0;
@@ -107,7 +107,7 @@ void printer::center(Alignment_t alignment)
         // Get the midpoint of the string
         stringWidthMidpoint = this->getStringWidth() >> 1;
         // Set the x position to the center, while keeping the y position the same
-        cursorY = this->getCursor().y * this->config->width;
+        cursorY = this->getCursor().y * this->display_ptr->getWidth();
         this->cursor = (uint32_t)(centerX - stringWidthMidpoint + cursorY);
         break;
     case Alignment_t::VerticalCenter:
@@ -115,7 +115,7 @@ void printer::center(Alignment_t alignment)
         stringHeightMidpoint = this->getStringHeight() >> 1;
         // Move only the y position, keeping the x position the same
         cursorX = this->getCursor().x;
-        this->cursor = (uint32_t)(cursorX + (centerY - stringHeightMidpoint) * this->config->width);
+        this->cursor = (uint32_t)(cursorX + (centerY - stringHeightMidpoint) * this->display_ptr->getWidth());
         break;
     case Alignment_t::TotalCenter:
     default:
@@ -251,7 +251,7 @@ void printer::drawAscii(const char character)
     FontCharacter charData = this->font->characters[character - 0x20];
 
     // if the bitmap is a null pointer or overflows the frame buffer, return 0
-    if (!((bitmap != nullptr) && ((charData.width * charData.height) < (this->config->width * this->config->height))))
+    if (!((bitmap != nullptr) && ((charData.width * charData.height) < (this->display_ptr->getWidth() * this->display_ptr->getHeight()))))
         return;
 
     // handle edge cases
@@ -264,13 +264,13 @@ void printer::drawAscii(const char character)
     else if(character == 0x0A) // new line
     {
         // move the cursor to the next line
-        this->cursor += (this->config->width - (this->cursor % this->config->width)) + this->config->width * this->font->newLineDistance;
+        this->cursor += (this->display_ptr->getWidth() - (this->cursor % this->display_ptr->getWidth())) + this->display_ptr->getWidth() * this->font->newLineDistance;
         return;
     }
     else if(character == 0x0D) // carriage return
     {
         // move the cursor to the beginning of the line
-        this->cursor -= (this->cursor % this->config->width);
+        this->cursor -= (this->cursor % this->display_ptr->getWidth());
         return;
     }
     else if (character == 0x09) // tab
@@ -286,20 +286,20 @@ void printer::drawAscii(const char character)
     uint32_t rowSize = charData.width;
 
     // make sure the character is not placed off screen in the x direction, if so, move the character to the next line
-    if (((bufferPosition % this->config->width) + charData.width) > this->config->width)
+    if (((bufferPosition % this->display_ptr->getWidth()) + charData.width) > this->display_ptr->getWidth())
     {
         // move the cursor to the next line
-        bufferPosition += (this->config->width - (this->cursor % this->config->width)) + this->config->width * this->font->newLineDistance;
+        bufferPosition += (this->display_ptr->getWidth() - (this->cursor % this->display_ptr->getWidth())) + this->display_ptr->getWidth() * this->font->newLineDistance;
     }
     // make sure the character is not placed off screen in the y direction, if so, return to the top
-    if (((bufferPosition / this->config->width) + charData.height) > this->config->height)
+    if (((bufferPosition / this->display_ptr->getWidth()) + charData.height) > this->display_ptr->getHeight())
     {
         // move the cursor to the top of the screen
         bufferPosition = 0;
     }
 
     // move the cursor by the y offset
-    bufferPosition += charData.yOffset * this->config->width;
+    bufferPosition += charData.yOffset * this->display_ptr->getWidth();
     // keep track of the current row position
     uint32_t rowPosition = 0;
 
@@ -325,7 +325,7 @@ void printer::drawAscii(const char character)
             if (rowPosition >= rowSize)
             {
                 rowPosition = 0;
-                bufferPosition += this->config->width;
+                bufferPosition += this->display_ptr->getWidth();
             }
         }
     }

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "gfxmath.h"
-#include "shapes.hpp"
+#include "shapes.h"
 
 struct rect
 {

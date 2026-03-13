@@ -1,9 +1,9 @@
 #pragma once
 
 #include "color.h"
-#include "display_struct.h"
-#include "shapes.hpp"
+#include "shapes.h"
 #include "fontstruct.h"
+#include "display.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -24,7 +24,7 @@ class printer
 {
 public:
     // Constructor
-    printer(uint16_t* frameBuffer, display_config_t* config);
+    printer(uint16_t* frameBuffer, display *display_ptr = nullptr);
 
     // Configuration functions
     void setColor(color val);
@@ -45,15 +45,16 @@ public:
     void print(const char* format, ...);
 private:
     // Display variables
-    uint16_t* frameBuffer;
-    display_config_t* config;
+    uint16_t *frameBuffer;
+    display *display_ptr;
+    bool inverseColors = false;
 
     // print variables
     char characterBuffer[CHARACTER_BUFFER_SIZE];
     int32_t charactersInBuffer = 0;
     uint32_t cursor;
     uint16_t color_val;
-    FontStruct* font;
+    FontStruct *font;
 
     // Private helper functions
     void drawAscii(const char c);

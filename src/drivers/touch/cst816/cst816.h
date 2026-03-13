@@ -1,7 +1,6 @@
 #pragma once
 
-#include "touch.hpp"
-#include "display_struct.h"
+#include "touch.h"
 #include "display.h"
 
 #define CST816_ADDR 0x15
@@ -29,7 +28,7 @@ typedef struct
 class cst816 : public touch
 {
 public:
-    cst816(display_touch_config_t* config, display* display = nullptr);
+    cst816(display* display = nullptr);
     void init();
     void reset();
     void disableStandby();

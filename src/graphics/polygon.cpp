@@ -1,4 +1,4 @@
-#include "graphics.hpp"
+#include "graphics.h"
 
 /**
  * @brief Draw a rectangle on the display
@@ -10,10 +10,10 @@
 void graphics::drawRectangle(point start, point end, color color)
 {
     // limit the start and end points to the display
-    start.x = imax(0, imin(start.x, this->config->width - 1));
-    start.y = imax(0, imin(start.y, this->config->height - 1));
-    end.x = imax(0, imin(end.x, this->config->width - 1));
-    end.y = imax(0, imin(end.y, this->config->height - 1));
+    start.x = imax(0, imin(start.x, this->display_ptr->getWidth() - 1));
+    start.y = imax(0, imin(start.y, this->display_ptr->getHeight() - 1));
+    end.x = imax(0, imin(end.x, this->display_ptr->getWidth() - 1));
+    end.y = imax(0, imin(end.y, this->display_ptr->getHeight() - 1));
 
     // draw the rectangle
     this->drawLine({start.x, start.y}, {end.x, start.y}, color);
@@ -61,7 +61,7 @@ void graphics::drawRectangle(point center, uint32_t width, uint32_t height, colo
 void graphics::drawFilledRectangle(point start, point end, color color)
 {
     // convert color to 16 bit
-    uint16_t color16 = color.to16bit(this->config->inverseColors);
+    uint16_t color16 = color.to16bit(this->inverseColors);
 
     // calculate the size of the rectangle
     uint32_t width = end.x - start.x;
@@ -74,7 +74,7 @@ void graphics::drawFilledRectangle(point start, point end, color color)
         for (int32_t j = 0; j < width; j++)
         {
             // write the pixel
-            this->frameBuffer[(start.x + j) + (start.y + i) * this->config->width] = color16;
+            this->frameBuffer[(start.x + j) + (start.y + i) * this->display_ptr->getWidth()] = color16;
         }
     }
 }
@@ -105,7 +105,7 @@ void graphics::drawFilledPolygon(point* points, size_t numberOfPoints, color col
     int32_t maxY = 0;
 
     // Get the uint16_t version of the color
-    uint16_t color16 = color.to16bit(this->config->inverseColors);
+    uint16_t color16 = color.to16bit(this->inverseColors);
 
     // Calculate the bounding box of the polygon by first finding the min and max x and y values
     for (int32_t i = 0; i < numberOfPoints; i++)
@@ -149,7 +149,7 @@ void graphics::drawFilledPolygon(point* points, size_t numberOfPoints, color col
         for (int32_t x = xStart; x < xEnd; x++)
         {
             // Verify that index is within the bounds of the framebuffer
-            this->frameBuffer[x + y * this->config->width] = color16;
+            this->frameBuffer[x + y * this->display_ptr->getWidth()] = color16;
         }
     }
 }

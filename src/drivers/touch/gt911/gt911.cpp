@@ -1,4 +1,4 @@
-#include "gt911.hpp"
+#include "gt911.h"
 
 gt911* gt911::instance = nullptr;  // Define the static instance
 
@@ -8,10 +8,8 @@ gt911* gt911::instance = nullptr;  // Define the static instance
  * @param config Touch configuration pointer
  * @param display Display pointer
  */
-gt911::gt911(display_touch_config_t* config, display* display_ptr) : touch(config)
+gt911::gt911(display* display_ptr) : touch()
 {
-    this->irq_pin = config->irq_pin;
-    this->rst_pin = config->rst_pin;
     this->display_ptr = display_ptr;
     this->instance = this;
 }
@@ -22,17 +20,18 @@ gt911::gt911(display_touch_config_t* config, display* display_ptr) : touch(confi
  */
 void gt911::init()
 {
+#if defined(TOUCH_ENABLED)
     this->initI2C();
 
-    gpio_init(this->irq_pin);
-    gpio_set_dir(this->irq_pin, GPIO_IN);
-    gpio_pull_up(this->irq_pin);
+    gpio_init(TOUCH_I2C_IRQ_PIN);
+    gpio_set_dir(TOUCH_I2C_IRQ_PIN, GPIO_IN);
+    gpio_pull_up(TOUCH_I2C_IRQ_PIN);
 
-    gpio_init(this->rst_pin);
-    gpio_set_dir(this->rst_pin, GPIO_OUT);
+    gpio_init(TOUCH_I2C_RST_PIN);
+    gpio_set_dir(TOUCH_I2C_RST_PIN, GPIO_OUT);
     this->reset();
 
-    gpio_set_irq_enabled_with_callback(this->irq_pin, GPIO_IRQ_EDGE_FALL, true, &gt911::static_irq_handler);
+    gpio_set_irq_enabled_with_callback(TOUCH_I2C_IRQ_PIN, GPIO_IRQ_EDGE_FALL, true, &gt911::static_irq_handler);
 
     // Set the number of touches
     uint8_t data = 0x05;
@@ -61,6 +60,7 @@ void gt911::init()
     printf("GT911 X_RES: %04x\n", this->x_res);
     printf("GT911 Y_RES: %04x\n", this->y_res);
     printf("GT911 VID: %02x\n", this->vid);
+#endif
 }
 
 /**
@@ -69,16 +69,18 @@ void gt911::init()
  */
 void gt911::reset()
 {
-    gpio_set_dir(this->irq_pin, GPIO_OUT);
+#if defined(TOUCH_ENABLED)
+    gpio_set_dir(TOUCH_I2C_IRQ_PIN, GPIO_OUT);
 
-    gpio_put(this->rst_pin, 0);
+    gpio_put(TOUCH_I2C_RST_PIN, 0);
     sleep_us(20);
-    gpio_put(this->irq_pin, 0);
+    gpio_put(TOUCH_I2C_IRQ_PIN, 0);
     sleep_ms(50);
-    gpio_put(this->rst_pin, 1);
+    gpio_put(TOUCH_I2C_RST_PIN, 1);
     sleep_ms(100);
 
-    gpio_set_dir(this->irq_pin, GPIO_IN);
+    gpio_set_dir(TOUCH_I2C_IRQ_PIN, GPIO_IN);
+#endif
 }
 
 /**

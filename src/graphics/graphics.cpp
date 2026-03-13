@@ -1,16 +1,16 @@
-#include "graphics.hpp"
+#include "graphics.h"
 
 /**
  * @brief Construct a new graphics object
  * @param frameBuffer Pointer to the frame buffer
- * @param params Display parameters
+ * @param display_ptr Pointer to the display object
 */
-graphics::graphics(uint16_t* frameBuffer, display_config_t* config)
+graphics::graphics(uint16_t *frameBuffer, display *display_ptr)
 {
     this->frameBuffer = frameBuffer;
-    this->config = config;
-    this->width = config->width;
-    this->height = config->height;
+    this->display_ptr = display_ptr;
+    this->width = this->display_ptr->getWidth();
+    this->height = this->display_ptr->getHeight();
 }
 
 /**
@@ -20,8 +20,8 @@ graphics::graphics(uint16_t* frameBuffer, display_config_t* config)
 void graphics::fill(color color)
 {
     // convert color to 16 bit
-    uint16_t color16 = color.to16bit(this->config->inverseColors);
-	uint32_t totalPixels = this->config->width * this->config->height;
+    uint16_t color16 = color.to16bit(this->inverseColors);
+	uint32_t totalPixels = this->display_ptr->getWidth() * this->display_ptr->getHeight();
     // fill the frame buffer
     for (int32_t i = 0; i < totalPixels; i++)
         this->frameBuffer[i] = color16;
@@ -35,7 +35,7 @@ void graphics::fill(uint16_t color)
 {
 	uint16_t color16 = color;
 
-	if (this->config->inverseColors)
+	if (this->inverseColors)
 	{
 		color16 = ((color16 & 0xaaaa) >> 1) | ((color16 & 0x5555) << 1);
 		color16 = ((color16 & 0xcccc) >> 2) | ((color16 & 0x3333) << 2);
@@ -43,7 +43,7 @@ void graphics::fill(uint16_t color)
 		color16 = (color16 >> 8) | (color16 << 8);
 	}
 
-	uint32_t totalPixels = this->config->width * this->config->height;
+	uint32_t totalPixels = this->display_ptr->getWidth() * this->display_ptr->getHeight();
     // fill the frame buffer
     for (int32_t i = 0; i < totalPixels; i++)
         this->frameBuffer[i] = color16;
@@ -145,7 +145,7 @@ void graphics::setPixelBlend(uint32_t x, uint32_t y, uint16_t color, uint8_t alp
     // Taken from this stackoverflow answer https://stackoverflow.com/questions/72456587/implement-a-function-that-blends-two-colors-encoded-with-rgb565-using-alpha-blen
 
     // Get the buffer index
-    int32_t index = x + y * this->config->width;
+    int32_t index = x + y * this->display_ptr->getWidth();
 
     // Reduce the alpha from [0,255] to [0,31] 
     alpha = alpha >> 0x3;

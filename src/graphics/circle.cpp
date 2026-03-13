@@ -1,4 +1,4 @@
-#include "graphics.hpp"
+#include "graphics.h"
 
 /**
  * @brief Draw a circle on the display
@@ -54,15 +54,15 @@ void graphics::drawFilledCircle(point center, uint32_t radius, color color)
     int32_t error = 3 - 2 * x;
 
     // convert the color to 16 bit
-    uint16_t color16 = color.to16bit(this->config->inverseColors);
-    uint32_t totalPixels = this->config->width * this->config->height;
+    uint16_t color16 = color.to16bit(this->inverseColors);
+    uint32_t totalPixels = this->display_ptr->getWidth() * this->display_ptr->getHeight();
 
     while (y <= x)
     {
         for (int32_t i = x0 - x; i <= x0 + x; i++)
         {
-            int32_t index1 = (y0 + y) * this->config->width + i;
-            int32_t index2 = (y0 - y) * this->config->width + i;
+            int32_t index1 = (y0 + y) * this->display_ptr->getWidth() + i;
+            int32_t index2 = (y0 - y) * this->display_ptr->getWidth() + i;
             
             if (index1 >= 0 && index1 < totalPixels)
             {
@@ -77,8 +77,8 @@ void graphics::drawFilledCircle(point center, uint32_t radius, color color)
         
         for (int32_t i = x0 - y; i <= x0 + y; i++)
         {
-            int32_t index1 = (y0 + x) * this->config->width + i;
-            int32_t index2 = (y0 - x) * this->config->width + i;
+            int32_t index1 = (y0 + x) * this->display_ptr->getWidth() + i;
+            int32_t index2 = (y0 - x) * this->display_ptr->getWidth() + i;
 
             if (index1 >= 0 && index1 < totalPixels)
             {
@@ -148,20 +148,20 @@ void graphics::drawCircle1(point center, uint32_t radius, color color)
     int32_t error = 3 - 2 * x;
 
     // convert the color to 16 bit
-    uint16_t color16 = color.to16bit(this->config->inverseColors);
+    uint16_t color16 = color.to16bit(this->inverseColors);
 
     // loop through the radius
     while(x >= y)
     {
         // draw the pixels in the frame buffer
-        this->frameBuffer[(x0 + x) + (y0 + y) * this->config->width] = color16;
-        this->frameBuffer[(x0 + y) + (y0 + x) * this->config->width] = color16;
-        this->frameBuffer[(x0 - y) + (y0 + x) * this->config->width] = color16;
-        this->frameBuffer[(x0 - x) + (y0 + y) * this->config->width] = color16;
-        this->frameBuffer[(x0 - x) + (y0 - y) * this->config->width] = color16;
-        this->frameBuffer[(x0 - y) + (y0 - x) * this->config->width] = color16;
-        this->frameBuffer[(x0 + y) + (y0 - x) * this->config->width] = color16;
-        this->frameBuffer[(x0 + x) + (y0 - y) * this->config->width] = color16;
+        this->frameBuffer[(x0 + x) + (y0 + y) * this->display_ptr->getWidth()] = color16;
+        this->frameBuffer[(x0 + y) + (y0 + x) * this->display_ptr->getWidth()] = color16;
+        this->frameBuffer[(x0 - y) + (y0 + x) * this->display_ptr->getWidth()] = color16;
+        this->frameBuffer[(x0 - x) + (y0 + y) * this->display_ptr->getWidth()] = color16;
+        this->frameBuffer[(x0 - x) + (y0 - y) * this->display_ptr->getWidth()] = color16;
+        this->frameBuffer[(x0 - y) + (y0 - x) * this->display_ptr->getWidth()] = color16;
+        this->frameBuffer[(x0 + y) + (y0 - x) * this->display_ptr->getWidth()] = color16;
+        this->frameBuffer[(x0 + x) + (y0 - y) * this->display_ptr->getWidth()] = color16;
         
         // if the error is greater than 0
         if(error > 0)
@@ -200,7 +200,7 @@ void graphics::drawCircle2(point center, uint32_t radius, color color, uint32_t 
     uint32_t y0 = center.y;
     int32_t erro = 1 - x_outer;
     int32_t erri = 1 - x_inner;
-    uint16_t color16 = color.to16bit(this->config->inverseColors);
+    uint16_t color16 = color.to16bit(this->inverseColors);
 
     while (x_outer >= y)
     {
@@ -254,7 +254,7 @@ void graphics::drawCircle2(point center, uint32_t radius, color color, uint32_t 
  */
 void graphics::drawCircleXLine(uint32_t x1, uint32_t x2, uint32_t y, color color)
 {
-    while (x1 <= x2) this->setPixel(x1++, y, color.to16bit(this->config->inverseColors));
+    while (x1 <= x2) this->setPixel(x1++, y, color.to16bit(this->inverseColors));
 }
 
 /**
@@ -267,7 +267,7 @@ void graphics::drawCircleXLine(uint32_t x1, uint32_t x2, uint32_t y, color color
  */
 void graphics::drawCircleYLine(uint32_t x, uint32_t y1, uint32_t y2, color color)
 {
-    while (y1 <= y2) this->setPixel(x, y1++, color.to16bit(this->config->inverseColors));
+    while (y1 <= y2) this->setPixel(x, y1++, color.to16bit(this->inverseColors));
 }
 
 /**
@@ -280,8 +280,8 @@ void graphics::drawCircleYLine(uint32_t x, uint32_t y1, uint32_t y2, color color
 */
 void graphics::drawArc(point center, uint32_t radius, uint32_t start_angle, uint32_t end_angle, color color)
 {
-    uint32_t imageWidth = config->width;
-    uint32_t imageHeight = config->height;
+    uint32_t imageWidth = this->display_ptr->getWidth();
+    uint32_t imageHeight = this->display_ptr->getHeight();
 
 	// Swap angles if start_angle is greater than end_angle
     if (end_angle < start_angle) 
@@ -292,7 +292,7 @@ void graphics::drawArc(point center, uint32_t radius, uint32_t start_angle, uint
     }
 
 	// convert the color to 16 bit
-    uint16_t color16bit = color.to16bit(this->config->inverseColors);
+    uint16_t color16bit = color.to16bit(this->inverseColors);
 
     // loop through the angles
     for (int32_t angle = start_angle; angle < end_angle; angle++) 
@@ -327,7 +327,7 @@ void graphics::drawFilledDualArc(point center, uint32_t innerRadius, uint32_t ou
     
     if (endAngle < startAngle) endAngle += 3600;
 
-    uint16_t color16 = color.to16bit(this->config->inverseColors);
+    uint16_t color16 = color.to16bit(this->inverseColors);
 
     for (int32_t angleLUT = startAngle; angleLUT <= endAngle; angleLUT++)
     {
@@ -344,8 +344,8 @@ void graphics::drawFilledDualArc(point center, uint32_t innerRadius, uint32_t ou
             y >>= SIN_MULTIPLIER_BITS;
             y += center.y;
 
-            if (x >= 0 && x < config->width && y >= 0 && y < config->height)
-                this->frameBuffer[x + y * config->width] = color16;
+            if (x >= 0 && x < this->display_ptr->getWidth() && y >= 0 && y < this->display_ptr->getHeight())
+                this->frameBuffer[x + y * this->display_ptr->getWidth()] = color16;
         }
     }
 }

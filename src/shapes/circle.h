@@ -1,6 +1,6 @@
 #pragma once
 
-#include "shapes.hpp"
+#include "shapes.h"
 
 struct circle
 {
