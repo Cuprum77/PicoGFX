@@ -32,7 +32,7 @@ void st7789::init()
     sleep_ms(10);
 
     // madctl = memory access control
-    this->setRotation(this->rotation);
+    this->set_rotation(this->rotation);
 
     // set the display to memory access control
     this->setCursor({0, 0});
@@ -56,7 +56,7 @@ void st7789::init()
  * @brief Set the rotation of the display
  * @param rotation Rotation to set
  */
-void st7789::setRotation(uint32_t rotation)
+void st7789::set_rotation(uint32_t rotation)
 {
 	// save the rotation
     this->rotation = rotation;
@@ -103,7 +103,7 @@ void st7789::setRotation(uint32_t rotation)
 /**
  * @brief Turn the display on
 */
-void st7789::setDisplayState(bool on)
+void st7789::set_display_state(bool on)
 {
     if(on) this->writeData(0x29);
     else this->writeData(0x28);

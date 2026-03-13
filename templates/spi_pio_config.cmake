@@ -7,8 +7,11 @@ set(LCD_DRIVER      ?)
 set(LCD_PROTOCOL    SPI)
 # Set the hardware interface used to communicate with the display (PIO, GPIO, or HW)
 set(LCD_HARDWARE    PIO)
+# Set the SPI rate to use when communicating with the display (i.e. 40000000 for 40 MHz)
+set(LCD_BAUD_RATE ?)
 # Set the color depth of the display (1, 8, 16, or 24 bits per pixel)
 set(LCD_COLOR_DEPTH 16)
+
 
 # Set the width of the display in pixels
 set(LCD_WIDTH       ?)

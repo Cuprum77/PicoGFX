@@ -38,7 +38,7 @@ void gc9a01::init()
 	this->writeData(0x8f, (const uint8_t *) "\xFF", 1);
 	this->writeData(0xb6, (const uint8_t *) "\x00\x00", 2);
 	// set the rotation of the display
-	this->setRotation(this->rotation);
+	this->set_rotation(this->rotation);
     // set the display to interface pixel format
     // 0b00000000
     // 7 6 5 4 3 2 1 0
@@ -106,7 +106,7 @@ void gc9a01::softReset()
  * @brief Set the rotation of the display
  * @param rotation Rotation to set
 */
-void gc9a01::setRotation(uint32_t rotation)
+void gc9a01::set_rotation(uint32_t rotation)
 {
 	// save the rotation
     this->rotation = rotation;
@@ -153,7 +153,7 @@ void gc9a01::setRotation(uint32_t rotation)
 /**
  * @brief Turn the display on
 */
-void gc9a01::setDisplayState(bool on)
+void gc9a01::set_display_state(bool on)
 {
     if(on) this->writeData(0x29);
     else this->writeData(0x28);

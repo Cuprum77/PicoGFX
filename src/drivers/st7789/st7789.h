@@ -20,8 +20,8 @@ public:
         display(hw, this->framebuffer, COMMAND_CASET, COMMAND_RASET, COMMAND_RAMWR) {}
     void init();
 
-    void setRotation(uint32_t rotation);
-    void setDisplayState(bool on);
+    void set_rotation(uint32_t rotation);
+    void set_display_state(bool on);
 
 private:
 #if defined(LCD_COLOR_DEPTH_16)

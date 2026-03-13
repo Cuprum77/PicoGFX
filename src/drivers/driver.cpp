@@ -105,7 +105,7 @@ void hardware_driver::writePixels(const uint32_t *data, size_t length)
         this->pio = pio0;
         this->sm = pio_claim_unused_sm(this->pio, true);
         this->offset = pio_add_program(this->pio, &pio_spi_program);
-        this->clkdiv = (float)clock_get_hz(clk_sys) / (float)LCD_SPI_RATE;
+        this->clkdiv = (float)clock_get_hz(clk_sys) / (float)LCD_BAUD_RATE;
         pio_spi_init(this->pio, this->sm, this->offset, LCD_PIN_SDA, 
             LCD_PIN_SCL, this->clkdiv, (int)BITS_8);
 
@@ -148,28 +148,28 @@ void hardware_driver::writePixels(const uint32_t *data, size_t length)
         while(length--)
             pio_spi_transmit_16(this->pio, this->sm, *(uint16_t *)data++);
         pio_spi_wait_idle(this->pio, this->sm);
-        this->setSPIdataCommandPins(1, 1);
+        this->set_spi_dc_cs(1, 1);
 
 #elif defined(LCD_COLOR_DEPTH_18)
         this->pio_set_bits(BITS_18);
         while(length--)
             pio_spi_transmit_18(this->pio, this->sm, *(uint32_t *)data++);
         pio_spi_wait_idle(this->pio, this->sm);
-        this->setSPIdataCommandPins(1, 1);
+        this->set_spi_dc_cs(1, 1);
 
 #elif defined(LCD_COLOR_DEPTH_24)
         this->pio_set_bits(BITS_24);
         while(length--)
             pio_spi_transmit_24(this->pio, this->sm, *(uint32_t *)data++);
         pio_spi_wait_idle(this->pio, this->sm);
-        this->setSPIdataCommandPins(1, 1);
+        this->set_spi_dc_cs(1, 1);
 
 #else
         this->pio_set_bits(BITS_8);
         while(length--)
             pio_spi_transmit_8(this->pio, this->sm, *(uint8_t *)data++);
         pio_spi_wait_idle(this->pio, this->sm);
-        this->setSPIdataCommandPins(1, 1);
+        this->set_spi_dc_cs(1, 1);
 #endif
     }
 
@@ -187,7 +187,7 @@ void hardware_driver::writePixels(const uint32_t *data, size_t length)
             LCD_PIN_SCL, this->clkdiv, (int)bits);
     }
 
-    inline void set_spi_dc_cs(bool dc, bool cs)
+    inline void hardware_driver::set_spi_dc_cs(bool dc, bool cs)
     {
         sleep_us(1);
         gpio_put_masked((1u << LCD_PIN_DC) | (1u << LCD_PIN_CS), 
@@ -198,7 +198,7 @@ void hardware_driver::writePixels(const uint32_t *data, size_t length)
 #elif defined(LCD_PROTOCOL_SPI) && !defined(LCD_HARDWARE_PIO)
     inline void hardware_driver::protocol_init()
     {
-        spi_init(this->spi_instance, LCD_SPI_RATE);
+        spi_init(this->spi_instance, LCD_BAUD_RATE);
 
         // set the pins to hw function
         gpio_set_function(LCD_PIN_SDA, GPIO_FUNC_SPI);
@@ -284,22 +284,95 @@ void hardware_driver::writePixels(const uint32_t *data, size_t length)
 #elif defined(LCD_PROTOCOL_QSPI) 
     inline void hardware_driver::protocol_init()
     {
-#error "QSPI hardware_driver::protocol is not supported yet"
+        // create the first hw state machine
+        this->pio = pio0;
+        this->sm = pio_claim_unused_sm(this->pio, true);
+        this->offset = pio_add_program(this->pio, &pio_spi_program);
+        this->clkdiv = (float)clock_get_hz(clk_sys) / (float)LCD_BAUD_RATE;
+        pio_qspi_init(this->pio, this->sm, this->offset, LCD_PIN_DAT0,
+            LCD_PIN_SCL, this->clkdiv, (int)8);
+
+        // set the pins to hw function
+        gpio_init(LCD_PIN_CS);
+        gpio_init(LCD_PIN_DC);
+        gpio_set_dir(LCD_PIN_CS, GPIO_OUT);
+        gpio_set_dir(LCD_PIN_DC, GPIO_OUT);
+        gpio_put(LCD_PIN_CS, 1);
+        gpio_put(LCD_PIN_DC, 1);
     }
     
     inline void hardware_driver::protocol_write_data(uint8_t command, const uint8_t *data, size_t length)
     {
-        
+        this->pio_set_bits(8);
+        pio_qspi_wait_idle(this->pio, this->sm);
+        this->set_spi_dc_cs(0, 0);
+        pio_qspi_transmit_8(this->pio, this->sm, command);
+        if(length)
+        {
+            pio_qspi_wait_idle(this->pio, this->sm);
+            this->set_spi_dc_cs(1, 0);
+            for(size_t i = 0; i < length; i++)
+                pio_qspi_transmit_8(this->pio, this->sm, *data++);
+        }
+        pio_qspi_wait_idle(this->pio, this->sm);
+        this->set_spi_dc_cs(1, 1);
     }
 
     inline void hardware_driver::protocol_set_data_mode(uint8_t command)
     {
-        
+        this->protocol_write_data(command, nullptr, 0);
+        this->set_spi_dc_cs(1, 0);
     }
 
     inline void hardware_driver::protocol_write_pixels(void *data, size_t length)
     {
+#if defined(LCD_COLOR_DEPTH_8)
+        this->pio_set_bits(8);
+        while(length--)
+            pio_qspi_transmit_8(this->pio, this->sm, *(uint8_t *)data++);
+        pio_qspi_wait_idle(this->pio, this->sm);
+        this->set_spi_dc_cs(1, 1);
+        
+#elif defined(LCD_COLOR_DEPTH_16)
+        this->pio_set_bits(16);
+        while(length--)
+            pio_qspi_transmit_16(this->pio, this->sm, *(uint16_t *)data++);
+        pio_qspi_wait_idle(this->pio, this->sm);
+        this->set_spi_dc_cs(1, 1);
 
+#elif defined(LCD_COLOR_DEPTH_24)
+        this->pio_set_bits(24);
+        while(length--)
+            pio_qspi_transmit_24(this->pio, this->sm, *(uint32_t *)data++);
+        pio_qspi_wait_idle(this->pio, this->sm);
+        this->set_spi_dc_cs(1, 1);
+
+#else
+#error "Unsupported color depth"
+
+#endif
+    }
+
+    inline void hardware_driver::pio_set_bits(uint32_t bits)
+    {
+        // Stop the state machine
+        pio_sm_set_enabled(this->pio, this->sm, false);
+        // Remove the program
+        pio_remove_program(this->pio, &pio_qspi_program, this->offset);
+        
+        // Re-add the program
+        this->offset = pio_add_program(this->pio, &pio_qspi_program);
+        // Re-initialize the state machine
+        pio_qspi_init(this->pio, this->sm, this->offset, LCD_PIN_DAT0, 
+            LCD_PIN_SCL, this->clkdiv, (int)bits);
+    }
+
+    inline void hardware_driver::set_spi_dc_cs(bool dc, bool cs)
+    {
+        sleep_us(1);
+        gpio_put_masked((1u << LCD_PIN_DC) | (1u << LCD_PIN_CS), 
+            !!dc << LCD_PIN_DC | !!cs << LCD_PIN_CS);
+        sleep_us(1);
     }
 
 #elif defined(LCD_PROTOCOL_I2C) 

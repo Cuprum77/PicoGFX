@@ -21,8 +21,8 @@ public:
     void init();
     void softReset();
 
-    void setRotation(uint32_t rotation);
-    void setDisplayState(bool on);
+    void set_rotation(uint32_t rotation);
+    void set_display_state(bool on);
 
 private:
 #if defined(LCD_COLOR_DEPTH_16)

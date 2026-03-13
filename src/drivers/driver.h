@@ -8,6 +8,7 @@
 #include "hardware/pio.h"
 #include "hardware/clocks.h"
 #include "pio_spi.pio.h"
+#include "pio_qspi.pio.h"
 #include "lcd_config.h"
 
 #if defined(LCD_PROTOCOL_PARALLEL_24) && !defined(LCD_COLOR_DEPTH_24)
@@ -102,11 +103,17 @@ private:
     inline void protocol_write_pixels(void *data, size_t length);
 
     // QSPI instance
-#elif defined(LCD_PROTOCOL_QSPI) 
+#elif defined(LCD_PROTOCOL_QSPI)
+#if defined(LCD_PIN_DAT_SEQUENTIAL)
     inline void protocol_init();
     inline void protocol_write_data(uint8_t command, const uint8_t *data, size_t length);
     inline void protocol_set_data_mode(uint8_t command);
     inline void protocol_write_pixels(void *data, size_t length);
+    inline void pio_set_bits(uint32_t bits);
+    inline void set_spi_dc_cs(bool dc, bool cs);
+#else
+#error "QSPI protocol requires sequential data pins"
+#endif
 
     // I2C instance
 #elif defined(LCD_PROTOCOL_I2C) 
