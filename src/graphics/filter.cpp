@@ -10,29 +10,31 @@
  */
 void graphics::addBayerFilter(void)
 {
+    // CURRENTLY UNSUPPORTED
+    return;
     // loop through each and every pixel
-    uint16_t *ptr = this->frameBuffer;
-    for (size_t y = 0; y < this->display_ptr->getHeight(); y++)
-    {
-        for (size_t x = 0; x < this->display_ptr->getWidth(); x++)
-        {
-            uint8_t threshold = this->bayerMatrix[(x & 3) + ((y & 3) << 2)];
-            color c = *ptr;
+    // uint16_t *ptr = this->frameBuffer;
+    // for (size_t y = 0; y < this->display_ptr->getHeight(); y++)
+    // {
+    //     for (size_t x = 0; x < this->display_ptr->getWidth(); x++)
+    //     {
+    //         uint8_t threshold = this->bayerMatrix[(x & 3) + ((y & 3) << 2)];
+    //         color c = *ptr;
 
-            // threshold the color
-            c.r += (threshold >> 4);
-            c.g += (threshold >> 3);
-            c.b += (threshold >> 4);
+    //         // threshold the color
+    //         c.r += (threshold >> 4);
+    //         c.g += (threshold >> 3);
+    //         c.b += (threshold >> 4);
 
-            // clamp the color
-            c.r &= 0x1f;
-            c.g &= 0x3f;
-            c.b &= 0x1f;
+    //         // clamp the color
+    //         c.r &= 0x1f;
+    //         c.g &= 0x3f;
+    //         c.b &= 0x1f;
 
-            // set the pixel
-            *ptr++ = c.toWord();
-        }
-    }
+    //         // set the pixel
+    //         *ptr++ = c.toWord();
+    //     }
+    // }
 }
 
 /**

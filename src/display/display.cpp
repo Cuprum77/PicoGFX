@@ -3,10 +3,18 @@
 /**
  * @brief display initialization
 */
-display::display(hardware_driver *hw, uint16_t *frameBuffer, uint8_t CASET, uint8_t RASET, uint8_t RAMWR)
+display::display(hardware_driver *hw, void *frameBuffer, uint8_t CASET, uint8_t RASET, uint8_t RAMWR)
 {
     this->hw = hw;
-    this->frameBuffer = frameBuffer;
+#if defined(LCD_COLOR_DEPTH_1)
+    this->frameBuffer = (bool *)frameBuffer;
+#elif defined(LCD_COLOR_DEPTH_8)
+    this->frameBuffer = (uint8_t *)frameBuffer;
+#elif defined(LCD_COLOR_DEPTH_16)
+    this->frameBuffer = (uint16_t *)frameBuffer;
+#elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
+    this->frameBuffer = (uint32_t *)frameBuffer;
+#endif
     this->CASET = CASET;
     this->RASET = RASET;
     this->RAMWR = RAMWR;
@@ -24,7 +32,7 @@ void display::clear()
     // fill the frame buffer
     uint32_t totalPixels = this->width * this->height;
     for (int32_t i = 0; i < totalPixels; i++)
-        this->frameBuffer[i] = 0x0000;
+        this->frameBuffer[i] = COLOR_BLACK;
     this->setCursor({ 0, 0 });
     this->update();
 }
@@ -182,15 +190,131 @@ color display::getPixel(point point)
     return color(this->frameBuffer[point.x + point.y * this->width]);
 }
 
+#if defined(LCD_COLOR_DEPTH_1)
 /**
  * @brief Get a pixel from the framebuffer
  * @param point Buffer index
- * @return Color The color of the pixel
+ * @return Color The color of the pixel as a bool
+*/
+bool display::getPixel(uint32_t index)
+{
+    return this->frameBuffer[index];
+}
+
+/**
+ * @private
+ * @brief Write pixels to the display
+ * @param data data to write
+ * @param length Length of the data
+ * @note length should be number of 16 bit pixels, not bytes!
+*/
+void display::writePixels(const bool *data, size_t length)
+{
+    // check if the data mode is set
+    if (!this->dataMode)
+    {
+        // set the data mode
+        this->hw->setDataMode(this->RAMWR);
+        this->dataMode = true;
+    }
+    // write the pixels
+    this->hw->writePixels((const bool *)data, length);
+}
+
+#elif defined(LCD_COLOR_DEPTH_8)
+/**
+ * @brief Get a pixel from the framebuffer
+ * @param point Buffer index
+ * @return Color The color of the pixel as an 8 bit value
+*/
+uint8_t display::getPixel(uint32_t index)
+{
+    return this->frameBuffer[index];
+}
+
+/**
+ * @private
+ * @brief Write pixels to the display
+ * @param data data to write
+ * @param length Length of the data
+ * @note length should be number of 16 bit pixels, not bytes!
+*/
+void display::writePixels(const uint8_t *data, size_t length)
+{
+    // check if the data mode is set
+    if (!this->dataMode)
+    {
+        // set the data mode
+        this->hw->setDataMode(this->RAMWR);
+        this->dataMode = true;
+    }
+    // write the pixels
+    this->hw->writePixels((const uint8_t *)data, length);
+}
+
+#elif defined(LCD_COLOR_DEPTH_16)
+/**
+ * @brief Get a pixel from the framebuffer
+ * @param point Buffer index
+ * @return Color The color of the pixel as a 16 bit value
 */
 uint16_t display::getPixel(uint32_t index)
 {
     return this->frameBuffer[index];
 }
+
+/**
+ * @private
+ * @brief Write pixels to the display
+ * @param data data to write
+ * @param length Length of the data
+ * @note length should be number of 16 bit pixels, not bytes!
+*/
+void display::writePixels(const uint16_t *data, size_t length)
+{
+    // check if the data mode is set
+    if (!this->dataMode)
+    {
+        // set the data mode
+        this->hw->setDataMode(this->RAMWR);
+        this->dataMode = true;
+    }
+    // write the pixels
+    this->hw->writePixels((const uint16_t *)data, length);
+}
+
+#elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
+/**
+ * @brief Get a pixel from the framebuffer
+ * @param point Buffer index
+ * @return Color The color of the pixel as a 18 or 24 bit value
+*/
+uint32_t display::getPixel(uint32_t index)
+{
+    return this->frameBuffer[index];
+}
+
+/**
+ * @private
+ * @brief Write pixels to the display
+ * @param data data to write
+ * @param length Length of the data
+ * @note length should be number of 16 bit pixels, not bytes!
+*/
+void display::writePixels(const uint32_t *data, size_t length)
+{
+    // check if the data mode is set
+    if (!this->dataMode)
+    {
+        // set the data mode
+        this->hw->setDataMode(this->RAMWR);
+        this->dataMode = true;
+    }
+    // write the pixels
+    this->hw->writePixels((const uint32_t *)data, length);
+}
+
+#endif
 
 /**
  * @brief Set the cursor position
@@ -295,24 +419,4 @@ inline void display::rowAddressSet(uint32_t y0, uint32_t y1)
 
     // write the data
     this->writeData(this->RASET, data, sizeof(data));
-}
-
-/**
- * @private
- * @brief Write pixels to the display
- * @param data data to write
- * @param length Length of the data
- * @note length should be number of 16 bit pixels, not bytes!
-*/
-void display::writePixels(const uint16_t *data, size_t length)
-{
-    // check if the data mode is set
-    if (!this->dataMode)
-    {
-        // set the data mode
-        this->hw->setDataMode(this->RAMWR);
-        this->dataMode = true;
-    }
-    // write the pixels
-    this->hw->writePixels(data, length);
 }

@@ -10,10 +10,12 @@
 class graphics
 {
 public:
-    graphics(uint16_t *frameBuffer, display *display_ptr = nullptr);
+    graphics(void *frameBuffer, display *display_ptr = nullptr);
 
     void fill(color color);
-    void fill(uint16_t color);
+    void fill8(uint8_t color);
+    void fill16(uint16_t color);
+    void fill24(uint32_t color);
 
     void testPattern(void);
 
@@ -44,10 +46,13 @@ public:
 
     void drawBitmap(const uint8_t *bitmap, uint32_t width, uint32_t height);
     void drawBitmap(const uint16_t *bitmap, uint32_t width, uint32_t height);
+    void drawBitmap(const uint32_t *bitmap, uint32_t width, uint32_t height);
     void drawBitmap(const uint8_t *bitmap, uint32_t width, uint32_t height, bool center);
     void drawBitmap(const uint16_t *bitmap, uint32_t width, uint32_t height, bool center);
+    void drawBitmap(const uint32_t *bitmap, uint32_t width, uint32_t height, bool center);
     void drawBitmap(const uint8_t *bitmap, uint32_t width, uint32_t height, point start);
     void drawBitmap(const uint16_t *bitmap, uint32_t width, uint32_t height, point start);
+    void drawBitmap(const uint32_t *bitmap, uint32_t width, uint32_t height, point start);
 
     void addBayerFilter(void);
     void addFloydSteinbergDithering(void);
@@ -55,8 +60,19 @@ public:
     void addBlur(void);
     void addBlur(rect area);
 private:
-    uint16_t *frameBuffer;
     display *display_ptr;
+
+#if defined(LCD_COLOR_DEPTH_1)
+    bool *frameBuffer;
+#elif defined(LCD_COLOR_DEPTH_8)
+    uint8_t *frameBuffer;
+#elif defined(LCD_COLOR_DEPTH_16)
+    uint16_t *frameBuffer;
+#elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
+    uint32_t *frameBuffer;
+#else
+#error "Unsupported color depth"
+#endif
 
     const uint8_t bayerMatrix[16] = {
         0, 8, 2, 10,

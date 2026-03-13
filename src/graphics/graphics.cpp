@@ -5,9 +5,17 @@
  * @param frameBuffer Pointer to the frame buffer
  * @param display_ptr Pointer to the display object
 */
-graphics::graphics(uint16_t *frameBuffer, display *display_ptr)
+graphics::graphics(void *frameBuffer, display *display_ptr)
 {
-    this->frameBuffer = frameBuffer;
+#if defined(LCD_COLOR_DEPTH_1)
+    this->frameBuffer = (bool *)frameBuffer;
+#elif defined(LCD_COLOR_DEPTH_8)
+    this->frameBuffer = (uint8_t *)frameBuffer;
+#elif defined(LCD_COLOR_DEPTH_16)
+    this->frameBuffer = (uint16_t *)frameBuffer;
+#elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
+    this->frameBuffer = (uint32_t *)frameBuffer;
+#endif
     this->display_ptr = display_ptr;
 }
 
@@ -17,8 +25,56 @@ graphics::graphics(uint16_t *frameBuffer, display *display_ptr)
 */
 void graphics::fill(color color)
 {
-    // convert color to 16 bit
-    uint16_t color16 = color.toWord();
+#if defined(LCD_COLOR_DEPTH_1)
+    bool colorWord = color.toWord();
+#elif defined(LCD_COLOR_DEPTH_8)
+    uint8_t colorWord = color.toWord();
+#elif defined(LCD_COLOR_DEPTH_16)
+    uint16_t colorWord = color.toWord();
+#elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
+    uint32_t colorWord = color.toWord();
+#endif
+	uint32_t totalPixels = this->display_ptr->getWidth() * this->display_ptr->getHeight();
+    // fill the frame buffer
+    for (int32_t i = 0; i < totalPixels; i++)
+        this->frameBuffer[i] = colorWord;
+}
+
+/**
+ * @brief Fill the display with a color
+ * @param color color to fill with as an 8 bit value
+*/
+void graphics::fill8(uint8_t color)
+{
+	uint8_t color8 = color;
+
+#if defined(LCD_INVERT_COLORS)
+	color8 = ((color8 & 0xe0) >> 5) | ((color8 & 0x1c) >> 2) | ((color8 & 0x03) << 3);
+	color8 = ((color8 & 0xcc) >> 2) | ((color8 & 0x33) << 2);
+	color8 = ((color8 & 0xaa) >> 1) | ((color8 & 0x55) << 1);
+#endif
+
+	uint32_t totalPixels = this->display_ptr->getWidth() * this->display_ptr->getHeight();
+    // fill the frame buffer
+    for (int32_t i = 0; i < totalPixels; i++)
+        this->frameBuffer[i] = color8;
+}
+
+/**
+ * @brief Fill the display with a color
+ * @param color color to fill with as a 16 bit value
+*/
+void graphics::fill16(uint16_t color)
+{
+	uint16_t color16 = color;
+
+#if defined(LCD_INVERT_COLORS)
+	color16 = ((color16 & 0xaaaa) >> 1) | ((color16 & 0x5555) << 1);
+	color16 = ((color16 & 0xcccc) >> 2) | ((color16 & 0x3333) << 2);
+	color16 = ((color16 & 0xf0f0) >> 4) | ((color16 & 0x0f0f) << 4);
+	color16 = (color16 >> 8) | (color16 << 8);
+#endif
+
 	uint32_t totalPixels = this->display_ptr->getWidth() * this->display_ptr->getHeight();
     // fill the frame buffer
     for (int32_t i = 0; i < totalPixels; i++)
@@ -27,23 +83,21 @@ void graphics::fill(color color)
 
 /**
  * @brief Fill the display with a color
- * @param color color to fill with
+ * @param color color to fill with as a 24 bit value
 */
-void graphics::fill(uint16_t color)
+void graphics::fill24(uint32_t color)
 {
-	uint16_t color16 = color;
-
+	uint32_t color24 = color;
 #if defined(LCD_INVERT_COLORS)
-		color16 = ((color16 & 0xaaaa) >> 1) | ((color16 & 0x5555) << 1);
-		color16 = ((color16 & 0xcccc) >> 2) | ((color16 & 0x3333) << 2);
-		color16 = ((color16 & 0xf0f0) >> 4) | ((color16 & 0x0f0f) << 4);
-		color16 = (color16 >> 8) | (color16 << 8);
+	color24 = ((color24 & 0xff0000) >> 16) | (color24 & 0x00ff00) | ((color24 & 0x0000ff) << 16);
+	color24 = ((color24 & 0xf0f0f0) >> 4) | ((color24 & 0x0f0f0f) << 4);
+	color24 = ((color24 & 0xcccccc) >> 2) | ((color24 & 0x333333) << 2);
+	color24 = ((color24 & 0xaaaaaa) >> 1) | ((color24 & 0x555555) << 1);
 #endif
-
 	uint32_t totalPixels = this->display_ptr->getWidth() * this->display_ptr->getHeight();
-    // fill the frame buffer
-    for (int32_t i = 0; i < totalPixels; i++)
-        this->frameBuffer[i] = color16;
+	// fill the frame buffer
+	for (int32_t i = 0; i < totalPixels; i++)
+		this->frameBuffer[i] = color24;
 }
 
 /**

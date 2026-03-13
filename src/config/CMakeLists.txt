@@ -120,7 +120,7 @@ elseif(LCD_PROTOCOL STREQUAL "SPI")
         string(APPEND CONFIG_CONTENT "#define LCD_PIN_SDA  ${LCD_PIN_SDA}\n")
 
         if (DEFINED LCD_SPI_INSTANCE)
-            string(APPEND CONFIG_CONTENT "#define LCD_SPI_INSTANCE ${LCD_SPI_INSTANCE}\n")
+            string(APPEND CONFIG_CONTENT "#define LCD_SPI_INSTANCE_${LCD_SPI_INSTANCE}\n")
         else()
             message(FATAL_ERROR "LCD_SPI_INSTANCE must be defined for SPI protocol with HW hardware")
         endif()

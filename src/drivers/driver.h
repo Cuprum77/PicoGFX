@@ -10,10 +10,28 @@
 #include "pio_spi.pio.h"
 #include "lcd_config.h"
 
+#if defined(LCD_PROTOCOL_PARALLEL_24) && !defined(LCD_COLOR_DEPTH_24)
+#error "Parallel 24-bit protocol requires 24-bit color depth"
+#endif
+
+#if defined(LCD_PROTOCOL_PARALLEL_16) && !defined(LCD_COLOR_DEPTH_16)
+#error "Parallel 16-bit protocol requires 16-bit color depth"
+#endif
+
+#if defined(LCD_PROTOCOL_PARALLEL_8) && !defined(LCD_COLOR_DEPTH_8)
+#error "Parallel 8-bit protocol requires 8-bit color depth"
+#endif
+
+#if defined(SPI) && (!defined(GPIO) || !defined(PIO))
+#error "SPI protocol requires GPIO or PIO hardware interface"
+#endif
+
 typedef enum
 {
     BITS_8 = 8,
-    BITS_16 = 16
+    BITS_16 = 16,
+    BITS_18 = 18,
+    BITS_24 = 24
 }  spi_bit_length_t;
 
 typedef struct pio_spi_inst 
@@ -31,7 +49,18 @@ public:
 
     void writeData(uint8_t command, const uint8_t *data, size_t length);
     void setDataMode(uint8_t command);
+    
+#if defined(LCD_COLOR_DEPTH_1)
+    void writePixels(const bool *data, size_t length);
+#elif defined(LCD_COLOR_DEPTH_8)
+    void writePixels(const uint8_t *data, size_t length);
+#elif defined(LCD_COLOR_DEPTH_16)
     void writePixels(const uint16_t *data, size_t length);
+#elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
+    void writePixels(const uint32_t *data, size_t length);
+#else
+#error "Unsupported color depth"
+#endif
 
 private:
     // dma stuff
@@ -49,6 +78,17 @@ private:
     uint32_t sm;
     uint32_t offset;
     float clkdiv;
+
+    // spi stuff
+#if defined(LCD_PROTOCOL_SPI) && !defined(LCD_HARDWARE_PIO)
+#if defined(LCD_SPI_INSTANCE_SPI0)
+    spi_inst_t *spi_instance = spi0;
+#elif defined(LCD_SPI_INSTANCE_SPI1)
+    spi_inst_t *spi_instance = spi1;
+#else
+#error "Invalid SPI instance"
+#endif
+#endif
 
     // general
     bool enabled = false;

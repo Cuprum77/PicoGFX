@@ -139,17 +139,15 @@ struct color
     uint16_t g : 6;
     uint16_t b : 5;
 // Unless the color depth can take advantage of a smaller data type, theres no point in keeping them separated
-#elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
+#elif defined(LCD_COLOR_DEPTH_18)
+    uint32_t   : 6; // padding to align to byte boundary
+    uint32_t r : 6;
+    uint32_t g : 6;
+    uint32_t b : 6;
+#elif defined(LCD_COLOR_DEPTH_24)
     uint32_t r : 8;
     uint32_t g : 8;
     uint32_t b : 8;
-#endif
-
-#if defined(LCD_COLOR_DEPTH_1)
-#elif defined(LCD_COLOR_DEPTH_8)
-#elif defined(LCD_COLOR_DEPTH_16)
-#elif defined(LCD_COLOR_DEPTH_18)
-#elif defined(LCD_COLOR_DEPTH_24)
 #endif
 
     /**

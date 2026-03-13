@@ -15,9 +15,18 @@ void st7789::init()
     sleep_ms(50);
 
     // set the display to interface pixel format
-    // 0x5 << 4 = 65k of rgb interface
-    // 0x5 = 16 bits per pixel
-    unsigned char pixelFormat = 0x5 << 4 | 0x5;
+    // 0b00000000
+    // 7 6 5 4 3 2 1 0
+    // | +-+-+------------------ 0b101 = 65k of rgb interface, 0b110 = 262k of rgb interface
+    // | | | | | +-+-+----------------- 0b101 = 16 bits per pixel, 0b110 = 18 bits per pixel
+    // +-------+----------------------- Set to '0'
+#if defined(LCD_COLOR_DEPTH_16)
+    unsigned char pixelFormat = 0x55;   // 65k of rgb interface, 16 bits per pixel
+#elif defined(LCD_COLOR_DEPTH_18)
+    unsigned char pixelFormat = 0x66;   // 262k of rgb interface, 18 bits per pixel
+#else
+#error "Unsupported color depth for ST7789"
+#endif
     this->writeData(0x3a, &pixelFormat, 1);
     sleep_ms(10);
 
