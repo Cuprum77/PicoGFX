@@ -20,7 +20,7 @@ printer::printer(uint16_t *frameBuffer, display *display_ptr)
 */
 void printer::setColor(color val)
 {
-	this->color_val = val.to16bit();
+	this->color_val = val.toWord();
 }
 
 /**

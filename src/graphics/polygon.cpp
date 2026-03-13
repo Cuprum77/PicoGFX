@@ -61,7 +61,7 @@ void graphics::drawRectangle(point center, uint32_t width, uint32_t height, colo
 void graphics::drawFilledRectangle(point start, point end, color color)
 {
     // convert color to 16 bit
-    uint16_t color16 = color.to16bit();
+    uint16_t color16 = color.toWord();
 
     // calculate the size of the rectangle
     uint32_t width = end.x - start.x;
@@ -105,7 +105,7 @@ void graphics::drawFilledPolygon(point *points, size_t numberOfPoints, color col
     int32_t maxY = 0;
 
     // Get the uint16_t version of the color
-    uint16_t color16 = color.to16bit();
+    uint16_t color16 = color.toWord();
 
     // Calculate the bounding box of the polygon by first finding the min and max x and y values
     for (int32_t i = 0; i < numberOfPoints; i++)

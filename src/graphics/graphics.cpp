@@ -18,7 +18,7 @@ graphics::graphics(uint16_t *frameBuffer, display *display_ptr)
 void graphics::fill(color color)
 {
     // convert color to 16 bit
-    uint16_t color16 = color.to16bit();
+    uint16_t color16 = color.toWord();
 	uint32_t totalPixels = this->display_ptr->getWidth() * this->display_ptr->getHeight();
     // fill the frame buffer
     for (int32_t i = 0; i < totalPixels; i++)
