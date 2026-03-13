@@ -104,7 +104,7 @@ void hardware_driver::init()
 
     // Use booth to create a mask for the data pins
     if (max_pin == 31)
-        this->parallel_interface_mask = 0xFFFFFFFF - ((1u << min_pin) - 1);
+        this->parallel_interface_mask = 0xffffffff - ((1u << min_pin) - 1);
     else if (min_pin == 0)
         this->parallel_interface_mask = (1u << (max_pin + 1)) - 1;
     else
@@ -181,7 +181,11 @@ void hardware_driver::writeData(uint8_t command, const uint8_t *data, size_t len
 #if defined(LCD_COLOR_DEPTH_16)
     this->changeSPIbits(BITS_16);
 #elif defined(LCD_COLOR_DEPTH_18)
+#if defined(LCD_DRIVER_GC9A01)
+    this->changeSPIbits(BITS_8);
+#else
     this->changeSPIbits(BITS_18);
+#endif
 #elif defined(LCD_COLOR_DEPTH_24)
     this->changeSPIbits(BITS_24);
 #else
@@ -196,23 +200,22 @@ void hardware_driver::writeData(uint8_t command, const uint8_t *data, size_t len
     gpio_put(LCD_PIN_DC, 0);
     gpio_put(LCD_PIN_CS, 0);
     spi_write_blocking(this->spi_instance, &command, 1);
-    gpio_put(LCD_PIN_CS, 1);
     gpio_put(LCD_PIN_DC, 1);
     // if there is data to send, send it
     if (length)
     {
         for (size_t i = 0; i < length; i++)
-        {
-            gpio_put(LCD_PIN_CS, 0);
             spi_write_blocking(this->spi_instance, &data[i], 1);
-            gpio_put(LCD_PIN_CS, 1);
-        }
     }
 
 #if defined(LCD_COLOR_DEPTH_16)
     spi_set_format(this->spi_instance, 16, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
 #elif defined(LCD_COLOR_DEPTH_18)
+#if defined(LCD_DRIVER_GC9A01)
+    spi_set_format(this->spi_instance, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
+#else
     spi_set_format(this->spi_instance, 9, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
+#endif
 #elif defined(LCD_COLOR_DEPTH_24)
     spi_set_format(this->spi_instance, 12, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
 #else
@@ -253,7 +256,11 @@ void hardware_driver::setDataMode(uint8_t command)
 #if defined(LCD_COLOR_DEPTH_16)
     spi_set_format(this->spi_instance, 16, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
 #elif defined(LCD_COLOR_DEPTH_18)
+#if defined(LCD_DRIVER_GC9A01)
+    spi_set_format(this->spi_instance, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
+#else
     spi_set_format(this->spi_instance, 9, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
+#endif
 #elif defined(LCD_COLOR_DEPTH_24)
     spi_set_format(this->spi_instance, 12, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
 #else
@@ -353,24 +360,54 @@ void hardware_driver::writePixels(const uint16_t *data, size_t length)
 void hardware_driver::writePixels(const uint32_t *data, size_t length)
 {
 #if defined(LCD_PROTOCOL_SPI) && defined(LCD_HARDWARE_PIO)
+#if defined(LCD_DRIVER_GC9A01)
+    const uint32_t *pixels = data;
+    for (size_t i = 0; i < length; i++)
+    {
+        uint8_t words[3] = {
+            (uint8_t)((pixels[i] >> 12) & 0x3f) << 2,
+            (uint8_t)((pixels[i] >> 6)  & 0x3f) << 2,
+            (uint8_t)( pixels[i]        & 0x3f) << 2
+        };
+
+        for (size_t j = 0; j < 3; j++)
+            pio_spi_transmit_8(this->pio, this->sm, words[j]);
+    }
+#else
     while(length--)
         pio_spi_transmit_18(this->pio, this->sm, *(uint32_t *)data++);
     pio_spi_wait_idle(this->pio, this->sm);
     this->setSPIdataCommandPins(1, 1);
+#endif
 #elif defined(LCD_PROTOCOL_SPI) && !defined(LCD_HARDWARE_PIO)
+#if defined(LCD_DRIVER_GC9A01)
+    gpio_put(LCD_PIN_CS, 0);
+    const uint32_t *pixels = data;
+    for (size_t i = 0; i < length; i++) 
+    {
+        uint8_t words[3] = {
+            (uint8_t)((pixels[i] >> 12) & 0x3f) << 2,
+            (uint8_t)((pixels[i] >> 6)  & 0x3f) << 2,
+            (uint8_t)( pixels[i]        & 0x3f) << 2
+        };
+        
+        spi_write_blocking(this->spi_instance, words, 3);
+    }
+    gpio_put(LCD_PIN_CS, 1);
+#else
     gpio_put(LCD_PIN_CS, 0);
     const uint32_t *pixels = data;
     for (size_t i = 0; i < length; i++) 
     {
         uint16_t words[2] = {
-            (uint16_t)((pixels[i] >> 9) & 0x1FF),
-            (uint16_t)( pixels[i]       & 0x1FF)
+            (uint16_t)((pixels[i] >> 9) & 0x1f),
+            (uint16_t)( pixels[i]       & 0x1f)
         };
-
         
         spi_write16_blocking(this->spi_instance, words, 2);
     }
     gpio_put(LCD_PIN_CS, 1);
+#endif
 #elif defined(LCD_PROTOCOL_PARALLEL_24) \
     || defined(LCD_PROTOCOL_PARALLEL_16) \
     || defined(LCD_PROTOCOL_PARALLEL_8)
@@ -398,8 +435,8 @@ void hardware_driver::writePixels(const uint32_t *data, size_t length)
     for (size_t i = 0; i < length; i++) 
     {
         uint16_t words[2] = {
-            (uint16_t)((pixels[i] >> 12) & 0xFFF),
-            (uint16_t)( pixels[i]        & 0xFFF)
+            (uint16_t)((pixels[i] >> 12) & 0xffF),
+            (uint16_t)( pixels[i]        & 0xffF)
         };
 
         spi_write16_blocking(this->spi_instance, words, 2);
