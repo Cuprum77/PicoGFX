@@ -4,6 +4,7 @@
 #include "shapes.h"
 #include "gfxmath.h"
 #include "display.h"
+#include "lcd_config.h"
 
 class gradient
 {

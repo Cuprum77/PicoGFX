@@ -6,6 +6,7 @@ extern "C"
 #endif
 
 #include <stdint.h>
+#include "lcd_config.h"
 #include <pico/divider.h>
 
 // Preprocessor definitions

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "graphics.h"
+#include "lcd_config.h"
 
 // Constants
 #define DIAL_ANGLE 230  // Should be between 0 and 360 degrees

@@ -6,6 +6,7 @@ extern "C"
 #endif
 
 #include "trig.h"
+#include "lcd_config.h"
 #include <math.h>
 #include <stdint.h>
 

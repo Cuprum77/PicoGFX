@@ -6,6 +6,7 @@ extern "C"
 #endif
     
 #include <stdint.h>
+#include "lcd_config.h"
 
 #define MAX_COLOR_DIFF 255
 

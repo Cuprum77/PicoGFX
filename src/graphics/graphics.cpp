@@ -9,8 +9,6 @@ graphics::graphics(uint16_t *frameBuffer, display *display_ptr)
 {
     this->frameBuffer = frameBuffer;
     this->display_ptr = display_ptr;
-    this->width = this->display_ptr->getWidth();
-    this->height = this->display_ptr->getHeight();
 }
 
 /**
@@ -53,6 +51,9 @@ void graphics::fill(uint16_t color)
 */
 void graphics::testPattern(void)
 {
+	uint32_t width = this->display_ptr->getWidth();
+	uint32_t height = this->display_ptr->getHeight();
+
 	color top_row[] = {
 		colors::argent, colors::acidGreen, colors::turquoiseSurf,
 		colors::islamicGreen, colors::deepMagenta, colors::ueRed,
@@ -75,53 +76,62 @@ void graphics::testPattern(void)
 	};
 
 	uint32_t top_height = 0;
-	uint32_t middle_height = (this->height / 3) * 2;
-	uint32_t bottom_height = (this->height / 4) * 3;
+	uint32_t middle_height = (height * 2) / 3;
+	uint32_t bottom_height = (height * 3) / 4;
 
-	uint32_t top_width = this->width / 7;
-	uint32_t middle_width = this->width / 7;
-	uint32_t bottom_width1 = (middle_width * 5) / 4;
-	uint32_t bottom_width2 = middle_width / 3;
+	uint32_t top_segment = width / 7;
+	uint32_t middle_segment = width / 7;
+
+	uint32_t bottom_large_width = (width * 5) / 7;
+	uint32_t bottom_small_width = width - bottom_large_width;
+
+	uint32_t bottom_small_segment = bottom_small_width / 3;
 
 	for (size_t i = 0; i < 7; i++)
 	{
-		uint32_t x_start = top_width * i;
-		uint32_t x_end = (i == 6) ? this->width : top_width * (i + 1);
-		point start = point(x_start, top_height);
-		point end = point(x_end, imin(middle_height, this->height));
+		uint32_t x_start = top_segment * i;
+		uint32_t x_end = (i == 6) ? width : top_segment * (i + 1);
+
+		point start(x_start, top_height);
+		point end(x_end, middle_height);
+
 		this->drawFilledRectangle(start, end, top_row[i]);
 	}
 
 	for (size_t i = 0; i < 7; i++)
 	{
-		uint32_t x_start = middle_width * i;
-		uint32_t x_end = (i == 6) ? this->width : middle_width * (i + 1);
-		point start = point(x_start, middle_height);
-		point end = point(x_end, imin(bottom_height, this->height));
+		uint32_t x_start = middle_segment * i;
+		uint32_t x_end = (i == 6) ? width : middle_segment * (i + 1);
+
+		point start(x_start, middle_height);
+		point end(x_end, bottom_height);
+
 		this->drawFilledRectangle(start, end, middle_row[i]);
 	}
 
+	uint32_t bottom_large_segment = bottom_large_width / 4;
+
 	for (size_t i = 0; i < 4; i++)
 	{
-		uint32_t x_start = bottom_width1 * i;
-		uint32_t x_end = (i == 3) ? this->width : bottom_width1 * (i + 1);
-		point start = point(x_start, bottom_height);
-		point end = point(x_end, this->height);
+		uint32_t x_start = bottom_large_segment * i;
+		uint32_t x_end = (i == 3) ? bottom_large_width : bottom_large_segment * (i + 1);
+
+		point start(x_start, bottom_height);
+		point end(x_end, height);
+
 		this->drawFilledRectangle(start, end, bottom_row[i]);
 	}
 
 	for (size_t i = 0; i < 3; i++)
 	{
-		uint32_t x_start = (middle_width * 5) + (this->width - (middle_width * 6)) / 3 * i;
-		uint32_t x_end = (i == 2) ? this->width : x_start + (this->width - (middle_width * 5)) / 3;
-		point start = point(x_start, bottom_height);
-		point end = point(x_end, this->height);
+		uint32_t x_start = bottom_large_width + (bottom_small_segment * i);
+		uint32_t x_end = (i == 2) ? width : bottom_large_width + (bottom_small_segment * (i + 1));
+
+		point start(x_start, bottom_height);
+		point end(x_end, height);
+
 		this->drawFilledRectangle(start, end, bottom_black_band[i]);
 	}
-
-	point start = point((middle_width * 6), bottom_height);
-	point end = point(this->width, this->height);
-	this->drawFilledRectangle(start, end, bottom_row[4]);
 }
 
 //   rrrrrggggggbbbbb

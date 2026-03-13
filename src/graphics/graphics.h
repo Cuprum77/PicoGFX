@@ -4,6 +4,7 @@
 #include "display.h"
 #include "shapes.h"
 #include "gfxmath.h"
+#include "lcd_config.h"
 #include <stdint.h>
 
 class graphics
@@ -56,8 +57,6 @@ public:
 private:
     uint16_t *frameBuffer;
     display *display_ptr;
-    uint32_t width;
-    uint32_t height;
 
     const uint8_t bayerMatrix[16] = {
         0, 8, 2, 10,

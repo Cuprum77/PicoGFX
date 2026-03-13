@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include "lcd_config.h"
 
 enum encoding_type_t
 {

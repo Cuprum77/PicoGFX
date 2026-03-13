@@ -4,6 +4,7 @@
 #include "shapes.h"
 #include "fontstruct.h"
 #include "display.h"
+#include "lcd_config.h"
 
 #include <stdlib.h>
 #include <stdio.h>

@@ -40,9 +40,11 @@ void graphics::addBayerFilter(void)
  */
 void graphics::addFloydSteinbergDithering(void)
 {
-    int16_t error_buffer[this->display_ptr->getWidth() * 3] = {0};
+    uint32_t width = this->display_ptr->getWidth();
+
+    int16_t error_buffer[width * 3] = {0};
     
-    for (int y = 0; y < height - 1; y++) {
+    for (int y = 0; y < this->display_ptr->getHeight() - 1; y++) {
         for (int x = 1; x < width - 1; x++) {
             int i = y * width + x;
 
@@ -149,11 +151,13 @@ void graphics::addBlur(void)
  */
 void graphics::addBlur(rect area)
 {
+    uint32_t width = this->display_ptr->getWidth();
+
     for (int32_t y = 1; y < this->display_ptr->getHeight() - 1; y++) 
     {
-        for (int32_t x = 1; x < this->display_ptr->getWidth() - 1; x++) 
+        for (int32_t x = 1; x < width - 1; x++) 
         {
-            int32_t i = x + y * this->display_ptr->getWidth();
+            int32_t i = x + y * width;
 
             // Sum up 3x3 neighborhood
             uint32_t r_sum = 0, g_sum = 0, b_sum = 0;
