@@ -30,7 +30,7 @@ private:
 #elif defined(LCD_COLOR_DEPTH_18)
     uint32_t framebuffer[FRAMEBUFFER_SIZE];
 #else
-#error "Unsupported color depth for ST7789"
+#error "Unsupported color depth for GC9A01"
 #endif
 };
 #endif
