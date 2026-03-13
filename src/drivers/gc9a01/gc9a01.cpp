@@ -42,7 +42,7 @@ void gc9a01::init()
     // set the display to interface pixel format
     // 0b00000000
     // 7 6 5 4 3 2 1 0
-    // | +-+-+------------------ 0b101 = 65k of rgb interface, 0b110 = 262k of rgb interface
+    // | +-+-+------------------------- 0b101 = 65k of rgb interface, 0b110 = 262k of rgb interface
     // | | | | | +-+-+----------------- 0b101 = 16 bits per pixel, 0b110 = 18 bits per pixel
     // +-------+----------------------- Set to '0'
 #if defined(LCD_COLOR_DEPTH_16)

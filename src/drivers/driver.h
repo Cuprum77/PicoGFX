@@ -102,5 +102,5 @@ private:
     void changeSPIbits(spi_bit_length_t bits);
     void write8080(uint32_t data, bool command, bool bit16);
     inline void setSPIdataCommandPins(bool dc, bool cs);
-    uint16_t flipBits(uint16_t value);
+    void set_spi_format(void);
 };

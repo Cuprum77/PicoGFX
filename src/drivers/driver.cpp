@@ -207,21 +207,6 @@ void hardware_driver::writeData(uint8_t command, const uint8_t *data, size_t len
         for (size_t i = 0; i < length; i++)
             spi_write_blocking(this->spi_instance, &data[i], 1);
     }
-
-#if defined(LCD_COLOR_DEPTH_16)
-    spi_set_format(this->spi_instance, 16, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
-#elif defined(LCD_COLOR_DEPTH_18)
-#if defined(LCD_DRIVER_GC9A01)
-    spi_set_format(this->spi_instance, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
-#else
-    spi_set_format(this->spi_instance, 9, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
-#endif
-#elif defined(LCD_COLOR_DEPTH_24)
-    spi_set_format(this->spi_instance, 12, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
-#else
-    spi_set_format(this->spi_instance, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
-#endif
-
 #elif defined(LCD_PROTOCOL_PARALLEL_24) \
     || defined(LCD_PROTOCOL_PARALLEL_16) \
     || defined(LCD_PROTOCOL_PARALLEL_8)
@@ -253,19 +238,6 @@ void hardware_driver::setDataMode(uint8_t command)
     spi_write_blocking(this->spi_instance, &command, 1);
 #endif
     gpio_put(LCD_PIN_DC, 1);
-#if defined(LCD_COLOR_DEPTH_16)
-    spi_set_format(this->spi_instance, 16, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
-#elif defined(LCD_COLOR_DEPTH_18)
-#if defined(LCD_DRIVER_GC9A01)
-    spi_set_format(this->spi_instance, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
-#else
-    spi_set_format(this->spi_instance, 9, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
-#endif
-#elif defined(LCD_COLOR_DEPTH_24)
-    spi_set_format(this->spi_instance, 12, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
-#else
-    spi_set_format(this->spi_instance, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
-#endif
     
 #elif defined(LCD_PROTOCOL_PARALLEL_24) \
     || defined(LCD_PROTOCOL_PARALLEL_16) \
@@ -289,6 +261,7 @@ void hardware_driver::writePixels(const bool *data, size_t length)
     pio_spi_wait_idle(this->pio, this->sm);
     this->setSPIdataCommandPins(1, 1);
 #elif defined(LCD_PROTOCOL_SPI) && !defined(LCD_HARDWARE_PIO)
+    this->set_spi_format();
     gpio_put(LCD_PIN_CS, 0);
     spi_write_blocking(this->spi_instance, (const uint8_t *)data, length);
     gpio_put(LCD_PIN_CS, 1);
@@ -315,6 +288,7 @@ void hardware_driver::writePixels(const uint8_t *data, size_t length)
     this->setSPIdataCommandPins(1, 1);
 
 #elif defined(LCD_PROTOCOL_SPI) && !defined(LCD_HARDWARE_PIO)
+    this->set_spi_format();
     gpio_put(LCD_PIN_CS, 0);
     spi_write_blocking(this->spi_instance, (const uint8_t *)data, length);
     gpio_put(LCD_PIN_CS, 1);
@@ -340,6 +314,7 @@ void hardware_driver::writePixels(const uint16_t *data, size_t length)
     pio_spi_wait_idle(this->pio, this->sm);
     this->setSPIdataCommandPins(1, 1);
 #elif defined(LCD_PROTOCOL_SPI) && !defined(LCD_HARDWARE_PIO)
+    this->set_spi_format();
     gpio_put(LCD_PIN_CS, 0);
     spi_write16_blocking(this->spi_instance, (const uint16_t *)data, length);
     gpio_put(LCD_PIN_CS, 1);
@@ -380,6 +355,7 @@ void hardware_driver::writePixels(const uint32_t *data, size_t length)
     this->setSPIdataCommandPins(1, 1);
 #endif
 #elif defined(LCD_PROTOCOL_SPI) && !defined(LCD_HARDWARE_PIO)
+    this->set_spi_format();
 #if defined(LCD_DRIVER_GC9A01)
     gpio_put(LCD_PIN_CS, 0);
     const uint32_t *pixels = data;
@@ -430,6 +406,7 @@ void hardware_driver::writePixels(const uint32_t *data, size_t length)
     pio_spi_wait_idle(this->pio, this->sm);
     this->setSPIdataCommandPins(1, 1);
 #elif defined(LCD_PROTOCOL_SPI) && !defined(LCD_HARDWARE_PIO)
+    this->set_spi_format();
     gpio_put(LCD_PIN_CS, 0);
     const uint32_t *pixels = data;
     for (size_t i = 0; i < length; i++) 
@@ -524,5 +501,26 @@ inline void hardware_driver::setSPIdataCommandPins(bool dc, bool cs)
     gpio_put_masked((1u << LCD_PIN_DC) | (1u << LCD_PIN_CS), 
         !!dc << LCD_PIN_DC | !!cs << LCD_PIN_CS);
     sleep_us(1);
+#endif
+}
+
+/**
+ * @private
+ * @brief Set the SPI format based on the color depth
+ */
+void hardware_driver::set_spi_format(void)
+{
+#if defined(LCD_COLOR_DEPTH_16)
+    spi_set_format(this->spi_instance, 16, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
+#elif defined(LCD_COLOR_DEPTH_18)
+#if defined(LCD_DRIVER_GC9A01)
+    spi_set_format(this->spi_instance, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
+#else
+    spi_set_format(this->spi_instance, 9, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
+#endif
+#elif defined(LCD_COLOR_DEPTH_24)
+    spi_set_format(this->spi_instance, 12, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
+#else
+    spi_set_format(this->spi_instance, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
 #endif
 }
