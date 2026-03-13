@@ -20,7 +20,7 @@ graphics::graphics(uint16_t *frameBuffer, display *display_ptr)
 void graphics::fill(color color)
 {
     // convert color to 16 bit
-    uint16_t color16 = color.to16bit(this->inverseColors);
+    uint16_t color16 = color.to16bit();
 	uint32_t totalPixels = this->display_ptr->getWidth() * this->display_ptr->getHeight();
     // fill the frame buffer
     for (int32_t i = 0; i < totalPixels; i++)
@@ -35,13 +35,12 @@ void graphics::fill(uint16_t color)
 {
 	uint16_t color16 = color;
 
-	if (this->inverseColors)
-	{
+#if defined(LCD_INVERT_COLORS)
 		color16 = ((color16 & 0xaaaa) >> 1) | ((color16 & 0x5555) << 1);
 		color16 = ((color16 & 0xcccc) >> 2) | ((color16 & 0x3333) << 2);
 		color16 = ((color16 & 0xf0f0) >> 4) | ((color16 & 0x0f0f) << 4);
 		color16 = (color16 >> 8) | (color16 << 8);
-	}
+#endif
 
 	uint32_t totalPixels = this->display_ptr->getWidth() * this->display_ptr->getHeight();
     // fill the frame buffer

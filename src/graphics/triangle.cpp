@@ -31,7 +31,7 @@ void graphics::drawFilledTriangle(point p1, point p2, point p3, color color)
     int32_t maxY = imax(imax(p1.y, p2.y), p3.y);
 
     // convert the color to uint16_t
-    uint16_t color16 = color.to16bit(this->inverseColors);
+    uint16_t color16 = color.to16bit();
 
     // iterate over each row within the bounding box
     for (int32_t y = minY; y <= maxY; y++)

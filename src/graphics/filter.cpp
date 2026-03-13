@@ -30,7 +30,7 @@ void graphics::addBayerFilter(void)
             c.b &= 0x1f;
 
             // set the pixel
-            *ptr++ = c.to16bit(this->inverseColors);
+            *ptr++ = c.to16bit();
         }
     }
 }

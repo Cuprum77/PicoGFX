@@ -47,7 +47,6 @@ private:
     // Display variables
     uint16_t *frameBuffer;
     display *display_ptr;
-    bool inverseColors = false;
 
     // print variables
     char characterBuffer[CHARACTER_BUFFER_SIZE];

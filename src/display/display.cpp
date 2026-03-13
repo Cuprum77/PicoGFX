@@ -158,7 +158,7 @@ bool display::frameLimiter(uint32_t frameRate)
 void display::setPixel(point point, color color)
 {
     // set the framebuffer pixel
-    this->frameBuffer[point.x + point.y * this->width] = color.to16bit(this->inverseColors);
+    this->frameBuffer[point.x + point.y * this->width] = color.to16bit();
 }
 
 /**

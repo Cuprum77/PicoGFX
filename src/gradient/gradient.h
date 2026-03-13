@@ -20,7 +20,6 @@ private:
     uint16_t *frameBuffer;
     display *display_ptr;
     size_t totalPixels;
-    bool inverseColors = false;
 
     uint32_t theta; // The angle of the rotating gradient
     const int32_t firstQuadrant = 90;

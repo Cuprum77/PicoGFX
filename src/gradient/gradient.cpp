@@ -40,7 +40,7 @@ void gradient::fillGradient(color startColor, color endColor, point start, point
     // check if the start and end Points are the same
     if(start == end)
     {
-        uint16_t startColor16 = startColor.to16bit(this->inverseColors);
+        uint16_t startColor16 = startColor.to16bit();
         uint32_t totalPixels = this->display_ptr->getWidth() * this->display_ptr->getHeight();
         for(int32_t i = 0; i < totalPixels; i++)
             this->frameBuffer[i] = startColor16;

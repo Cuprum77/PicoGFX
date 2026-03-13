@@ -88,6 +88,7 @@ if(LCD_PROTOCOL STREQUAL "PARALLEL_8" OR
         list(GET DB_PINS 0 DB_BASE_PIN)
         string(APPEND CONFIG_CONTENT "#define LCD_PIN_DB_SEQUENTIAL\n")
         string(APPEND CONFIG_CONTENT "#define LCD_PIN_DB_REVERSED\n")
+        string(APPEND CONFIG_CONTENT "#define LCD_INVERT_COLORS\n\n")
     endif()
 
     set(DB_ARRAY_CONTENT "")

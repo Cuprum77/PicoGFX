@@ -58,7 +58,6 @@ private:
     display *display_ptr;
     uint32_t width;
     uint32_t height;
-    bool inverseColors = false;
 
     const uint8_t bayerMatrix[16] = {
         0, 8, 2, 10,

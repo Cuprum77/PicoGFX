@@ -85,8 +85,6 @@ protected:
     uint32_t rowOffset2 = 0;
 #endif
 
-    bool inverseColors = false;
-
     uint32_t sliceNum;
     uint32_t pwmChannel;
     bool dataMode = false;
