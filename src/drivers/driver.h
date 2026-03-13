@@ -29,9 +29,9 @@ public:
     void init(void);
     void reset(uint32_t time_ms);
 
-    void writeData(uint8_t command, const uint8_t* data, size_t length);
+    void writeData(uint8_t command, const uint8_t *data, size_t length);
     void setDataMode(uint8_t command);
-    void writePixels(const uint16_t* data, size_t length);
+    void writePixels(const uint16_t *data, size_t length);
 
 private:
     // dma stuff

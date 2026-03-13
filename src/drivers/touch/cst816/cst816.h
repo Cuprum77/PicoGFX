@@ -28,7 +28,7 @@ typedef struct
 class cst816 : public touch
 {
 public:
-    cst816(display* display = nullptr);
+    cst816(display *display = nullptr);
     void init();
     void reset();
     void disableStandby();
@@ -41,9 +41,9 @@ private:
     uint32_t rst_pin;
     uint32_t irq_pin;
     cst816_report_t report;
-    display* display_ptr;
+    display *display_ptr;
 
-    static cst816* instance;
+    static cst816 *instance;
 
     static void static_irq_handler(uint gpio, uint32_t event_mask)
     {
@@ -55,5 +55,5 @@ private:
 
     void fetch();
     uint32_t getVersion();
-    void getVersionValue(uint32_t* data);
+    void getVersionValue(uint32_t *data);
 };

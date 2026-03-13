@@ -45,7 +45,7 @@ int32_t ifactorial(int32_t x)
 	return result;
 }
 
-void pcircle(int32_t radius, int32_t angle, int32_t offsetX, int32_t offsetY, int32_t* x, int32_t* y)
+void pcircle(int32_t radius, int32_t angle, int32_t offsetX, int32_t offsetY, int32_t *x, int32_t *y)
 {
 	int32_t angleX = icos(angle);
 	int32_t angleY = isin(angle);

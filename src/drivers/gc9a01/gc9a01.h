@@ -14,7 +14,7 @@
 class gc9a01 : public display
 {
 public:
-    gc9a01(hardware_driver* hw) : 
+    gc9a01(hardware_driver *hw) : 
         display(hw, this->framebuffer, COMMAND_CASET, COMMAND_RASET, COMMAND_RAMWR) {} // Constructor
     void init();
     void softReset();

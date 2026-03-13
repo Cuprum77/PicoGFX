@@ -1,6 +1,6 @@
 #include "cst816.h"
 
-cst816* cst816::instance = nullptr;  // Define the static instance
+cst816 *cst816::instance = nullptr;  // Define the static instance
 
 /**
  * @public
@@ -9,7 +9,7 @@ cst816* cst816::instance = nullptr;  // Define the static instance
  * @param display Display pointer
  * @note This constructor will setup a IRQ handler for the CST816 as the CST816 will not respond unless touch is detected!
  */
-cst816::cst816(display* display_ptr) : touch()
+cst816::cst816(display *display_ptr) : touch()
 {
     this->display_ptr = display_ptr;
     this->instance = this;
@@ -154,7 +154,7 @@ uint32_t cst816::getVersion()
  * @brief Get the version of the CST816
  * @param data Version data
  */
-void cst816::getVersionValue(uint32_t* data)
+void cst816::getVersionValue(uint32_t *data)
 {
     uint8_t buf[3] = { 0 };
     this->touchRead(CST816_ADDR, (uint8_t)0xa7, buf, 3);

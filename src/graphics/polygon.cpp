@@ -79,7 +79,7 @@ void graphics::drawFilledRectangle(point start, point end, color color)
     }
 }
 
-void graphics::drawPolygon(point* points, size_t numberOfPoints, color color)
+void graphics::drawPolygon(point *points, size_t numberOfPoints, color color)
 {
     // Make sure theres at least 3 points
     if (numberOfPoints < 3) return;
@@ -93,7 +93,7 @@ void graphics::drawPolygon(point* points, size_t numberOfPoints, color color)
 	this->drawLine(points[numberOfPoints - 1], points[0], color);
 }
 
-void graphics::drawFilledPolygon(point* points, size_t numberOfPoints, color color)
+void graphics::drawFilledPolygon(point *points, size_t numberOfPoints, color color)
 {
     // Make sure theres at least 3 points
     if (numberOfPoints < 3) return;

@@ -14,7 +14,7 @@
 class st7789 : public display
 {
 public:
-    st7789(hardware_driver* hw) : 
+    st7789(hardware_driver *hw) : 
         display(hw, this->framebuffer, COMMAND_CASET, COMMAND_RASET, COMMAND_RAMWR) {} // Constructor
     void init();
 

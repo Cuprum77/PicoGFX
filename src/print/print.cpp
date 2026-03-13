@@ -4,7 +4,7 @@
  * @brief Construct a new print object
  * @param display Display to print on
 */
-printer::printer(uint16_t* frameBuffer, display *display_ptr)
+printer::printer(uint16_t *frameBuffer, display *display_ptr)
 {
     this->frameBuffer = frameBuffer;
     this->color_val = colors::black;
@@ -63,7 +63,7 @@ point printer::getCursor(void)
  * @brief Set the font to use
  * @param font Font to use
 */
-void printer::setFont(FontStruct* font)
+void printer::setFont(FontStruct *font)
 {
     this->font = font;
 }
@@ -72,7 +72,7 @@ void printer::setFont(FontStruct* font)
  * @brief Put your string into the character buffer
  * @note This is the same as the printf function, but it puts the string into the buffer instead of printing it
  */
-void printer::setString(const char* format, ...)
+void printer::setString(const char *format, ...)
 {
     // Generate the string and store the number of characters in the buffer
     va_list args;
@@ -210,7 +210,7 @@ uint32_t printer::getStringHeight()
  * @brief print to the display
  * @note This behaves like printf, and prints at the current cursor position
 */
-void printer::print(const char* format, ...)
+void printer::print(const char *format, ...)
 {
 	// Generate the string
 	va_list args;
@@ -246,7 +246,7 @@ void printer::drawAscii(const char character)
 		return;
     
     // get the bitmap data
-    const uint32_t* bitmap = this->font->bitmap;
+    const uint32_t *bitmap = this->font->bitmap;
     // get the character
     FontCharacter charData = this->font->characters[character - 0x20];
 

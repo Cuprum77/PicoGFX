@@ -24,7 +24,7 @@ class printer
 {
 public:
     // Constructor
-    printer(uint16_t* frameBuffer, display *display_ptr = nullptr);
+    printer(uint16_t *frameBuffer, display *display_ptr = nullptr);
 
     // Configuration functions
     void setColor(color val);
@@ -32,17 +32,17 @@ public:
     void setCursor(point val);
     void moveCursor(int32_t x, int32_t y);
     point getCursor(void);
-    void setFont(FontStruct* font);
+    void setFont(FontStruct *font);
 
     // print functions with helper functions
-    void setString(const char* format, ...);
+    void setString(const char *format, ...);
     void center(Alignment_t alignment = Alignment_t::TotalCenter);
     void print();
     uint32_t getStringWidth();
     uint32_t getStringHeight();
 
     // print function without helper functions
-    void print(const char* format, ...);
+    void print(const char *format, ...);
 private:
     // Display variables
     uint16_t *frameBuffer;

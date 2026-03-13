@@ -15,7 +15,7 @@
 class display
 {
 public:
-    display(hardware_driver* hw, uint16_t* frameBuffer, uint8_t CASET, uint8_t RASET, uint8_t RAMWR);
+    display(hardware_driver *hw, uint16_t *frameBuffer, uint8_t CASET, uint8_t RASET, uint8_t RAMWR);
     uint32_t getRotation(void) { return this->rotation; }
     void clear(void);
 
@@ -44,10 +44,10 @@ public:
     uint32_t getLongestSide(void) { return imax(this->width, this->height); }
     rect getArea(void) { return rect(point(0, 0), point(this->width, this->height)); }
 
-    uint16_t* getFrameBuffer(void) { return this->frameBuffer; }
+    uint16_t *getFrameBuffer(void) { return this->frameBuffer; }
 
 protected:
-    hardware_driver* hw;
+    hardware_driver *hw;
 
 #if defined(LCD_ROTATION_0)
     uint32_t rotation = 0;
@@ -90,7 +90,7 @@ protected:
     uint32_t sliceNum;
     uint32_t pwmChannel;
     bool dataMode = false;
-    uint16_t* frameBuffer;
+    uint16_t *frameBuffer;
     point cursor = {0, 0};
     bool backlight;
     uint32_t totalPixels;
@@ -110,10 +110,10 @@ protected:
     uint64_t timer = 0;
     uint64_t lastFrame = 0;
 
-    void writeData(uint8_t command, const uint8_t* data, size_t length);
+    void writeData(uint8_t command, const uint8_t *data, size_t length);
     void writeData(uint8_t command, uint8_t data) { writeData(command, &data, 1); }
     void writeData(uint8_t command) { writeData(command, nullptr, 0); }
     inline void columnAddressSet(uint32_t x0, uint32_t x1);
     inline void rowAddressSet(uint32_t y0, uint32_t y1);
-    void writePixels(const uint16_t* data, size_t length);
+    void writePixels(const uint16_t *data, size_t length);
 };

@@ -11,7 +11,7 @@
 void graphics::addBayerFilter(void)
 {
     // loop through each and every pixel
-    uint16_t* ptr = this->frameBuffer;
+    uint16_t *ptr = this->frameBuffer;
     for (size_t y = 0; y < this->display_ptr->getHeight(); y++)
     {
         for (size_t x = 0; x < this->display_ptr->getWidth(); x++)

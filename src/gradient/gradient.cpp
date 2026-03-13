@@ -9,10 +9,10 @@ uint16_t colorLUT[MAX_COLOR_DIFF + 1];
  * @param frameBuffer Pointer to the frame buffer
  * @param params Display parameters
 */
-gradient::gradient(uint16_t* frameBuffer, display_config_t* config)
+gradient::gradient(uint16_t *frameBuffer, display *display_ptr)
 {
     this->frameBuffer = frameBuffer;
-    this->config = config;
+    this->display_ptr = display_ptr;
     this->theta = 0;
 }
 

@@ -1,6 +1,6 @@
 #include <compression_decoder.h>
 
-uint32_t compression_decoder::decode(stream_metadata_t* metadata, uint8_t* stream, size_t streamSize, uint16_t* frameBuffer)
+uint32_t compression_decoder::decode(stream_metadata_t *metadata, uint8_t *stream, size_t streamSize, uint16_t *frameBuffer)
 {
 	switch (metadata->type)
 	{
@@ -22,7 +22,7 @@ uint32_t compression_decoder::decode(stream_metadata_t* metadata, uint8_t* strea
 	}
 }
 
-uint32_t compression_decoder::decodeMonochrome(stream_metadata_t* metadata, uint8_t* stream, size_t streamSize, uint16_t* frameBuffer)
+uint32_t compression_decoder::decodeMonochrome(stream_metadata_t *metadata, uint8_t *stream, size_t streamSize, uint16_t *frameBuffer)
 {
 	// Here we reverse what the monochrome encoder did
 	uint32_t framebufferIndex = 0;
@@ -44,7 +44,7 @@ uint32_t compression_decoder::decodeMonochrome(stream_metadata_t* metadata, uint
 	return framebufferIndex;
 }
 
-uint32_t compression_decoder::decodeMonochromeRLE(stream_metadata_t* metadata, uint8_t* stream, size_t streamSize, uint16_t* frameBuffer)
+uint32_t compression_decoder::decodeMonochromeRLE(stream_metadata_t *metadata, uint8_t *stream, size_t streamSize, uint16_t *frameBuffer)
 {
 	uint32_t outputBufferIndex = 0;
 
@@ -63,7 +63,7 @@ uint32_t compression_decoder::decodeMonochromeRLE(stream_metadata_t* metadata, u
 	return outputBufferIndex;
 }
 
-uint32_t compression_decoder::decodeRunLengthEncoding(stream_metadata_t* metadata, uint8_t* stream, size_t streamSize, uint16_t* frameBuffer)
+uint32_t compression_decoder::decodeRunLengthEncoding(stream_metadata_t *metadata, uint8_t *stream, size_t streamSize, uint16_t *frameBuffer)
 {
 	uint32_t outputBufferIndex = 0;
 
@@ -81,7 +81,7 @@ uint32_t compression_decoder::decodeRunLengthEncoding(stream_metadata_t* metadat
 	return outputBufferIndex;
 }
 
-uint32_t compression_decoder::decodeLossy(stream_metadata_t* metadata, uint8_t* stream, size_t streamSize, uint16_t* frameBuffer)
+uint32_t compression_decoder::decodeLossy(stream_metadata_t *metadata, uint8_t *stream, size_t streamSize, uint16_t *frameBuffer)
 {
 	int32_t r, g, b;
 	int32_t y, cb, cr;
@@ -134,7 +134,7 @@ uint32_t compression_decoder::decodeLossy(stream_metadata_t* metadata, uint8_t* 
 	return pixelIndex;
 }
 
-uint32_t compression_decoder::decodeReducedColor(stream_metadata_t* metadata, uint8_t* stream, size_t streamSize, uint16_t* frameBuffer)
+uint32_t compression_decoder::decodeReducedColor(stream_metadata_t *metadata, uint8_t *stream, size_t streamSize, uint16_t *frameBuffer)
 {
 	// Here we reverse what the reduced color encoder does
 	uint32_t pixelIndex = 0;
@@ -163,7 +163,7 @@ uint32_t compression_decoder::decodeReducedColor(stream_metadata_t* metadata, ui
 	return pixelIndex;
 }
 
-uint32_t compression_decoder::decodeReducedColorRLE(stream_metadata_t* metadata, uint8_t* stream, size_t streamSize, uint16_t* frameBuffer)
+uint32_t compression_decoder::decodeReducedColorRLE(stream_metadata_t *metadata, uint8_t *stream, size_t streamSize, uint16_t *frameBuffer)
 {
 	uint8_t pixel;
 	uint8_t count;
@@ -195,7 +195,7 @@ uint32_t compression_decoder::decodeReducedColorRLE(stream_metadata_t* metadata,
 	return pixelIndex;
 }
 
-uint32_t compression_decoder::decodeRaw(stream_metadata_t* metadata, uint8_t* stream, size_t streamSize, uint16_t* frameBuffer)
+uint32_t compression_decoder::decodeRaw(stream_metadata_t *metadata, uint8_t *stream, size_t streamSize, uint16_t *frameBuffer)
 {
 	// Here we reverse what the raw encoder does
 	uint32_t pixelIndex = 0;

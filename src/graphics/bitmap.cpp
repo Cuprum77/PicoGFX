@@ -7,7 +7,7 @@
  * @param width Width of the bitmap
  * @param height Height of the bitmap
 */
-void graphics::drawBitmap(const uint8_t* bitmap, uint32_t width, uint32_t height)
+void graphics::drawBitmap(const uint8_t *bitmap, uint32_t width, uint32_t height)
 {
     this->drawBitmap((const uint16_t*)bitmap, width, height, point(0,0));
 }
@@ -19,7 +19,7 @@ void graphics::drawBitmap(const uint8_t* bitmap, uint32_t width, uint32_t height
  * @param width Width of the bitmap
  * @param height Height of the bitmap
 */
-void graphics::drawBitmap(const uint16_t* bitmap, uint32_t width, uint32_t height)
+void graphics::drawBitmap(const uint16_t *bitmap, uint32_t width, uint32_t height)
 {
     this->drawBitmap(bitmap, width, height, point(0, 0));
 }
@@ -32,7 +32,7 @@ void graphics::drawBitmap(const uint16_t* bitmap, uint32_t width, uint32_t heigh
  * @param height Height of the bitmap
  * @param center If the image should be centered on the screen or not (Default: true)
 */
-void graphics::drawBitmap(const uint8_t* bitmap, uint32_t width, uint32_t height, bool center)
+void graphics::drawBitmap(const uint8_t *bitmap, uint32_t width, uint32_t height, bool center)
 {
     this->drawBitmap((const uint16_t*)bitmap, width, height, true);
 }
@@ -45,7 +45,7 @@ void graphics::drawBitmap(const uint8_t* bitmap, uint32_t width, uint32_t height
  * @param height Height of the bitmap
  * @param center If the image should be centered on the screen or not (Default: true)
 */
-void graphics::drawBitmap(const uint16_t* bitmap, uint32_t width, uint32_t height, bool center)
+void graphics::drawBitmap(const uint16_t *bitmap, uint32_t width, uint32_t height, bool center)
 {
     int startX = 0;
     int startY = 0;
@@ -68,7 +68,7 @@ void graphics::drawBitmap(const uint16_t* bitmap, uint32_t width, uint32_t heigh
  * @param height Height of the bitmap
  * @param start Where to start the drawing, defaults to (0,0)
 */
-void graphics::drawBitmap(const uint8_t* bitmap, uint32_t width, uint32_t height, point start)
+void graphics::drawBitmap(const uint8_t *bitmap, uint32_t width, uint32_t height, point start)
 {
     this->drawBitmap((const uint16_t*)bitmap, width, height, start);
 }
@@ -81,7 +81,7 @@ void graphics::drawBitmap(const uint8_t* bitmap, uint32_t width, uint32_t height
  * @param height Height of the bitmap
  * @param start Where to start the drawing, defaults to (0,0)
 */
-void graphics::drawBitmap(const uint16_t* bitmap, uint32_t width, uint32_t height, point start)
+void graphics::drawBitmap(const uint16_t *bitmap, uint32_t width, uint32_t height, point start)
 {
     int startX = start.x;
     int startY = start.y;

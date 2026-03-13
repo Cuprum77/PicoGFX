@@ -3,7 +3,7 @@
 /**
  * @brief display initialization
 */
-display::display(hardware_driver* hw, uint16_t* frameBuffer, uint8_t CASET, uint8_t RASET, uint8_t RAMWR)
+display::display(hardware_driver *hw, uint16_t *frameBuffer, uint8_t CASET, uint8_t RASET, uint8_t RAMWR)
 {
     this->hw = hw;
     this->frameBuffer = frameBuffer;
@@ -241,7 +241,7 @@ point display::getCenter()
  * @param data Data to send
  * @param length Length of the data
 */
-void display::writeData(uint8_t command, const uint8_t* data, size_t length)
+void display::writeData(uint8_t command, const uint8_t *data, size_t length)
 {
     // set the data mode
     this->dataMode = false;
@@ -304,7 +304,7 @@ inline void display::rowAddressSet(uint32_t y0, uint32_t y1)
  * @param length Length of the data
  * @note length should be number of 16 bit pixels, not bytes!
 */
-void display::writePixels(const uint16_t* data, size_t length)
+void display::writePixels(const uint16_t *data, size_t length)
 {
     // check if the data mode is set
     if (!this->dataMode)

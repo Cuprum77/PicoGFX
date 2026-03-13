@@ -38,7 +38,7 @@ bool touch::ready()
  * @param data Byte to read
  * @return length of the data read
  */
-uint32_t touch::touchRead(uint8_t addr, uint8_t reg, uint8_t* data)
+uint32_t touch::touchRead(uint8_t addr, uint8_t reg, uint8_t *data)
 {
     return this->touchRead(addr, reg, data, 1);
 }
@@ -52,7 +52,7 @@ uint32_t touch::touchRead(uint8_t addr, uint8_t reg, uint8_t* data)
  * @param len Length of the data
  * @return length of the data read
  */
-uint32_t touch::touchRead(uint8_t addr, uint8_t reg, uint8_t* data, size_t len)
+uint32_t touch::touchRead(uint8_t addr, uint8_t reg, uint8_t *data, size_t len)
 {
 #if defined(TOUCH_ENABLED)
     uint32_t bytes_written = 0;
@@ -74,7 +74,7 @@ uint32_t touch::touchRead(uint8_t addr, uint8_t reg, uint8_t* data, size_t len)
  * @param data Byte to read
  * @return length of the data read
  */
-uint32_t touch::touchRead(uint8_t addr, uint16_t reg, uint8_t* data, bool msb_first)
+uint32_t touch::touchRead(uint8_t addr, uint16_t reg, uint8_t *data, bool msb_first)
 {
     return this->touchRead(addr, reg, data, 1, msb_first);
 }
@@ -88,7 +88,7 @@ uint32_t touch::touchRead(uint8_t addr, uint16_t reg, uint8_t* data, bool msb_fi
  * @param len Length of the data
  * @return length of the data read
  */
-uint32_t touch::touchRead(uint8_t addr, uint16_t reg, uint8_t* data, size_t len, bool msb_first)
+uint32_t touch::touchRead(uint8_t addr, uint16_t reg, uint8_t *data, size_t len, bool msb_first)
 {
 #if defined(TOUCH_ENABLED)
     uint32_t bytes_written = 0;
@@ -136,7 +136,7 @@ uint32_t touch::touchWrite(uint8_t addr, uint8_t reg, uint8_t data)
  * @param len Length of the data
  * @return length of the data written
  */
-uint32_t touch::touchWrite(uint8_t addr, uint8_t reg, uint8_t* data, size_t len)
+uint32_t touch::touchWrite(uint8_t addr, uint8_t reg, uint8_t *data, size_t len)
 {
 #if defined(TOUCH_ENABLED)
     uint32_t bytes_written = 0;
@@ -172,7 +172,7 @@ uint32_t touch::touchWrite(uint8_t addr, uint16_t reg, uint8_t data, bool msb_fi
  * @param len Length of the data
  * @return length of the data written
  */
-uint32_t touch::touchWrite(uint8_t addr, uint16_t reg, uint8_t* data, size_t len, bool msb_first)
+uint32_t touch::touchWrite(uint8_t addr, uint16_t reg, uint8_t *data, size_t len, bool msb_first)
 {
 #if defined(TOUCH_ENABLED)
     uint32_t bytes_written = 0;

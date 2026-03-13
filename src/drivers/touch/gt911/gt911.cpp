@@ -1,6 +1,6 @@
 #include "gt911.h"
 
-gt911* gt911::instance = nullptr;  // Define the static instance
+gt911 *gt911::instance = nullptr;  // Define the static instance
 
 /**
  * @public
@@ -8,7 +8,7 @@ gt911* gt911::instance = nullptr;  // Define the static instance
  * @param config Touch configuration pointer
  * @param display Display pointer
  */
-gt911::gt911(display* display_ptr) : touch()
+gt911::gt911(display *display_ptr) : touch()
 {
     this->display_ptr = display_ptr;
     this->instance = this;

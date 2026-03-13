@@ -28,8 +28,8 @@ public:
     void drawRectangle(point center, uint32_t width, uint32_t height, color color = colors::white);
     void drawFilledRectangle(point start, point end, color color = colors::white);
 
-    void drawPolygon(point* points, size_t numberOfPoints, color color = colors::white);
-    void drawFilledPolygon(point* points, size_t numberOfPoints, color color = colors::white);
+    void drawPolygon(point *points, size_t numberOfPoints, color color = colors::white);
+    void drawFilledPolygon(point *points, size_t numberOfPoints, color color = colors::white);
 
     void drawCircle(circle c, color color = colors::white, uint32_t thickness = 1);
     void drawCircle(point center, uint32_t radius, color color = colors::white, uint32_t thickness = 1);
@@ -41,12 +41,12 @@ public:
     void drawArc(point center, uint32_t radius, uint32_t start_angle, uint32_t end_angle, color color = colors::white);
     void drawFilledDualArc(point center, uint32_t innerRadius, uint32_t outerRadius, uint32_t startAngle, uint32_t endAngle, color color);
 
-    void drawBitmap(const uint8_t* bitmap, uint32_t width, uint32_t height);
-    void drawBitmap(const uint16_t* bitmap, uint32_t width, uint32_t height);
-    void drawBitmap(const uint8_t* bitmap, uint32_t width, uint32_t height, bool center);
-    void drawBitmap(const uint16_t* bitmap, uint32_t width, uint32_t height, bool center);
-    void drawBitmap(const uint8_t* bitmap, uint32_t width, uint32_t height, point start);
-    void drawBitmap(const uint16_t* bitmap, uint32_t width, uint32_t height, point start);
+    void drawBitmap(const uint8_t *bitmap, uint32_t width, uint32_t height);
+    void drawBitmap(const uint16_t *bitmap, uint32_t width, uint32_t height);
+    void drawBitmap(const uint8_t *bitmap, uint32_t width, uint32_t height, bool center);
+    void drawBitmap(const uint16_t *bitmap, uint32_t width, uint32_t height, bool center);
+    void drawBitmap(const uint8_t *bitmap, uint32_t width, uint32_t height, point start);
+    void drawBitmap(const uint16_t *bitmap, uint32_t width, uint32_t height, point start);
 
     void addBayerFilter(void);
     void addFloydSteinbergDithering(void);

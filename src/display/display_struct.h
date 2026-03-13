@@ -23,7 +23,7 @@ typedef struct
 
     bool pio;
 #ifdef PICO_BUILD
-    spi_inst_t* spi_instance;
+    spi_inst_t *spi_instance;
 #endif
     uint32_t baudrate;
 } display_spi_config_t;
@@ -31,7 +31,7 @@ typedef struct
 #ifdef PICO_BUILD
 typedef struct
 {
-    i2c_inst_t* i2c_inst;
+    i2c_inst_t *i2c_inst;
     uint32_t speed;
     uint32_t sda_pin;
     uint32_t scl_pin;

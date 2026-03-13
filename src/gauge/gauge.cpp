@@ -16,8 +16,8 @@
  * @param angle Dial angle, represents how much of a circle the dial should be. Default is 230 degrees
  * @note The dial will be drawn on the frame buffer
 */
-dialGauge::dialGauge(graphics* graphics_ptr, int32_t screenWidth, int32_t screenHeight, point center, int32_t radius,
-	int32_t minValue, int32_t maxValue, color* valueColors, size_t numberOfValueColors, dialGaugeType_t type, int32_t angle)
+dialGauge::dialGauge(graphics *graphics_ptr, int32_t screenWidth, int32_t screenHeight, point center, int32_t radius,
+	int32_t minValue, int32_t maxValue, color *valueColors, size_t numberOfValueColors, dialGaugeType_t type, int32_t angle)
 {
 	// Copy the display parameters to the object
 	this->graphics_ptr = graphics_ptr;

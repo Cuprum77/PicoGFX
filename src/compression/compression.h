@@ -33,6 +33,6 @@ struct stream_config_t
 class compression
 {
 public:
-    void addMetadata(stream_metadata_t* metadata, uint8_t* stream);
-	void stripMetadata(stream_metadata_t* metadata, uint8_t* stream);
+    void addMetadata(stream_metadata_t *metadata, uint8_t *stream);
+	void stripMetadata(stream_metadata_t *metadata, uint8_t *stream);
 };

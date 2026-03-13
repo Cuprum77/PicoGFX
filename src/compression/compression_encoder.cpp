@@ -1,7 +1,7 @@
 #include <compression_encoder.h>
 #include <stdio.h>
 
-void compression_encoder::encode(stream_metadata_t* metadata, stream_config_t config, uint16_t* frameBuffer, uint8_t* outputBuffer)
+void compression_encoder::encode(stream_metadata_t *metadata, stream_config_t config, uint16_t *frameBuffer, uint8_t *outputBuffer)
 {
 	// set the size to 0 so we are sure this isnt bad
 	metadata->totalBytes = 0;
@@ -34,7 +34,7 @@ void compression_encoder::encode(stream_metadata_t* metadata, stream_config_t co
 	}
 }
 
-void compression_encoder::encodeMonochrome(stream_metadata_t* metadata, stream_config_t config, uint16_t* frameBuffer, uint8_t* stream)
+void compression_encoder::encodeMonochrome(stream_metadata_t *metadata, stream_config_t config, uint16_t *frameBuffer, uint8_t *stream)
 {
 	// To encode in monochrome, we can simply store each color as a bit. While run length encoding would compress it further,
 	// the gains wouldnt be as great as we are already under 10kB per frame on most LCDs we support!	
@@ -66,7 +66,7 @@ void compression_encoder::encodeMonochrome(stream_metadata_t* metadata, stream_c
 	metadata->totalBytes += calculatedSize;
 }
 
-void compression_encoder::encodeMonochromeRLE(stream_metadata_t* metadata, stream_config_t config, uint16_t* frameBuffer, uint8_t* stream)
+void compression_encoder::encodeMonochromeRLE(stream_metadata_t *metadata, stream_config_t config, uint16_t *frameBuffer, uint8_t *stream)
 {
 	if (config.monochromeDithering)
 		this->monochromeDither(metadata, frameBuffer, config.monochromeCutoff);
@@ -120,7 +120,7 @@ void compression_encoder::encodeMonochromeRLE(stream_metadata_t* metadata, strea
 	metadata->totalBytes += streamIndex;
 }
 
-void compression_encoder::encodeRunLengthEncoding(stream_metadata_t* metadata, stream_config_t config, uint16_t* frameBuffer, uint8_t* stream)
+void compression_encoder::encodeRunLengthEncoding(stream_metadata_t *metadata, stream_config_t config, uint16_t *frameBuffer, uint8_t *stream)
 {
 	uint32_t streamIndex = 0, count = 1;
 	uint16_t oldPixel = 0, pixel = 0;
@@ -191,7 +191,7 @@ void compression_encoder::encodeRunLengthEncoding(stream_metadata_t* metadata, s
 	metadata->totalBytes += streamIndex;
 }
 
-void compression_encoder::encodeLossy(stream_metadata_t* metadata, stream_config_t config, uint16_t* frameBuffer, uint8_t* stream)
+void compression_encoder::encodeLossy(stream_metadata_t *metadata, stream_config_t config, uint16_t *frameBuffer, uint8_t *stream)
 {
 	uint32_t r, g, b;
 	uint32_t y, cb, cr;
@@ -280,7 +280,7 @@ void compression_encoder::encodeLossy(stream_metadata_t* metadata, stream_config
 	metadata->totalBytes += streamIndex;
 }
 
-void compression_encoder::encodeReducedColor(stream_metadata_t* metadata, stream_config_t config, uint16_t* frameBuffer, uint8_t* stream)
+void compression_encoder::encodeReducedColor(stream_metadata_t *metadata, stream_config_t config, uint16_t *frameBuffer, uint8_t *stream)
 {
 	// calculate the output this is the size of the display in pixels
 	int32_t calculatedSize = metadata->width * metadata->height;
@@ -309,7 +309,7 @@ void compression_encoder::encodeReducedColor(stream_metadata_t* metadata, stream
 	metadata->totalBytes += calculatedSize;
 }
 
-void compression_encoder::encodeReducedColorRLE(stream_metadata_t* metadata, stream_config_t config, uint16_t* frameBuffer, uint8_t* stream)
+void compression_encoder::encodeReducedColorRLE(stream_metadata_t *metadata, stream_config_t config, uint16_t *frameBuffer, uint8_t *stream)
 {
 	int32_t pixelIndex = 0, streamIndex = 0;
 	uint32_t count = 0;
@@ -389,7 +389,7 @@ void compression_encoder::encodeReducedColorRLE(stream_metadata_t* metadata, str
 	metadata->totalBytes += streamIndex;
 }
 
-void compression_encoder::encodeRaw(stream_metadata_t* metadata, stream_config_t config, uint16_t* frameBuffer, uint8_t* stream)
+void compression_encoder::encodeRaw(stream_metadata_t *metadata, stream_config_t config, uint16_t *frameBuffer, uint8_t *stream)
 {
 	// This isnt an actual encoding style, we will simply pack the data in a more convinient package for the serial interface.
 
@@ -418,7 +418,7 @@ void compression_encoder::encodeRaw(stream_metadata_t* metadata, stream_config_t
 	metadata->totalBytes += calculatedSize * 2;
 }
 
-void compression_encoder::monochromeDither(stream_metadata_t* metadata, uint16_t* frameBuffer, uint16_t strength)
+void compression_encoder::monochromeDither(stream_metadata_t *metadata, uint16_t *frameBuffer, uint16_t strength)
 {
 	for (int32_t y = 0; y < metadata->height; ++y) 
 	{

@@ -140,7 +140,7 @@ void hardware_driver::reset(uint32_t time_ms)
  * @param length The length of the data
  * @return bytes written on success, -1 on failure
 */
-void hardware_driver::writeData(uint8_t command, const uint8_t* data, size_t length)
+void hardware_driver::writeData(uint8_t command, const uint8_t *data, size_t length)
 {
     uint8_t mask = 0;
 
@@ -216,7 +216,7 @@ void hardware_driver::setDataMode(uint8_t command)
  * @param length The length of the data
  * @return bytes written on success, -1 on failure
 */
-void hardware_driver::writePixels(const uint16_t* data, size_t length)
+void hardware_driver::writePixels(const uint16_t *data, size_t length)
 {
 #if defined(LCD_PROTOCOL_SPI) && defined(LCD_HARDWARE_PIO)
     while(length--)

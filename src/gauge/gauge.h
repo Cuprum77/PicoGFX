@@ -16,8 +16,8 @@ class dialGauge
 {
 public:
     // Constructor
-    dialGauge(graphics* graphics, int32_t screenWidth, int32_t screenHeight, point center, int32_t radius, 
-        int32_t minValue, int32_t maxValue, color* valueColors, size_t numberOfValueColors, dialGaugeType_t type, int32_t angle = DIAL_ANGLE);
+    dialGauge(graphics *graphics, int32_t screenWidth, int32_t screenHeight, point center, int32_t radius, 
+        int32_t minValue, int32_t maxValue, color *valueColors, size_t numberOfValueColors, dialGaugeType_t type, int32_t angle = DIAL_ANGLE);
 
     // Add extra functionality
     void setNeedleColor(color value);
@@ -31,7 +31,7 @@ public:
 
 private:
     // Display variables
-    graphics* graphics_ptr = nullptr;
+    graphics *graphics_ptr = nullptr;
     uint32_t width = 0;
     uint32_t height = 0;
     size_t totalPixels = 0;
@@ -44,7 +44,7 @@ private:
     int32_t innerRadius = 0;
     int32_t minValue = 0;
     int32_t maxValue = 0;
-    color* valueColors = nullptr;
+    color *valueColors = nullptr;
     size_t numberOfValueColors = 0;
     dialGaugeType_t type = dialGaugeType_t::DialSimple;
     color needleColor = colors::white;

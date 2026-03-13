@@ -1,6 +1,6 @@
 #include <compression.h>
 
-void compression::addMetadata(stream_metadata_t* metadata, uint8_t* stream)
+void compression::addMetadata(stream_metadata_t *metadata, uint8_t *stream)
 {
 	// create an index to easily move data around if needed
 	int32_t index = 0;
@@ -21,7 +21,7 @@ void compression::addMetadata(stream_metadata_t* metadata, uint8_t* stream)
 	stream[index++] = metadata->totalBytes & 0xff;
 }
 
-void compression::stripMetadata(stream_metadata_t* metadata, uint8_t* stream)
+void compression::stripMetadata(stream_metadata_t *metadata, uint8_t *stream)
 {
 	// create an index to easily move data around if needed
 	int32_t index = 0;
