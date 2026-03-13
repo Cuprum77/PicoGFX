@@ -1,4 +1,5 @@
 #include "gc9a01.h"
+#if defined(LCD_DRIVER_GC9A01)
 
 /**
  * @brief Initialize the display
@@ -13,10 +14,15 @@ void gc9a01::init()
     this->hw->reset(50);
     sleep_ms(100);
 
+	// enable inter register 2
     this->writeData(0xef, (const uint8_t *) NULL, 0);
+	// who fucking knows
 	this->writeData(0xeb, (const uint8_t *) "\x14", 1);
+	// enable inter register 1
     this->writeData(0xfe, (const uint8_t *) NULL, 0);
+	// enable inter register 2
 	this->writeData(0xef, (const uint8_t *) NULL, 0);
+	// who fucking knows
 	this->writeData(0xeb, (const uint8_t *) "\x14", 1);
 	this->writeData(0x84, (const uint8_t *) "\x40", 1);
 	this->writeData(0x85, (const uint8_t *) "\xFF", 1);
@@ -31,8 +37,22 @@ void gc9a01::init()
 	this->writeData(0x8e, (const uint8_t *) "\xFF", 1);
 	this->writeData(0x8f, (const uint8_t *) "\xFF", 1);
 	this->writeData(0xb6, (const uint8_t *) "\x00\x00", 2);
+	// set the rotation of the display
 	this->setRotation(this->rotation);
-	this->writeData(0x3a, (const uint8_t *) "\x55", 1);
+    // set the display to interface pixel format
+    // 0b00000000
+    // 7 6 5 4 3 2 1 0
+    // | +-+-+------------------ 0b101 = 65k of rgb interface, 0b110 = 262k of rgb interface
+    // | | | | | +-+-+----------------- 0b101 = 16 bits per pixel, 0b110 = 18 bits per pixel
+    // +-------+----------------------- Set to '0'
+#if defined(LCD_COLOR_DEPTH_16)
+    const uint8_t pixelFormat = 0x55;   // 65k of rgb interface, 16 bits per pixel
+#elif defined(LCD_COLOR_DEPTH_18)
+    const uint8_t pixelFormat = 0x66;   // 262k of rgb interface, 18 bits per pixel
+#else
+#error "Unsupported color depth for ST7789"
+#endif
+	this->writeData(0x3a, &pixelFormat, 1);
 	this->writeData(0x90, (const uint8_t *) "\x08\x08\x08\x08", 4);
 	this->writeData(0xbd, (const uint8_t *) "\x06", 1);
 	this->writeData(0xbc, (const uint8_t *) "\x00", 1);
@@ -43,6 +63,7 @@ void gc9a01::init()
 	this->writeData(0xbe, (const uint8_t *) "\x11", 1);
 	this->writeData(0xe1, (const uint8_t *) "\x10\x0E", 2);
 	this->writeData(0xdf, (const uint8_t *) "\x21\x0c\x02", 3);
+	// gamma correction
 	this->writeData(0xf0, (const uint8_t *) "\x45\x09\x08\x08\x26\x2A", 6);
  	this->writeData(0xf1, (const uint8_t *) "\x43\x70\x72\x36\x37\x6F", 6);
  	this->writeData(0xf2, (const uint8_t *) "\x45\x09\x08\x08\x26\x2A", 6);
@@ -138,3 +159,4 @@ void gc9a01::setDisplayState(bool on)
     else this->writeData(0x28);
     sleep_ms(10);
 }
+#endif

@@ -1,5 +1,7 @@
 #pragma once
+#include "lcd_config.h"
 
+#if defined(LCD_DRIVER_GC9A01)
 #include "display.h"
 
 // Driver constants
@@ -15,7 +17,7 @@ class gc9a01 : public display
 {
 public:
     gc9a01(hardware_driver *hw) : 
-        display(hw, this->framebuffer, COMMAND_CASET, COMMAND_RASET, COMMAND_RAMWR) {} // Constructor
+        display(hw, this->framebuffer, COMMAND_CASET, COMMAND_RASET, COMMAND_RAMWR) {}
     void init();
     void softReset();
 
@@ -31,3 +33,4 @@ private:
 #error "Unsupported color depth for ST7789"
 #endif
 };
+#endif

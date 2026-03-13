@@ -1,4 +1,5 @@
 #include "st7789.h"
+#if defined(LCD_DRIVER_ST7789)
 
 void st7789::init()
 {    
@@ -21,9 +22,9 @@ void st7789::init()
     // | | | | | +-+-+----------------- 0b101 = 16 bits per pixel, 0b110 = 18 bits per pixel
     // +-------+----------------------- Set to '0'
 #if defined(LCD_COLOR_DEPTH_16)
-    unsigned char pixelFormat = 0x55;   // 65k of rgb interface, 16 bits per pixel
+    const uint8_t pixelFormat = 0x55;   // 65k of rgb interface, 16 bits per pixel
 #elif defined(LCD_COLOR_DEPTH_18)
-    unsigned char pixelFormat = 0x66;   // 262k of rgb interface, 18 bits per pixel
+    const uint8_t pixelFormat = 0x66;   // 262k of rgb interface, 18 bits per pixel
 #else
 #error "Unsupported color depth for ST7789"
 #endif
@@ -108,3 +109,4 @@ void st7789::setDisplayState(bool on)
     else this->writeData(0x28);
     sleep_ms(10);
 }
+#endif

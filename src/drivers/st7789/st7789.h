@@ -1,5 +1,7 @@
 #pragma once
+#include "lcd_config.h"
 
+#if defined(LCD_DRIVER_ST7789)
 #include "display.h"
 
 // Driver constants
@@ -15,7 +17,7 @@ class st7789 : public display
 {
 public:
     st7789(hardware_driver *hw) : 
-        display(hw, this->framebuffer, COMMAND_CASET, COMMAND_RASET, COMMAND_RAMWR) {} // Constructor
+        display(hw, this->framebuffer, COMMAND_CASET, COMMAND_RASET, COMMAND_RAMWR) {}
     void init();
 
     void setRotation(uint32_t rotation);
@@ -30,3 +32,4 @@ private:
 #error "Unsupported color depth for ST7789"
 #endif
 };
+#endif
