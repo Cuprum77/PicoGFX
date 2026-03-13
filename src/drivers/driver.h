@@ -26,14 +26,6 @@
 #error "SPI protocol requires GPIO or PIO hardware interface"
 #endif
 
-typedef enum
-{
-    BITS_8 = 8,
-    BITS_16 = 16,
-    BITS_18 = 18,
-    BITS_24 = 24
-}  spi_bit_length_t;
-
 typedef struct pio_spi_inst 
 {
     PIO pio;
@@ -52,14 +44,19 @@ public:
     
 #if defined(LCD_COLOR_DEPTH_1)
     void writePixels(const bool *data, size_t length);
+
 #elif defined(LCD_COLOR_DEPTH_8)
     void writePixels(const uint8_t *data, size_t length);
+
 #elif defined(LCD_COLOR_DEPTH_16)
     void writePixels(const uint16_t *data, size_t length);
+
 #elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
     void writePixels(const uint32_t *data, size_t length);
+
 #else
 #error "Unsupported color depth"
+
 #endif
 
 private:
@@ -67,28 +64,11 @@ private:
     uint32_t dma_tx;
     dma_channel_config dma_config;
 
-#if defined(LCD_PROTOCOL_PARALLEL_24) \
-    || defined(LCD_PROTOCOL_PARALLEL_16) \
-    || defined(LCD_PROTOCOL_PARALLEL_8)
-    uint32_t parallel_data_pins[LCD_PIN_DB_COUNT] = LCD_PIN_DB_ARRAY;
-#endif
-
     // pio stuff
     PIO pio;
     uint32_t sm;
     uint32_t offset;
     float clkdiv;
-
-    // spi stuff
-#if defined(LCD_PROTOCOL_SPI) && !defined(LCD_HARDWARE_PIO)
-#if defined(LCD_SPI_INSTANCE_SPI0)
-    spi_inst_t *spi_instance = spi0;
-#elif defined(LCD_SPI_INSTANCE_SPI1)
-    spi_inst_t *spi_instance = spi1;
-#else
-#error "Invalid SPI instance"
-#endif
-#endif
 
     // general
     bool enabled = false;
@@ -98,9 +78,57 @@ private:
     uint32_t parallel_interface_min_pin = 0;
     uint32_t parallel_interface_max_pin = 0;
 
-    // private functions
-    void changeSPIbits(spi_bit_length_t bits);
-    void write8080(uint32_t data, bool command, bool bit16);
-    inline void setSPIdataCommandPins(bool dc, bool cs);
-    void set_spi_format(void);
+    // SPI PIO instance
+#if defined(LCD_PROTOCOL_SPI) && defined(LCD_HARDWARE_PIO)
+    inline void protocol_init();
+    inline void protocol_write_data(uint8_t command, const uint8_t *data, size_t length);
+    inline void protocol_set_data_mode(uint8_t command);
+    inline void protocol_write_pixels(void *data, size_t length);
+    inline void pio_set_bits(uint32_t bits);
+    inline void set_spi_dc_cs(bool dc, bool cs);
+
+    // SPI instance
+#elif defined(LCD_PROTOCOL_SPI) && !defined(LCD_HARDWARE_PIO)
+#if defined(LCD_SPI_INSTANCE_SPI0)
+    spi_inst_t *spi_instance = spi0;
+#elif defined(LCD_SPI_INSTANCE_SPI1)
+    spi_inst_t *spi_instance = spi1;
+#else
+#error "Invalid SPI instance"
+#endif
+    inline void protocol_init();
+    inline void protocol_write_data(uint8_t command, const uint8_t *data, size_t length);
+    inline void protocol_set_data_mode(uint8_t command);
+    inline void protocol_write_pixels(void *data, size_t length);
+
+    // QSPI instance
+#elif defined(LCD_PROTOCOL_QSPI) 
+    inline void protocol_init();
+    inline void protocol_write_data(uint8_t command, const uint8_t *data, size_t length);
+    inline void protocol_set_data_mode(uint8_t command);
+    inline void protocol_write_pixels(void *data, size_t length);
+
+    // I2C instance
+#elif defined(LCD_PROTOCOL_I2C) 
+    inline void protocol_init();
+    inline void protocol_write_data(uint8_t command, const uint8_t *data, size_t length);
+    inline void protocol_set_data_mode(uint8_t command);
+    inline void protocol_write_pixels(void *data, size_t length);
+
+    // Parallel interface
+#elif defined(LCD_PROTOCOL_PARALLEL_24) \
+    || defined(LCD_PROTOCOL_PARALLEL_16) \
+    || defined(LCD_PROTOCOL_PARALLEL_8)
+    uint32_t parallel_data_pins[LCD_PIN_DB_COUNT] = LCD_PIN_DB_ARRAY;
+
+    inline void protocol_init();
+    inline void protocol_write_data(uint8_t command, const uint8_t *data, size_t length);
+    inline void protocol_set_data_mode(uint8_t command);
+    inline void write8080(uint32_t data, bool command, bool bit16);
+    inline void protocol_write_pixels(void *data, size_t length);
+
+#else
+#error "Unsupported display protocol or hardware interface"
+
+#endif
 };
