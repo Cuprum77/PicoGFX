@@ -151,9 +151,20 @@ void hardware_driver::writePixels(const uint32_t *data, size_t length)
         this->set_spi_dc_cs(1, 1);
 
 #elif defined(LCD_COLOR_DEPTH_18)
-        this->pio_set_bits(18);
-        while(length--)
-            pio_spi_transmit_18(this->pio, this->sm, *(uint32_t *)data++);
+        this->pio_set_bits(8);
+
+        const uint32_t *pixels = (uint32_t *)data;
+        for (size_t i = 0; i < length; i++) 
+        {
+            uint8_t words[3] = {
+                (uint8_t)((pixels[i] >> 12) & 0x3f) << 2,
+                (uint8_t)((pixels[i] >>  6) & 0x3f) << 2,
+                (uint8_t)((pixels[i] >>  0) & 0x3f) << 2,
+            };
+            
+            for (uint32_t j = 0; j < 3; j++)
+                pio_spi_transmit_8(this->pio, this->sm, words[j]);
+        }
         pio_spi_wait_idle(this->pio, this->sm);
         this->set_spi_dc_cs(1, 1);
 
@@ -243,32 +254,36 @@ void hardware_driver::writePixels(const uint32_t *data, size_t length)
     {
 #if defined(LCD_COLOR_DEPTH_16)
     spi_set_format(this->spi_instance, 16, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
+
     gpio_put(LCD_PIN_CS, 0);
     spi_write16_blocking(this->spi_instance, (const uint16_t *)data, length);
     gpio_put(LCD_PIN_CS, 1);
 #elif defined(LCD_COLOR_DEPTH_18)
-    spi_set_format(this->spi_instance, 9, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
+    spi_set_format(this->spi_instance, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
+
     gpio_put(LCD_PIN_CS, 0);
     const uint32_t *pixels = (uint32_t *)data;
     for (size_t i = 0; i < length; i++) 
     {
-        uint16_t words[2] = {
-            (uint16_t)((pixels[i] >> 9) & 0x1f),
-            (uint16_t)( pixels[i]       & 0x1f)
+        uint8_t words[3] = {
+            (uint8_t)((pixels[i] >> 12) & 0x3f) << 2,
+            (uint8_t)((pixels[i] >>  6) & 0x3f) << 2,
+            (uint8_t)((pixels[i] >>  0) & 0x3f) << 2,
         };
         
-        spi_write16_blocking(this->spi_instance, words, 2);
+        spi_write_blocking(this->spi_instance, words, 3);
     }
     gpio_put(LCD_PIN_CS, 1);
 #elif defined(LCD_COLOR_DEPTH_24)
     spi_set_format(this->spi_instance, 12, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
+
     gpio_put(LCD_PIN_CS, 0);
     const uint32_t *pixels = (uint32_t *)data;
     for (size_t i = 0; i < length; i++) 
     {
         uint16_t words[2] = {
-            (uint16_t)((pixels[i] >> 12) & 0xffF),
-            (uint16_t)( pixels[i]        & 0xffF)
+            (uint16_t)((pixels[i] >> 12) & 0xfff),
+            (uint16_t)( pixels[i]        & 0xfff)
         };
 
         spi_write16_blocking(this->spi_instance, words, 2);
@@ -276,6 +291,7 @@ void hardware_driver::writePixels(const uint32_t *data, size_t length)
     gpio_put(LCD_PIN_CS, 1);
 #else
     spi_set_format(this->spi_instance, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
+    
     gpio_put(LCD_PIN_CS, 0);
     spi_write_blocking(this->spi_instance, (const uint8_t *)data, length);
     gpio_put(LCD_PIN_CS, 1);
