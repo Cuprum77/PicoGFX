@@ -107,7 +107,7 @@ void hardware_driver::writePixels(const uint32_t *data, size_t length)
         this->offset = pio_add_program(this->pio, &pio_spi_program);
         this->clkdiv = (float)clock_get_hz(clk_sys) / (float)LCD_BAUD_RATE;
         pio_spi_init(this->pio, this->sm, this->offset, LCD_PIN_SDA, 
-            LCD_PIN_SCL, this->clkdiv, (int)BITS_8);
+            LCD_PIN_SCL, this->clkdiv, (int)8);
 
         // set the pins to hw function
         gpio_init(LCD_PIN_CS);
@@ -120,7 +120,7 @@ void hardware_driver::writePixels(const uint32_t *data, size_t length)
     
     inline void hardware_driver::protocol_write_data(uint8_t command, const uint8_t *data, size_t length)
     {
-        this->pio_set_bits(BITS_8);
+        this->pio_set_bits(8);
         pio_spi_wait_idle(this->pio, this->sm);
         this->set_spi_dc_cs(0, 0);
         pio_spi_transmit_8(this->pio, this->sm, command);
@@ -144,28 +144,28 @@ void hardware_driver::writePixels(const uint32_t *data, size_t length)
     inline void hardware_driver::protocol_write_pixels(void *data, size_t length)
     {
 #if defined(LCD_COLOR_DEPTH_16)
-        this->pio_set_bits(BITS_16);
+        this->pio_set_bits(16);
         while(length--)
             pio_spi_transmit_16(this->pio, this->sm, *(uint16_t *)data++);
         pio_spi_wait_idle(this->pio, this->sm);
         this->set_spi_dc_cs(1, 1);
 
 #elif defined(LCD_COLOR_DEPTH_18)
-        this->pio_set_bits(BITS_18);
+        this->pio_set_bits(18);
         while(length--)
             pio_spi_transmit_18(this->pio, this->sm, *(uint32_t *)data++);
         pio_spi_wait_idle(this->pio, this->sm);
         this->set_spi_dc_cs(1, 1);
 
 #elif defined(LCD_COLOR_DEPTH_24)
-        this->pio_set_bits(BITS_24);
+        this->pio_set_bits(24);
         while(length--)
             pio_spi_transmit_24(this->pio, this->sm, *(uint32_t *)data++);
         pio_spi_wait_idle(this->pio, this->sm);
         this->set_spi_dc_cs(1, 1);
 
 #else
-        this->pio_set_bits(BITS_8);
+        this->pio_set_bits(8);
         while(length--)
             pio_spi_transmit_8(this->pio, this->sm, *(uint8_t *)data++);
         pio_spi_wait_idle(this->pio, this->sm);
