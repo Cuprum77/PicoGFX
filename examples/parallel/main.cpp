@@ -1,13 +1,12 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
-#include "wee_bg.h"
 #include "picogfx.h"
 
 int main()
 {
     stdio_init_all();
-	
-	draw.drawBitmap((const uint16_t *)background_image, 280, 240);
+    
+    draw.testPattern();
     display.update();
 
     while (true)

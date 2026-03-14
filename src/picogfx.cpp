@@ -4,7 +4,7 @@ hardware_driver  _hw;
 display_driver_t display(&_hw);
 
 #if !defined(TOUCH_DISABLED)
-touch_driver_t touch(&_hw);
+touch_driver_t touch(&display);
 #endif
 
 #if defined(PICO_GFX_GRAPHICS)
@@ -32,5 +32,8 @@ extern "C" void __wrap_stdio_init_all()
     display.init();
 #if !defined(TOUCH_DISABLED)
     touch.init();
+#if defined(TOUCH_DRIVER_CST816)
+    touch.disableStandby();
+#endif
 #endif
 }

@@ -20,9 +20,6 @@ add_executable(${PROJECT_NAME}
     ${CMAKE_CURRENT_LIST_DIR}/main.cpp
 )
 
-# Add all the source files in the lib directory to the project
-AUX_SOURCE_DIRECTORY(lib SUB_SOURCES)
-
 # Add the source files to the project
 target_sources(${PROJECT_NAME} PUBLIC 
     ${SUB_SOURCES}
