@@ -1,4 +1,5 @@
 #include "touch.h"
+#if !defined(TOUCH_DISABLED)
 
 /**
  * @protected
@@ -7,7 +8,7 @@
 void touch::initI2C()
 {
 #if defined(TOUCH_ENABLED)
-    i2c_init(TOUCH_I2C_INSTANCE, TOUCH_I2C_SPEED);
+    i2c_init(this->i2c_ptr, TOUCH_I2C_SPEED);
 
     gpio_set_function(TOUCH_I2C_SDA_PIN, GPIO_FUNC_I2C);
     gpio_set_function(TOUCH_I2C_SCL_PIN, GPIO_FUNC_I2C);
@@ -57,8 +58,8 @@ uint32_t touch::touchRead(uint8_t addr, uint8_t reg, uint8_t *data, size_t len)
 #if defined(TOUCH_ENABLED)
     uint32_t bytes_written = 0;
 
-    bytes_written = i2c_write_blocking(TOUCH_I2C_INSTANCE, addr, &reg, 1, true);
-    bytes_written += i2c_read_blocking(TOUCH_I2C_INSTANCE, addr, data, len, false);
+    bytes_written = i2c_write_blocking(this->i2c_ptr, addr, &reg, 1, true);
+    bytes_written += i2c_read_blocking(this->i2c_ptr, addr, data, len, false);
 
     return bytes_written;
 #else
@@ -105,8 +106,8 @@ uint32_t touch::touchRead(uint8_t addr, uint16_t reg, uint8_t *data, size_t len,
         buf[1] = (uint8_t)(reg >> 8);
     }
 
-    bytes_written = i2c_write_blocking(TOUCH_I2C_INSTANCE, addr, buf, 2, true);
-    bytes_written += i2c_read_blocking(TOUCH_I2C_INSTANCE, addr, data, len, false);
+    bytes_written = i2c_write_blocking(this->i2c_ptr, addr, buf, 2, true);
+    bytes_written += i2c_read_blocking(this->i2c_ptr, addr, data, len, false);
 
     return bytes_written;
 #else
@@ -141,8 +142,8 @@ uint32_t touch::touchWrite(uint8_t addr, uint8_t reg, uint8_t *data, size_t len)
 #if defined(TOUCH_ENABLED)
     uint32_t bytes_written = 0;
 
-    bytes_written = i2c_write_blocking(TOUCH_I2C_INSTANCE, addr, &reg, 1, true);
-    bytes_written += i2c_write_blocking(TOUCH_I2C_INSTANCE, addr, data, len, false);
+    bytes_written = i2c_write_blocking(this->i2c_ptr, addr, &reg, 1, true);
+    bytes_written += i2c_write_blocking(this->i2c_ptr, addr, data, len, false);
 
     return bytes_written;
 #else
@@ -189,11 +190,12 @@ uint32_t touch::touchWrite(uint8_t addr, uint16_t reg, uint8_t *data, size_t len
         buf[1] = (uint8_t)(reg >> 8);
     }
     
-    bytes_written = i2c_write_blocking(TOUCH_I2C_INSTANCE, addr, buf, 2, true);
-    bytes_written += i2c_write_blocking(TOUCH_I2C_INSTANCE, addr, data, len, false);
+    bytes_written = i2c_write_blocking(this->i2c_ptr, addr, buf, 2, true);
+    bytes_written += i2c_write_blocking(this->i2c_ptr, addr, data, len, false);
 
     return bytes_written;
 #else
     return 0;
 #endif
 }
+#endif

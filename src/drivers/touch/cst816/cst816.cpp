@@ -1,4 +1,5 @@
 #include "cst816.h"
+#if defined(TOUCH_DRIVER_CST816)
 
 cst816 *cst816::instance = nullptr;  // Define the static instance
 
@@ -160,3 +161,4 @@ void cst816::getVersionValue(uint32_t *data)
     this->touchRead(CST816_ADDR, (uint8_t)0xa7, buf, 3);
     *data = (buf[0] << 16) | (buf[1] << 8) | buf[2];
 }
+#endif

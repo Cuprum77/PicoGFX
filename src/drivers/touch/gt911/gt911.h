@@ -1,4 +1,6 @@
 #pragma once
+#include "lcd_config.h"
+#if defined(TOUCH_DRIVER_GT911)
 
 #include "touch.h"
 #include "display.h"
@@ -75,3 +77,4 @@ private:
 
     void fetch();
 };
+#endif

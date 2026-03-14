@@ -1,4 +1,5 @@
 #include "gt911.h"
+#if defined(TOUCH_DRIVER_GT911)
 
 gt911 *gt911::instance = nullptr;  // Define the static instance
 
@@ -192,3 +193,4 @@ void gt911::fetch()
 
     this->available = true;
 }
+#endif

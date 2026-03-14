@@ -1,4 +1,6 @@
 #pragma once
+#include "lcd_config.h"
+#if defined(TOUCH_DRIVER_CST816)
 
 #include "touch.h"
 #include "display.h"
@@ -57,3 +59,4 @@ private:
     uint32_t getVersion();
     void getVersionValue(uint32_t *data);
 };
+#endif
