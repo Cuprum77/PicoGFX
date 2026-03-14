@@ -464,7 +464,6 @@ void hardware_driver::writePixels(const uint32_t *data, size_t length)
     for (size_t i = 0; i < LCD_PIN_DB_COUNT; i++)
     {
         uint32_t pin = this->parallel_data_pins[i];
-        printf("INIT DB%d (GPIO%d)\n", i, pin);
         gpio_init(pin);
         gpio_set_dir(pin, GPIO_OUT);
         gpio_put(pin, 1);
@@ -483,14 +482,24 @@ void hardware_driver::writePixels(const uint32_t *data, size_t length)
 
     inline void hardware_driver::protocol_set_data_mode(uint8_t command)
     {
-        this->write8080(command, true, false);
+        this->protocol_write_data(command, nullptr, 0);
     }
 
     inline void hardware_driver::protocol_write_pixels(void *data, size_t length)
     {
+    #if defined(LCD_COLOR_DEPTH_8)
+        uint8_t *pixels = (uint8_t *)data;
+        for (size_t i = 0; i < length; i++)
+            this->write8080(pixels[i], false, false);
+    #elif defined(LCD_COLOR_DEPTH_16)
+        uint16_t *pixels = (uint16_t *)data;
+        for (size_t i = 0; i < length; i++)
+            this->write8080(pixels[i], false, true);
+    #elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
         uint32_t *pixels = (uint32_t *)data;
         for (size_t i = 0; i < length; i++)
             this->write8080(pixels[i], false, true);
+    #endif
     }
 
     inline void hardware_driver::write8080(uint32_t data, bool command, bool bit16)
