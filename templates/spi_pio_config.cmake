@@ -39,3 +39,10 @@ set(LCD_PIN_CS          ?)
 set(LCD_PIN_SCL         ?)
 set(LCD_PIN_SDA         ?)
 set(LCD_PIN_RST         ?)
+
+# If the backlight is inverted (i.e. LOW turns on the backlight, HIGH turns off the backlight), set this to 1, otherwise set to 0
+# This can be removed if no backlight pin is used
+set(LCD_BACKLIGHT_INV   ?)
+# If the backlight supports dimming, set this to 1, otherwise set to 0
+set(LCD_BACKLIGHT_DIM   ?)
+set(LCD_PIN_BL          ?)

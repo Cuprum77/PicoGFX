@@ -12,6 +12,7 @@ add_library(${PROJECT_NAME}
     compression/compression.cpp
     compression/compression_decoder.cpp
     compression/compression_encoder.cpp
+    display/backlight.cpp
     display/display.cpp
     drivers/driver.cpp
     drivers/cna3306/cna3306.cpp

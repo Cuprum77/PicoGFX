@@ -30,6 +30,9 @@ extern "C" void __wrap_stdio_init_all()
     __real_stdio_init_all();
     _hw.init();
     display.init();
+#if defined(LCD_BACKLIGHT_ENABLED)
+    display.initBacklight();
+#endif
 #if !defined(TOUCH_DISABLED)
     touch.init();
 #if defined(TOUCH_DRIVER_CST816)

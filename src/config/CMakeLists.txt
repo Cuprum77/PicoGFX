@@ -163,6 +163,21 @@ else()
 endif()
 
 # ==========================================
+# Backlight (optional)
+# ==========================================
+
+if (DEFINED LCD_PIN_BL)
+    string(APPEND CONFIG_CONTENT "\n#define LCD_BACKLIGHT_ENABLED\n")
+    string(APPEND CONFIG_CONTENT "#define LCD_PIN_BL ${LCD_PIN_BL}\n")
+    if(LCD_BACKLIGHT_INV)
+        string(APPEND CONFIG_CONTENT "#define LCD_BACKLIGHT_INVERTED\n")
+    endif()
+    if(LCD_BACKLIGHT_DIM)
+        string(APPEND CONFIG_CONTENT "#define LCD_BACKLIGHT_DIMMABLE\n")
+    endif()
+endif()
+
+# ==========================================
 # Touch (optional)
 # ==========================================
 if(DEFINED TOUCH_DRIVER)

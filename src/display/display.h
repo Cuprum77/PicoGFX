@@ -19,6 +19,18 @@ public:
     uint32_t getRotation(void) { return this->rotation; }
     void clear(void);
 
+#if defined(LCD_BACKLIGHT_ENABLED)
+    void initBacklight();
+#if defined(LCD_BACKLIGHT_DIMMABLE)
+    void setBrightness(uint8_t brightness);
+    void setBrightnessRaw(uint8_t brightness);
+    uint8_t getBrightness(void);
+#else
+    void setBrightness(bool on);
+    bool getBrightness(void);
+#endif
+#endif
+
     void update();
     void update(int32_t start, int32_t end);
     void update(int32_t start, int32_t end, bool moveCursor);
@@ -106,10 +118,6 @@ protected:
     uint32_t base_offset_y1 = 0;
 #endif
 
-    uint32_t sliceNum;
-    uint32_t pwmChannel;
-    bool dataMode = false;
-
 #if defined(LCD_COLOR_DEPTH_1)
     bool *frameBuffer;
     void writePixels(const bool *data, size_t length);
@@ -126,8 +134,18 @@ protected:
 #error "Unsupported color depth"
 #endif
 
-    point cursor = {0, 0};
+#if defined(LCD_BACKLIGHT_ENABLED)
+#if defined(LCD_BACKLIGHT_DIMMABLE)
+    uint32_t sliceNum;
+    uint32_t pwmChannel;
+    uint8_t brightness;
+#else
     bool backlight;
+#endif
+#endif
+
+    bool dataMode = false;
+    point cursor = {0, 0};
     uint32_t totalPixels;
 
     uint32_t width;

@@ -21,7 +21,6 @@ set(LCD_WIDTH           ?)
 set(LCD_HEIGHT          ?)
 # Set the rotation of the display (0, 90, 180, or 270 degrees)
 set(LCD_ROTATION        ?)
-
 # Offset in pixels from the left side of the display
 set(LCD_OFFSET_X0       ?)
 # Offset in pixels from the right side of the display
@@ -54,3 +53,10 @@ set(LCD_PIN_CS          ?)
 set(LCD_PIN_DC          ?)
 set(LCD_PIN_RST         ?)
 set(LCD_PIN_IM0         ?)
+
+# If the backlight is inverted (i.e. LOW turns on the backlight, HIGH turns off the backlight), set this to 1, otherwise set to 0
+# This can be removed if no backlight pin is used
+set(LCD_BACKLIGHT_INV   ?)
+# If the backlight supports dimming, set this to 1, otherwise set to 0
+set(LCD_BACKLIGHT_DIM   ?)
+set(LCD_PIN_BL          ?)
