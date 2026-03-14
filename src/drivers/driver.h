@@ -73,8 +73,6 @@ private:
 
     // general
     bool enabled = false;
-    bool parallel_interface_in_sequence = false;
-    bool parallel_interface_reverse_order = false;
     uint32_t parallel_interface_mask = 0;
     uint32_t parallel_interface_min_pin = 0;
     uint32_t parallel_interface_max_pin = 0;

@@ -221,13 +221,15 @@ void hardware_driver::writePixels(const uint32_t *data, size_t length)
         gpio_put(LCD_PIN_DC, 0);
         gpio_put(LCD_PIN_CS, 0);
         spi_write_blocking(this->spi_instance, &command, 1);
-        gpio_put(LCD_PIN_DC, 1);
         // if there is data to send, send it
         if (length)
         {
+            gpio_put(LCD_PIN_DC, 1);
             for (size_t i = 0; i < length; i++)
                 spi_write_blocking(this->spi_instance, &data[i], 1);
         }
+        gpio_put(LCD_PIN_DC, 1);
+        gpio_put(LCD_PIN_CS, 1);
     }
 
     inline void hardware_driver::protocol_set_data_mode(uint8_t command)
@@ -235,6 +237,7 @@ void hardware_driver::writePixels(const uint32_t *data, size_t length)
         spi_set_format(this->spi_instance, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
         gpio_put(LCD_PIN_DC, 0);
         spi_write_blocking(this->spi_instance, &command, 1);
+        gpio_put(LCD_PIN_CS, 1);
         gpio_put(LCD_PIN_DC, 1);
     }
 
@@ -437,15 +440,6 @@ void hardware_driver::writePixels(const uint32_t *data, size_t length)
     uint32_t start = this->parallel_data_pins[0];
     uint32_t end = this->parallel_data_pins[LCD_PIN_DB_COUNT - 1];
 
-    // Inverse order?
-    if (start > end)
-    {
-        this->parallel_interface_reverse_order = true;
-
-        // Not supported yet due to the lack of hardware for reversing bit order
-        // this->parallel_interface_in_sequence = false;
-    }
-
     // Figure out the biggest pin of the two
     uint32_t max_pin = (start > end) ? start : end;
     uint32_t min_pin = (start < end) ? start : end;
@@ -496,11 +490,12 @@ void hardware_driver::writePixels(const uint32_t *data, size_t length)
 
     inline void hardware_driver::protocol_write_pixels(void *data, size_t length)
     {
+        uint32_t *pixels = (uint32_t *)data;
         for (size_t i = 0; i < length; i++)
-            this->write8080(data[i], false, true);
+            this->write8080(pixels[i], false, true);
     }
 
-    inline void write8080(uint32_t data, bool command, bool bit16)
+    inline void hardware_driver::write8080(uint32_t data, bool command, bool bit16)
     {
         gpio_put(LCD_PIN_DC, !command);
         gpio_put(LCD_PIN_WR, 0);
@@ -508,13 +503,15 @@ void hardware_driver::writePixels(const uint32_t *data, size_t length)
     #if defined(LCD_PIN_DB_SEQUENTIAL)
         uint32_t _data = data;
 
-        if (this->parallel_interface_reverse_order && !bit16)
+    #if defined(LCD_PIN_DB_REVERSED)
+        if (!bit16)
         {
             _data = ((_data & 0xaa) >> 1) | ((_data & 0x55) << 1);
             _data = ((_data & 0xcc) >> 2) | ((_data & 0x33) << 2);
             _data = (_data >> 4) | (_data << 4);
             _data <<= 8;
         }
+    #endif
 
         uint32_t mask = _data << this->parallel_interface_min_pin;
         gpio_put_masked(this->parallel_interface_mask, mask);
