@@ -1,5 +1,3 @@
-# spi_config.cmake
-
 # Set the driver for the display, e.g. ST7789, GC9A01, etc.
 set(LCD_DRIVER          ST7789)
 # Set the extensions to PicoGFX, 0 to disable, 1 to enable
