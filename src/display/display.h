@@ -75,27 +75,35 @@ protected:
 #endif
 
 #if defined(LCD_OFFSET_X0)
-    uint32_t columnOffset1 = LCD_OFFSET_X0;
+    uint32_t offset_x0 = LCD_OFFSET_X0;
+    uint32_t base_offset_x0 = LCD_OFFSET_X0;
 #else
-    uint32_t columnOffset1 = 0;
+    uint32_t offset_x0 = 0;
+    uint32_t base_offset_x0 = 0;
 #endif
 
 #if defined(LCD_OFFSET_X1)
-    uint32_t columnOffset2 = LCD_OFFSET_X1;
+    uint32_t offset_x1 = LCD_OFFSET_X1;
+    uint32_t base_offset_x1 = LCD_OFFSET_X1;
 #else
-    uint32_t columnOffset2 = 0;
+    uint32_t offset_x1 = 0;
+    uint32_t base_offset_x1 = 0;
 #endif
 
 #if defined(LCD_OFFSET_Y0)
-    uint32_t rowOffset1 = LCD_OFFSET_Y0;
+    uint32_t offset_y0 = LCD_OFFSET_Y0;
+    uint32_t base_offset_y0 = LCD_OFFSET_Y0;
 #else
-    uint32_t rowOffset1 = 0;
+    uint32_t offset_y0 = 0;
+    uint32_t base_offset_y0 = 0;
 #endif
 
 #if defined(LCD_OFFSET_Y1)
-    uint32_t rowOffset2 = LCD_OFFSET_Y1;
+    uint32_t offset_y1 = LCD_OFFSET_Y1;
+    uint32_t base_offset_y1 = LCD_OFFSET_Y1;
 #else
-    uint32_t rowOffset2 = 0;
+    uint32_t offset_y1 = 0;
+    uint32_t base_offset_y1 = 0;
 #endif
 
     uint32_t sliceNum;
@@ -140,14 +148,7 @@ protected:
     void writeData(uint8_t command, const uint8_t *data, size_t length);
     void writeData(uint8_t command, uint8_t data) { writeData(command, &data, 1); }
     void writeData(uint8_t command) { writeData(command, nullptr, 0); }
-    void swap_offsets() { 
-        uint32_t temp = this->columnOffset1; 
-        this->columnOffset1 = this->rowOffset1;
-        this->rowOffset1 = temp;
-        temp = this->columnOffset2;
-        this->columnOffset2 = this->rowOffset2;
-        this->rowOffset2 = temp;
-    }
+    void swap_offsets(uint32_t rotation);
     inline void columnAddressSet(uint32_t x0, uint32_t x1);
     inline void rowAddressSet(uint32_t y0, uint32_t y1);
 };

@@ -52,10 +52,11 @@ void cna3306::set_rotation(uint32_t rotation)
             this->maxHeight = MAX_WIDTH;
             break;
         default:
-            break;
+            return;
     }
 
-    this->swap_offsets();
+    this->swap_offsets(rotation);
+    
 }
 
 /**

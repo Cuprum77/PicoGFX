@@ -324,13 +324,13 @@ void display_obj::setCursor(point point)
 {
     // set the pixel x address
     this->columnAddressSet(
-        point.x + this->columnOffset1,
-        (this->width - 1) + this->columnOffset2
+        point.x + this->offset_x0,
+        (this->width - 1) + this->offset_x1
     );
     // set the pixel y address
     this->rowAddressSet(
-        point.y + this->rowOffset1,
-        (this->height - 1) + this->rowOffset2
+        point.y + this->offset_y0,
+        (this->height - 1) + this->offset_y1
     );
     // set the internal cursor position
     this->cursor = point;
@@ -419,4 +419,31 @@ inline void display_obj::rowAddressSet(uint32_t y0, uint32_t y1)
 
     // write the data
     this->writeData(this->RASET, data, sizeof(data));
+}
+
+/**
+ * @brief Swap the offsets based on the rotation
+ * @param rotation Rotation to swap the offsets for
+*/
+void display_obj::swap_offsets(uint32_t rotation)
+{
+    switch(rotation)
+    {
+        case 0:
+        case 180:
+            this->offset_x0 = this->base_offset_x0;
+            this->offset_x1 = this->base_offset_x1;
+            this->offset_y0 = this->base_offset_y0;
+            this->offset_y1 = this->base_offset_y1;
+            break;
+        case 90:
+        case 270:
+            this->offset_x0 = this->base_offset_y0;
+            this->offset_x1 = this->base_offset_y1;
+            this->offset_y0 = this->base_offset_x0;
+            this->offset_y1 = this->base_offset_x1;
+            break;
+        default:
+            break;
+    }
 }
