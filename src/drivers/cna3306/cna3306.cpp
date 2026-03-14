@@ -54,6 +54,8 @@ void cna3306::set_rotation(uint32_t rotation)
         default:
             break;
     }
+
+    this->swap_offsets();
 }
 
 /**

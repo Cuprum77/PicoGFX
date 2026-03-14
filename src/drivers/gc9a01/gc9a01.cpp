@@ -148,6 +148,8 @@ void gc9a01::set_rotation(uint32_t rotation)
         default:
             break;
     }
+
+    this->swap_offsets();
 }
 
 /**

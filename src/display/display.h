@@ -140,6 +140,14 @@ protected:
     void writeData(uint8_t command, const uint8_t *data, size_t length);
     void writeData(uint8_t command, uint8_t data) { writeData(command, &data, 1); }
     void writeData(uint8_t command) { writeData(command, nullptr, 0); }
+    void swap_offsets() { 
+        uint32_t temp = this->columnOffset1; 
+        this->columnOffset1 = this->rowOffset1;
+        this->rowOffset1 = temp;
+        temp = this->columnOffset2;
+        this->columnOffset2 = this->rowOffset2;
+        this->rowOffset2 = temp;
+    }
     inline void columnAddressSet(uint32_t x0, uint32_t x1);
     inline void rowAddressSet(uint32_t y0, uint32_t y1);
 };

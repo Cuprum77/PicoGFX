@@ -98,6 +98,8 @@ void st7789::set_rotation(uint32_t rotation)
         default:
             break;
     }
+
+    this->swap_offsets();
 }
 
 /**
