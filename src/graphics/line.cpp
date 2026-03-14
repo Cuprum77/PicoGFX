@@ -17,8 +17,18 @@ void graphics::drawLine(point start, point end, color color)
     int32_t dy = -iabs(end.y - start.y), sy = start.y < end.y ? 1 : -1;
     // Calculate the error
     int32_t err = dx + dy, e2;
-    // Get the uint16_t color
-    uint16_t color16 = color.toWord();
+#if defined(LCD_COLOR_DEPTH_1)
+    bool colorWord = color.white;
+#elif defined(LCD_COLOR_DEPTH_8)
+    uint8_t colorWord = color.toWord();
+#elif defined(LCD_COLOR_DEPTH_16)
+    uint16_t colorWord = color.toWord();
+#elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
+    uint32_t colorWord = color.toWord();
+#else
+#error "Unsupported color depth"
+#endif
+
 
     uint32_t x = start.x;
     uint32_t y = start.y;
@@ -27,7 +37,7 @@ void graphics::drawLine(point start, point end, color color)
     for (;;)
     {
         // Set the pixel at the current position
-        this->frameBuffer[x + y * this->display_ptr->getWidth()] = color16;
+        this->frameBuffer[x + y * this->display_ptr->getWidth()] = colorWord;
         // Check if we are at the end
         if (x == end.x && y == end.y) 
             break;
@@ -69,8 +79,17 @@ void graphics::drawLineAntiAliased(point start, point end, color color)
     int32_t ed = dx + dy == 0 ? 1 : isqrt(dx * dx + dy * dy);
     // Precalculate the inverse of ed for faster calculations
     int32_t edInv = (FIXED_POINT_SCALE + (ed / 2)) / ed;
-    // Get the uint16_t color
-    uint16_t color16 = color.toWord();
+#if defined(LCD_COLOR_DEPTH_1)
+    bool colorWord = color.white;
+#elif defined(LCD_COLOR_DEPTH_8)
+    uint8_t colorWord = color.toWord();
+#elif defined(LCD_COLOR_DEPTH_16)
+    uint16_t colorWord = color.toWord();
+#elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
+    uint32_t colorWord = color.toWord();
+#else
+#error "Unsupported color depth"
+#endif
 
     // Loop until we break
     for (;;)
@@ -78,7 +97,7 @@ void graphics::drawLineAntiAliased(point start, point end, color color)
         // Set the pixel at the current position
         uint8_t alpha = 255 * iabs(err - dx + dy) * edInv;
         alpha >>= FIXED_POINT_SCALE_BITS;
-        this->setPixelBlend(start.x, start.y, color16, alpha);
+        this->setPixelBlend(start.x, start.y, colorWord, alpha);
         // Calculate the new error
         e2 = err; x2 = start.x;
 
@@ -93,7 +112,7 @@ void graphics::drawLineAntiAliased(point start, point end, color color)
                 // Handle the anti-aliasing
                 alpha = 255 * (e2 + dy) * edInv;
                 alpha >>= FIXED_POINT_SCALE_BITS;
-                this->setPixelBlend(start.x, start.y + sy, color16, alpha);
+                this->setPixelBlend(start.x, start.y + sy, colorWord, alpha);
             }
             // Update the error
             err -= dy; start.x += sx;
@@ -109,7 +128,7 @@ void graphics::drawLineAntiAliased(point start, point end, color color)
                 // Handle the anti-aliasing
                 alpha = 255 * (dx - e2) * edInv;
                 alpha >>= FIXED_POINT_SCALE_BITS;
-                this->setPixelBlend(x2 + sx, start.y, color16, alpha);
+                this->setPixelBlend(x2 + sx, start.y, colorWord, alpha);
             }
             // Update the error
             err += dx; start.y += sy;
@@ -137,6 +156,15 @@ void graphics::drawLineThickAntiAliased(point start, point end, uint32_t thickne
     int32_t err = dx - dy;
     int32_t e2, x2, y2;
     int32_t ed = dx + dy == 0 ? 1 : isqrt(dx * dx + dy * dy);
-    // Get the uint16_t color
-    uint16_t color16 = color.toWord();
+#if defined(LCD_COLOR_DEPTH_1)
+    bool colorWord = color.white;
+#elif defined(LCD_COLOR_DEPTH_8)
+    uint8_t colorWord = color.toWord();
+#elif defined(LCD_COLOR_DEPTH_16)
+    uint16_t colorWord = color.toWord();
+#elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
+    uint32_t colorWord = color.toWord();
+#else
+#error "Unsupported color depth"
+#endif
 }

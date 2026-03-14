@@ -53,8 +53,17 @@ void graphics::drawFilledCircle(point center, uint32_t radius, color color)
     int32_t y = 0;
     int32_t error = 3 - 2 * x;
 
-    // convert the color to 16 bit
-    uint16_t color16 = color.toWord();
+#if defined(LCD_COLOR_DEPTH_1)
+    bool colorWord = color.white;
+#elif defined(LCD_COLOR_DEPTH_8)
+    uint8_t colorWord = color.toWord();
+#elif defined(LCD_COLOR_DEPTH_16)
+    uint16_t colorWord = color.toWord();
+#elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
+    uint32_t colorWord = color.toWord();
+#else
+#error "Unsupported color depth"
+#endif
     uint32_t totalPixels = this->display_ptr->getWidth() * this->display_ptr->getHeight();
 
     while (y <= x)
@@ -66,12 +75,12 @@ void graphics::drawFilledCircle(point center, uint32_t radius, color color)
             
             if (index1 >= 0 && index1 < totalPixels)
             {
-                this->frameBuffer[index1] = color16;
+                this->frameBuffer[index1] = colorWord;
             }
             
             if (index2 >= 0 && index2 < totalPixels)
             {
-                this->frameBuffer[index2] = color16;
+                this->frameBuffer[index2] = colorWord;
             }
         }
         
@@ -82,12 +91,12 @@ void graphics::drawFilledCircle(point center, uint32_t radius, color color)
 
             if (index1 >= 0 && index1 < totalPixels)
             {
-                this->frameBuffer[index1] = color16;
+                this->frameBuffer[index1] = colorWord;
             }
             
             if (index2 >= 0 && index2 < totalPixels)
             {
-                this->frameBuffer[index2] = color16;
+                this->frameBuffer[index2] = colorWord;
             }
         }
 
@@ -147,21 +156,30 @@ void graphics::drawCircle1(point center, uint32_t radius, color color)
     int32_t y = 0;
     int32_t error = 3 - 2 * x;
 
-    // convert the color to 16 bit
-    uint16_t color16 = color.toWord();
+#if defined(LCD_COLOR_DEPTH_1)
+    bool colorWord = color.white;
+#elif defined(LCD_COLOR_DEPTH_8)
+    uint8_t colorWord = color.toWord();
+#elif defined(LCD_COLOR_DEPTH_16)
+    uint16_t colorWord = color.toWord();
+#elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
+    uint32_t colorWord = color.toWord();
+#else
+#error "Unsupported color depth"
+#endif
 
     // loop through the radius
     while(x >= y)
     {
         // draw the pixels in the frame buffer
-        this->frameBuffer[(x0 + x) + (y0 + y) * this->display_ptr->getWidth()] = color16;
-        this->frameBuffer[(x0 + y) + (y0 + x) * this->display_ptr->getWidth()] = color16;
-        this->frameBuffer[(x0 - y) + (y0 + x) * this->display_ptr->getWidth()] = color16;
-        this->frameBuffer[(x0 - x) + (y0 + y) * this->display_ptr->getWidth()] = color16;
-        this->frameBuffer[(x0 - x) + (y0 - y) * this->display_ptr->getWidth()] = color16;
-        this->frameBuffer[(x0 - y) + (y0 - x) * this->display_ptr->getWidth()] = color16;
-        this->frameBuffer[(x0 + y) + (y0 - x) * this->display_ptr->getWidth()] = color16;
-        this->frameBuffer[(x0 + x) + (y0 - y) * this->display_ptr->getWidth()] = color16;
+        this->frameBuffer[(x0 + x) + (y0 + y) * this->display_ptr->getWidth()] = colorWord;
+        this->frameBuffer[(x0 + y) + (y0 + x) * this->display_ptr->getWidth()] = colorWord;
+        this->frameBuffer[(x0 - y) + (y0 + x) * this->display_ptr->getWidth()] = colorWord;
+        this->frameBuffer[(x0 - x) + (y0 + y) * this->display_ptr->getWidth()] = colorWord;
+        this->frameBuffer[(x0 - x) + (y0 - y) * this->display_ptr->getWidth()] = colorWord;
+        this->frameBuffer[(x0 - y) + (y0 - x) * this->display_ptr->getWidth()] = colorWord;
+        this->frameBuffer[(x0 + y) + (y0 - x) * this->display_ptr->getWidth()] = colorWord;
+        this->frameBuffer[(x0 + x) + (y0 - y) * this->display_ptr->getWidth()] = colorWord;
         
         // if the error is greater than 0
         if(error > 0)
@@ -200,18 +218,29 @@ void graphics::drawCircle2(point center, uint32_t radius, color color, uint32_t 
     uint32_t y0 = center.y;
     int32_t erro = 1 - x_outer;
     int32_t erri = 1 - x_inner;
-    uint16_t color16 = color.toWord();
+
+#if defined(LCD_COLOR_DEPTH_1)
+    bool colorWord = color.white;
+#elif defined(LCD_COLOR_DEPTH_8)
+    uint8_t colorWord = color.toWord();
+#elif defined(LCD_COLOR_DEPTH_16)
+    uint16_t colorWord = color.toWord();
+#elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
+    uint32_t colorWord = color.toWord();
+#else
+#error "Unsupported color depth"
+#endif
 
     while (x_outer >= y)
     {
-        this->drawCircleXLine(x0 + x_inner, x0 + x_outer, y0 + y,  color);
-        this->drawCircleYLine(x0 + y,  y0 + x_inner, y0 + x_outer, color);
-        this->drawCircleXLine(x0 - x_outer, x0 - x_inner, y0 + y,  color);
-        this->drawCircleYLine(x0 - y,  y0 + x_inner, y0 + x_outer, color);
-        this->drawCircleXLine(x0 - x_outer, x0 - x_inner, y0 - y,  color);
-        this->drawCircleYLine(x0 - y,  y0 - x_outer, y0 - x_inner, color);
-        this->drawCircleXLine(x0 + x_inner, x0 + x_outer, y0 - y,  color);
-        this->drawCircleYLine(x0 + y,  y0 - x_outer, y0 - x_inner, color);
+        this->drawCircleXLine(x0 + x_inner, x0 + x_outer, y0 + y,  colorWord);
+        this->drawCircleYLine(x0 + y,  y0 + x_inner, y0 + x_outer, colorWord);
+        this->drawCircleXLine(x0 - x_outer, x0 - x_inner, y0 + y,  colorWord);
+        this->drawCircleYLine(x0 - y,  y0 + x_inner, y0 + x_outer, colorWord);
+        this->drawCircleXLine(x0 - x_outer, x0 - x_inner, y0 - y,  colorWord);
+        this->drawCircleYLine(x0 - y,  y0 - x_outer, y0 - x_inner, colorWord);
+        this->drawCircleXLine(x0 + x_inner, x0 + x_outer, y0 - y,  colorWord);
+        this->drawCircleYLine(x0 + y,  y0 - x_outer, y0 - x_inner, colorWord);
 
         y++;
 
@@ -327,7 +356,17 @@ void graphics::drawFilledDualArc(point center, uint32_t innerRadius, uint32_t ou
     
     if (endAngle < startAngle) endAngle += 3600;
 
-    uint16_t color16 = color.toWord();
+#if defined(LCD_COLOR_DEPTH_1)
+    bool colorWord = color.white;
+#elif defined(LCD_COLOR_DEPTH_8)
+    uint8_t colorWord = color.toWord();
+#elif defined(LCD_COLOR_DEPTH_16)
+    uint16_t colorWord = color.toWord();
+#elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
+    uint32_t colorWord = color.toWord();
+#else
+#error "Unsupported color depth"
+#endif
 
     for (int32_t angleLUT = startAngle; angleLUT <= endAngle; angleLUT++)
     {
@@ -345,7 +384,7 @@ void graphics::drawFilledDualArc(point center, uint32_t innerRadius, uint32_t ou
             y += center.y;
 
             if (x >= 0 && x < this->display_ptr->getWidth() && y >= 0 && y < this->display_ptr->getHeight())
-                this->frameBuffer[x + y * this->display_ptr->getWidth()] = color16;
+                this->frameBuffer[x + y * this->display_ptr->getWidth()] = colorWord;
         }
     }
 }

@@ -60,8 +60,17 @@ void graphics::drawRectangle(point center, uint32_t width, uint32_t height, colo
 */
 void graphics::drawFilledRectangle(point start, point end, color color)
 {
-    // convert color to 16 bit
-    uint16_t color16 = color.toWord();
+#if defined(LCD_COLOR_DEPTH_1)
+    bool colorWord = color.white;
+#elif defined(LCD_COLOR_DEPTH_8)
+    uint8_t colorWord = color.toWord();
+#elif defined(LCD_COLOR_DEPTH_16)
+    uint16_t colorWord = color.toWord();
+#elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
+    uint32_t colorWord = color.toWord();
+#else
+#error "Unsupported color depth"
+#endif
 
     // calculate the size of the rectangle
     uint32_t width = end.x - start.x;
@@ -74,7 +83,7 @@ void graphics::drawFilledRectangle(point start, point end, color color)
         for (int32_t j = 0; j < width; j++)
         {
             // write the pixel
-            this->frameBuffer[(start.x + j) + (start.y + i) * this->display_ptr->getWidth()] = color16;
+            this->frameBuffer[(start.x + j) + (start.y + i) * this->display_ptr->getWidth()] = colorWord;
         }
     }
 }
@@ -104,8 +113,17 @@ void graphics::drawFilledPolygon(point *points, size_t numberOfPoints, color col
     int32_t minY = 0xffffffff;
     int32_t maxY = 0;
 
-    // Get the uint16_t version of the color
-    uint16_t color16 = color.toWord();
+#if defined(LCD_COLOR_DEPTH_1)
+    bool colorWord = color.white;
+#elif defined(LCD_COLOR_DEPTH_8)
+    uint8_t colorWord = color.toWord();
+#elif defined(LCD_COLOR_DEPTH_16)
+    uint16_t colorWord = color.toWord();
+#elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
+    uint32_t colorWord = color.toWord();
+#else
+#error "Unsupported color depth"
+#endif
 
     // Calculate the bounding box of the polygon by first finding the min and max x and y values
     for (int32_t i = 0; i < numberOfPoints; i++)
@@ -149,7 +167,7 @@ void graphics::drawFilledPolygon(point *points, size_t numberOfPoints, color col
         for (int32_t x = xStart; x < xEnd; x++)
         {
             // Verify that index is within the bounds of the framebuffer
-            this->frameBuffer[x + y * this->display_ptr->getWidth()] = color16;
+            this->frameBuffer[x + y * this->display_ptr->getWidth()] = colorWord;
         }
     }
 }
