@@ -65,9 +65,9 @@ extern "C"
 
 #elif defined(LCD_COLOR_DEPTH_18)
 // RGB888 -> RGB666
-#define ADJ_COLOR(c) (((c) & 0xFC0000) >> 6 | \
-                      ((c) & 0x00FC00) >> 4 | \
-                      ((c) & 0x0000FC) >> 2)
+#define ADJ_COLOR(c) ((((c >> 18) & 0x3F) << 12) | \
+                      (((c >> 10) & 0x3F) <<  6) | \
+                      (((c >>  2) & 0x3F)))
 
 #elif defined(LCD_COLOR_DEPTH_24)
 #define ADJ_COLOR(c) (c)
@@ -176,13 +176,9 @@ struct color
         this->g = (c >> 5) & 0x3f;
         this->b = c & 0x1f;
 #elif defined(LCD_COLOR_DEPTH_18)
-        uint8_t r = (c >> 16) & 0xff;
-        uint8_t g = (c >> 8) & 0xff;
-        uint8_t b = c & 0xff;
-
-        this->r = r >> 2 & 0x3f;
-        this->g = g >> 2 & 0x3f;
-        this->b = b >> 2 & 0x3f;
+        this->r = (c >> 12) & 0x3f;
+        this->g = (c >> 6) & 0x3f;
+        this->b = c & 0x3f;
 #elif defined(LCD_COLOR_DEPTH_24)
         this->r = (c >> 16) & 0xff;
         this->g = (c >> 8) & 0xff;
