@@ -5,6 +5,8 @@ cmake_minimum_required(VERSION 3.15)
 project(PicoGFX)
 add_subdirectory(config)
 
+include(${CMAKE_SOURCE_DIR}/lcd.config.cmake)
+
 # Add the library with the above sources
 add_library(${PROJECT_NAME} 
     compression/compression.cpp
@@ -52,7 +54,7 @@ target_include_directories(${PROJECT_NAME}
     PUBLIC ${PROJECT_SOURCE_DIR}/graphics
     PUBLIC ${PROJECT_SOURCE_DIR}/shapes
     PUBLIC ${PROJECT_SOURCE_DIR}/print
-    PUBLIC ${PROJECT_SOURCE_DIR}/print/fonts
+    PUBLIC ${CMAKE_BINARY_DIR}/src/print/fonts
 )
 
 pico_generate_pio_header(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/drivers/pio_spi.pio)
@@ -68,6 +70,10 @@ target_link_libraries(${PROJECT_NAME}
     pico_multicore
     lcd_config
 )
+
+if(PICO_GFX_PRINT)
+    add_dependencies(${PROJECT_NAME} generate_fonts)
+endif()
 
 target_link_options(${PROJECT_NAME} INTERFACE -Wl,--wrap=stdio_init_all)
 target_compile_options(${PROJECT_NAME} INTERFACE -include picogfx.h)

@@ -4,30 +4,6 @@ include(${CMAKE_SOURCE_DIR}/lcd.config.cmake)
 set(CONFIG_CONTENT "/* Auto-generated */\n\n")
 
 # ==========================================
-# PicoGFX configuration
-# ==========================================
-if(PICO_GFX_PRINT)
-    string(APPEND CONFIG_CONTENT "#define PICO_GFX_PRINT\n")
-endif()
-
-if(PICO_GFX_GAUGE)
-    string(APPEND CONFIG_CONTENT "#define PICO_GFX_GAUGE\n")
-endif()
-
-if(PICO_GFX_GRADIENT)
-    string(APPEND CONFIG_CONTENT "#define PICO_GFX_GRADIENT\n")
-endif()
-
-if(PICO_GFX_GRAPHICS)
-    string(APPEND CONFIG_CONTENT "#define PICO_GFX_GRAPHICS\n")
-endif()
-
-# If no touch driver is defined, set TOUCH_ENABLED to 0
-if(NOT DEFINED TOUCH_DRIVER)
-    string(APPEND CONFIG_CONTENT "#define TOUCH_DISABLED\n")
-endif()
-
-# ==========================================
 # Display geometry
 # ==========================================
 string(APPEND CONFIG_CONTENT "#define LCD_WIDTH       ${LCD_WIDTH}\n")
@@ -204,6 +180,72 @@ if(DEFINED TOUCH_DRIVER)
     string(APPEND CONFIG_CONTENT "#define TOUCH_I2C_RST_PIN ${TOUCH_I2C_RST_PIN}\n")
     string(APPEND CONFIG_CONTENT "#define TOUCH_I2C_SPEED   ${TOUCH_I2C_SPEED}\n")
 endif()
+
+# ==========================================
+# PicoGFX configuration
+# ==========================================
+if(PICO_GFX_PRINT)
+    if(NOT PICO_GFX_FONTS)
+        message(WARNING "PICO_GFX_PRINT is enabled but no fonts are specified, disabling print")
+    else()
+        string(APPEND CONFIG_CONTENT "#define PICO_GFX_PRINT\n")
+    endif()
+endif()
+if(PICO_GFX_GAUGE)
+    string(APPEND CONFIG_CONTENT "#define PICO_GFX_GAUGE\n")
+endif()
+
+if(PICO_GFX_GRADIENT)
+    string(APPEND CONFIG_CONTENT "#define PICO_GFX_GRADIENT\n")
+endif()
+
+if(PICO_GFX_GRAPHICS)
+    string(APPEND CONFIG_CONTENT "#define PICO_GFX_GRAPHICS\n")
+endif()
+
+# If no touch driver is defined, set TOUCH_ENABLED to 0
+if(NOT DEFINED TOUCH_DRIVER)
+    string(APPEND CONFIG_CONTENT "#define TOUCH_DISABLED\n")
+endif()
+
+# ==========================================
+# Font generation
+# ==========================================
+
+if(PICO_GFX_PRINT)
+    find_package(Python3 REQUIRED)
+
+    set(PICO_GFX_FONT_CACHE ${CMAKE_BINARY_DIR}/fonts)
+
+    add_custom_target(generate_fonts
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${PICO_GFX_FONT_CACHE}
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/src/print/fonts/
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../scripts/download_fonts.py
+                ${PICO_GFX_FONTS}
+                --output ${PICO_GFX_FONT_CACHE}
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../scripts/generate_fonts.py
+                ${PICO_GFX_FONTS}
+                --font-dir ${PICO_GFX_FONT_CACHE}
+                --sizes ${PICO_GFX_FONT_SIZES}
+                --output ${CMAKE_BINARY_DIR}/src/print/fonts/
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/..
+        COMMENT "Downloading and generating fonts..."
+    )
+
+    set(FONTS_INCLUDE_CONTENT "#pragma once\n\n#include \"fontstruct.h\"\n\n")
+    foreach(font ${PICO_GFX_FONTS})
+        string(REPLACE ".ttf" "" font_name ${font})
+        foreach(size ${PICO_GFX_FONT_SIZES})
+            string(APPEND FONTS_INCLUDE_CONTENT "#include \"${font_name}${size}.font\"\n")
+        endforeach()
+    endforeach()
+
+    file(GENERATE OUTPUT ${CMAKE_BINARY_DIR}/src/print/fonts/pico_gfx_fonts.h CONTENT "${FONTS_INCLUDE_CONTENT}")
+endif()
+
+# ==========================================
+# Generate lcd_config.h
+# ==========================================
 
 file(GENERATE OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/lcd_config.h CONTENT "${CONFIG_CONTENT}")
 

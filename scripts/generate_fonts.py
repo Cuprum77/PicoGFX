@@ -3,16 +3,21 @@ import numpy as np
 import string
 from textwrap import wrap
 import os
+import argparse
 
-# Define font file and color
-font_file = ["RobotoMono.ttf", "ComicSans.ttf"]
-#font_file = ["RobotoMono.ttf"]
-# Output directory
-output_dir = "../fonts/"
-# Standard font sizes
-font_size = [16, 20, 22, 24, 28, 32, 36, 48, 72]
-#font_size = [48]
-# Variables
+parser = argparse.ArgumentParser(description="Generate font bitmap header files")
+parser.add_argument("fonts", nargs="+", help="Font file(s) e.g. RobotoMono.ttf")
+parser.add_argument("--sizes", nargs="+", type=int, default=[16, 20, 22, 24, 28, 32, 36, 48, 72],
+                    help="Font size(s) e.g. --sizes 16 32 48")
+parser.add_argument("--output", default="../src/print/fonts/", help="Output directory")
+parser.add_argument("--font-dir", default=".", help="Directory to look for font files")
+args = parser.parse_args()
+
+font_file = args.fonts
+font_size = args.sizes
+output_dir = args.output
+font_dir = args.font_dir
+
 total_memory_usage = 0
 
 # Function that takes the bad string.printables list and returns it in proper Ascii order
@@ -121,7 +126,8 @@ def Draw_Symbol(data, width):
 
 def Generate_File(font_file, size):
     global total_memory_usage
-    font = ImageFont.truetype(font_file, size)
+    font_path = os.path.join(font_dir, font_file) if font_dir else font_file
+    font = ImageFont.truetype(font_path, size)
 
     font_name = font_file[:-4]
     output_file = f"{font_name}{size}"

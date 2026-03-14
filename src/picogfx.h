@@ -39,6 +39,7 @@
 
 #if defined(PICO_GFX_PRINT)
     #include "print.h"
+    #include "pico_gfx_fonts.h"
     extern printer print;
 #endif
 

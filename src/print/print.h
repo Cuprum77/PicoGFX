@@ -1,10 +1,11 @@
 #pragma once
+#include "lcd_config.h"
+#if defined(PICO_GFX_PRINT)
 
 #include "color.h"
 #include "shapes.h"
-#include "fontstruct.h"
+#include "pico_gfx_fonts.h"
 #include "display.h"
-#include "lcd_config.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -25,7 +26,7 @@ class printer
 {
 public:
     // Constructor
-    printer(uint16_t *frameBuffer, display_obj *display_ptr = nullptr);
+    printer(void *frameBuffer, display_obj *display_ptr = nullptr);
 
     // Configuration functions
     void setColor(color val);
@@ -45,8 +46,17 @@ public:
     // print function without helper functions
     void print(const char *format, ...);
 private:
-    // Display variables
+#if defined(LCD_COLOR_DEPTH_1)
+    bool *frameBuffer;
+#elif defined(LCD_COLOR_DEPTH_8)
+    uint8_t *frameBuffer;
+#elif defined(LCD_COLOR_DEPTH_16)
     uint16_t *frameBuffer;
+#elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
+    uint32_t *frameBuffer;
+#else
+#error "Unsupported color depth"
+#endif
     display_obj *display_ptr;
 
     // print variables
@@ -57,5 +67,7 @@ private:
     FontStruct *font;
 
     // Private helper functions
+    int32_t getStringYOffset();
     void drawAscii(const char c);
 };
+#endif

@@ -249,7 +249,7 @@ void hardware_driver::writePixels(const uint32_t *data, size_t length)
 #elif defined(LCD_COLOR_DEPTH_18)
     spi_set_format(this->spi_instance, 9, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
     gpio_put(LCD_PIN_CS, 0);
-    const uint32_t *pixels = data;
+    const uint32_t *pixels = (uint32_t *)data;
     for (size_t i = 0; i < length; i++) 
     {
         uint16_t words[2] = {
@@ -263,7 +263,7 @@ void hardware_driver::writePixels(const uint32_t *data, size_t length)
 #elif defined(LCD_COLOR_DEPTH_24)
     spi_set_format(this->spi_instance, 12, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
     gpio_put(LCD_PIN_CS, 0);
-    const uint32_t *pixels = data;
+    const uint32_t *pixels = (uint32_t *)data;
     for (size_t i = 0; i < length; i++) 
     {
         uint16_t words[2] = {

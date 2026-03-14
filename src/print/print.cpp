@@ -1,12 +1,21 @@
 #include "print.h"
+#if defined(PICO_GFX_PRINT)
 
 /**
  * @brief Construct a new print object
  * @param display Display to print on
 */
-printer::printer(uint16_t *frameBuffer, display_obj *display_ptr)
+printer::printer(void *frameBuffer, display_obj *display_ptr)
 {
-    this->frameBuffer = frameBuffer;
+#if defined(LCD_COLOR_DEPTH_1)
+    this->frameBuffer = (bool *)frameBuffer;
+#elif defined(LCD_COLOR_DEPTH_8)
+    this->frameBuffer = (uint8_t *)frameBuffer;
+#elif defined(LCD_COLOR_DEPTH_16)
+    this->frameBuffer = (uint16_t *)frameBuffer;
+#elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
+    this->frameBuffer = (uint32_t *)frameBuffer;
+#endif
     this->color_val = colors::black;
     this->font = nullptr;
     this->display_ptr = display_ptr;
@@ -111,19 +120,15 @@ void printer::center(Alignment_t alignment)
         this->cursor = (uint32_t)(centerX - stringWidthMidpoint + cursorY);
         break;
     case Alignment_t::VerticalCenter:
-        // Get the midpoint of the string
         stringHeightMidpoint = this->getStringHeight() >> 1;
-        // Move only the y position, keeping the x position the same
         cursorX = this->getCursor().x;
-        this->cursor = (uint32_t)(cursorX + (centerY - stringHeightMidpoint) * this->display_ptr->getWidth());
+        this->cursor = (uint32_t)(cursorX + (centerY - this->getStringYOffset() - stringHeightMidpoint) * this->display_ptr->getWidth());
         break;
     case Alignment_t::TotalCenter:
     default:
-        // Get the midpoint of the string
         stringWidthMidpoint = this->getStringWidth() >> 1;
         stringHeightMidpoint = this->getStringHeight() >> 1;
-        // Set the x and y position to the center
-        this->setCursor({ centerX - stringWidthMidpoint, centerY - stringHeightMidpoint });
+        this->setCursor({ centerX - stringWidthMidpoint, centerY - this->getStringYOffset() - stringHeightMidpoint });
         break;
     }
 }
@@ -134,10 +139,31 @@ void printer::center(Alignment_t alignment)
 */
 void printer::print()
 {
-    // loop through each character in the string
     for (int32_t i = 0; i < this->charactersInBuffer; i++)
     {
-        // draw the character
+        if (this->characterBuffer[i] == ' ' || i == 0)
+        {
+            uint32_t wordWidth = 0;
+            for (int32_t j = i + 1; j < this->charactersInBuffer; j++)
+            {
+                char c = this->characterBuffer[j];
+                if (c == ' ' || c == '\n' || c == '\0') break;
+                if (c >= 0x20 && c <= 0x7e)
+                {
+                    FontCharacter charData = this->font->characters[c - 0x20];
+                    wordWidth += charData.width;
+                }
+            }
+
+            uint32_t cursorX = this->cursor % this->display_ptr->getWidth();
+            if (cursorX + wordWidth > this->display_ptr->getWidth())
+            {
+                uint32_t currentRow = this->cursor / this->display_ptr->getWidth();
+                this->cursor = (currentRow + this->font->newLineDistance) * this->display_ptr->getWidth();
+                continue;
+            }
+        }
+
         this->drawAscii(this->characterBuffer[i]);
     }
 }
@@ -179,30 +205,22 @@ uint32_t printer::getStringWidth()
 */
 uint32_t printer::getStringHeight()
 {
-    // store the number of pixels
     size_t pixels = 0;
 
-    // loop through each character in the string
     for (int32_t i = 0; i < this->charactersInBuffer; i++)
     {
-        // get the character
         char c = this->characterBuffer[i];
 
-        // if the character is not printable, skip it
-        if (!(this->characterBuffer[i] > 0x20 && this->characterBuffer[i] < 0x7E))
+        if (!(c > 0x20 && c < 0x7e)) 
             continue;
 
-        // get the character index by subtracting the offset
         c -= 0x20;
-        // get the character data
+
         FontCharacter character = this->font->characters[c];
-        // check if the height of the character is greater than the current height
-        if(character.height > pixels)
-			// set the height to the height of the character
+        if (character.height > pixels)
             pixels = character.height;
     }
 
-    // return the number of pixels
     return pixels;
 }
 
@@ -212,20 +230,59 @@ uint32_t printer::getStringHeight()
 */
 void printer::print(const char *format, ...)
 {
-	// Generate the string
-	va_list args;
-	va_start(args, format);
-	this->charactersInBuffer = vsnprintf(this->characterBuffer, CHARACTER_BUFFER_SIZE - 1, format, args);
-	va_end(args);
+    va_list args;
+    va_start(args, format);
+    this->charactersInBuffer = vsnprintf(this->characterBuffer, CHARACTER_BUFFER_SIZE - 1, format, args);
+    va_end(args);
 
-	// loop through each character in the string
     for (int32_t i = 0; i < this->charactersInBuffer; i++)
     {
-		// draw the character
-		this->drawAscii(this->characterBuffer[i]);
-	}
+        if (this->characterBuffer[i] == ' ' || i == 0)
+        {
+            uint32_t wordWidth = 0;
+            for (int32_t j = i + 1; j < this->charactersInBuffer; j++)
+            {
+                char c = this->characterBuffer[j];
+                if (c == ' ' || c == '\n' || c == '\0') break;
+                if (c >= 0x20 && c <= 0x7e)
+                {
+                    FontCharacter charData = this->font->characters[c - 0x20];
+                    wordWidth += charData.width;
+                }
+            }
+
+            uint32_t cursorX = this->cursor % this->display_ptr->getWidth();
+            if (cursorX + wordWidth > this->display_ptr->getWidth())
+            {
+                uint32_t currentRow = this->cursor / this->display_ptr->getWidth();
+                this->cursor = (currentRow + this->font->newLineDistance) * this->display_ptr->getWidth();
+                continue;
+            }
+        }
+
+        this->drawAscii(this->characterBuffer[i]);
+    }
 }
 
+int32_t printer::getStringYOffset()
+{
+    int32_t minYOffset = INT32_MAX;
+
+    for (int32_t i = 0; i < this->charactersInBuffer; i++)
+    {
+        char c = this->characterBuffer[i];
+        
+        if (!(c > 0x20 && c < 0x7e)) 
+            continue;
+            
+        c -= 0x20;
+        FontCharacter character = this->font->characters[c];
+        if (character.yOffset < minYOffset)
+            minYOffset = character.yOffset;
+    }
+
+    return minYOffset == INT32_MAX ? 0 : minYOffset;
+}
 
 /**
  * @private
@@ -264,7 +321,8 @@ void printer::drawAscii(const char character)
     else if(character == 0x0A) // new line
     {
         // move the cursor to the next line
-        this->cursor += (this->display_ptr->getWidth() - (this->cursor % this->display_ptr->getWidth())) + this->display_ptr->getWidth() * this->font->newLineDistance;
+        uint32_t currentRow = this->cursor / this->display_ptr->getWidth();
+        this->cursor = (currentRow + this->font->newLineDistance) * this->display_ptr->getWidth();
         return;
     }
     else if(character == 0x0D) // carriage return
@@ -333,3 +391,4 @@ void printer::drawAscii(const char character)
     // set the cursor to the end of the character
     this->cursor += rowSize;
 }
+#endif
