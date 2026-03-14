@@ -17,7 +17,6 @@ set(LCD_BAUD_RATE       ?)
 # Set the color depth of the display (1, 8, 16, 18, or 24 bits per pixel)
 set(LCD_COLOR_DEPTH     ?)
 
-
 # Set the width of the display in pixels
 set(LCD_WIDTH           ?)
 # Set the height of the display in pixels
