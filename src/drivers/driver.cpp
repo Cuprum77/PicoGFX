@@ -234,10 +234,8 @@ void hardware_driver::writePixels(const uint32_t *data, size_t length)
 
     inline void hardware_driver::protocol_set_data_mode(uint8_t command)
     {
-        spi_set_format(this->spi_instance, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
-        gpio_put(LCD_PIN_DC, 0);
-        spi_write_blocking(this->spi_instance, &command, 1);
-        gpio_put(LCD_PIN_CS, 1);
+        this->protocol_write_data(command, nullptr, 0);
+        gpio_put(LCD_PIN_CS, 0);
         gpio_put(LCD_PIN_DC, 1);
     }
 

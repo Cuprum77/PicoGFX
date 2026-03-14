@@ -131,7 +131,6 @@ private:
     inline void protocol_set_data_mode(uint8_t command);
     inline void write8080(uint32_t data, bool command, bool bit16);
     inline void protocol_write_pixels(void *data, size_t length);
-
 #else
 #error "Unsupported display protocol or hardware interface"
 
