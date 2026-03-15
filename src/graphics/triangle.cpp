@@ -29,18 +29,7 @@ void graphics::drawFilledTriangle(point p1, point p2, point p3, color color)
     int32_t maxX = imax(imax(p1.x, p2.x), p3.x);
     int32_t minY = imin(imin(p1.y, p2.y), p3.y);
     int32_t maxY = imax(imax(p1.y, p2.y), p3.y);
-
-#if defined(LCD_COLOR_DEPTH_1)
-    bool colorWord = color.white;
-#elif defined(LCD_COLOR_DEPTH_8)
-    uint8_t colorWord = color.toWord();
-#elif defined(LCD_COLOR_DEPTH_16)
-    uint16_t colorWord = color.toWord();
-#elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
-    uint32_t colorWord = color.toWord();
-#else
-#error "Unsupported color depth"
-#endif
+    color_t colorWord = color.toWord();
 
     // iterate over each row within the bounding box
     for (int32_t y = minY; y <= maxY; y++)

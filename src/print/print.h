@@ -26,7 +26,7 @@ class printer
 {
 public:
     // Constructor
-    printer(void *frameBuffer, display_obj *display_ptr = nullptr);
+    printer(color_t *frameBuffer, display_obj *display_ptr = nullptr);
 
     // Configuration functions
     void setColor(color val);
@@ -46,24 +46,15 @@ public:
     // print function without helper functions
     void print(const char *format, ...);
 private:
-#if defined(LCD_COLOR_DEPTH_1)
-    bool *frameBuffer;
-#elif defined(LCD_COLOR_DEPTH_8)
-    uint8_t *frameBuffer;
-#elif defined(LCD_COLOR_DEPTH_16)
-    uint16_t *frameBuffer;
-#elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
-    uint32_t *frameBuffer;
-#else
-#error "Unsupported color depth"
-#endif
+    color_t *frameBuffer;
     display_obj *display_ptr;
 
     // print variables
     char characterBuffer[CHARACTER_BUFFER_SIZE];
     int32_t charactersInBuffer = 0;
     uint32_t cursor;
-    uint16_t color_val;
+    color_t color_val;
+
     FontStruct *font;
 
     // Private helper functions

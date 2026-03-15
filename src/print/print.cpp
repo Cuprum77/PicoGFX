@@ -5,17 +5,9 @@
  * @brief Construct a new print object
  * @param display Display to print on
 */
-printer::printer(void *frameBuffer, display_obj *display_ptr)
+printer::printer(color_t *frameBuffer, display_obj *display_ptr)
 {
-#if defined(LCD_COLOR_DEPTH_1)
-    this->frameBuffer = (bool *)frameBuffer;
-#elif defined(LCD_COLOR_DEPTH_8)
-    this->frameBuffer = (uint8_t *)frameBuffer;
-#elif defined(LCD_COLOR_DEPTH_16)
-    this->frameBuffer = (uint16_t *)frameBuffer;
-#elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
-    this->frameBuffer = (uint32_t *)frameBuffer;
-#endif
+    this->frameBuffer = frameBuffer;
     this->color_val = colors::black;
     this->font = nullptr;
     this->display_ptr = display_ptr;

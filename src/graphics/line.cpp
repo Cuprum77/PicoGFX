@@ -17,19 +17,8 @@ void graphics::drawLine(point start, point end, color color)
     int32_t dy = -iabs(end.y - start.y), sy = start.y < end.y ? 1 : -1;
     // Calculate the error
     int32_t err = dx + dy, e2;
-#if defined(LCD_COLOR_DEPTH_1)
-    bool colorWord = color.white;
-#elif defined(LCD_COLOR_DEPTH_8)
-    uint8_t colorWord = color.toWord();
-#elif defined(LCD_COLOR_DEPTH_16)
-    uint16_t colorWord = color.toWord();
-#elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
-    uint32_t colorWord = color.toWord();
-#else
-#error "Unsupported color depth"
-#endif
 
-
+    color_t colorWord = color.toWord();
     uint32_t x = start.x;
     uint32_t y = start.y;
 
@@ -79,17 +68,7 @@ void graphics::drawLineAntiAliased(point start, point end, color color)
     int32_t ed = dx + dy == 0 ? 1 : isqrt(dx * dx + dy * dy);
     // Precalculate the inverse of ed for faster calculations
     int32_t edInv = (FIXED_POINT_SCALE + (ed / 2)) / ed;
-#if defined(LCD_COLOR_DEPTH_1)
-    bool colorWord = color.white;
-#elif defined(LCD_COLOR_DEPTH_8)
-    uint8_t colorWord = color.toWord();
-#elif defined(LCD_COLOR_DEPTH_16)
-    uint16_t colorWord = color.toWord();
-#elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
-    uint32_t colorWord = color.toWord();
-#else
-#error "Unsupported color depth"
-#endif
+    color_t colorWord = color.toWord();
 
     // Loop until we break
     for (;;)
@@ -156,15 +135,5 @@ void graphics::drawLineThickAntiAliased(point start, point end, uint32_t thickne
     int32_t err = dx - dy;
     int32_t e2, x2, y2;
     int32_t ed = dx + dy == 0 ? 1 : isqrt(dx * dx + dy * dy);
-#if defined(LCD_COLOR_DEPTH_1)
-    bool colorWord = color.white;
-#elif defined(LCD_COLOR_DEPTH_8)
-    uint8_t colorWord = color.toWord();
-#elif defined(LCD_COLOR_DEPTH_16)
-    uint16_t colorWord = color.toWord();
-#elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
-    uint32_t colorWord = color.toWord();
-#else
-#error "Unsupported color depth"
-#endif
+    color_t colorWord = color.toWord();
 }

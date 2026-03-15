@@ -53,17 +53,7 @@ void graphics::drawFilledCircle(point center, uint32_t radius, color color)
     int32_t y = 0;
     int32_t error = 3 - 2 * x;
 
-#if defined(LCD_COLOR_DEPTH_1)
-    bool colorWord = color.white;
-#elif defined(LCD_COLOR_DEPTH_8)
-    uint8_t colorWord = color.toWord();
-#elif defined(LCD_COLOR_DEPTH_16)
-    uint16_t colorWord = color.toWord();
-#elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
-    uint32_t colorWord = color.toWord();
-#else
-#error "Unsupported color depth"
-#endif
+    color_t colorWord = color.toWord();
     uint32_t totalPixels = this->display_ptr->getWidth() * this->display_ptr->getHeight();
 
     while (y <= x)
@@ -155,18 +145,7 @@ void graphics::drawCircle1(point center, uint32_t radius, color color)
     int32_t x = radius;
     int32_t y = 0;
     int32_t error = 3 - 2 * x;
-
-#if defined(LCD_COLOR_DEPTH_1)
-    bool colorWord = color.white;
-#elif defined(LCD_COLOR_DEPTH_8)
-    uint8_t colorWord = color.toWord();
-#elif defined(LCD_COLOR_DEPTH_16)
-    uint16_t colorWord = color.toWord();
-#elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
-    uint32_t colorWord = color.toWord();
-#else
-#error "Unsupported color depth"
-#endif
+    color_t colorWord = color.toWord();
 
     // loop through the radius
     while(x >= y)
@@ -218,18 +197,7 @@ void graphics::drawCircle2(point center, uint32_t radius, color color, uint32_t 
     uint32_t y0 = center.y;
     int32_t erro = 1 - x_outer;
     int32_t erri = 1 - x_inner;
-
-#if defined(LCD_COLOR_DEPTH_1)
-    bool colorWord = color.white;
-#elif defined(LCD_COLOR_DEPTH_8)
-    uint8_t colorWord = color.toWord();
-#elif defined(LCD_COLOR_DEPTH_16)
-    uint16_t colorWord = color.toWord();
-#elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
-    uint32_t colorWord = color.toWord();
-#else
-#error "Unsupported color depth"
-#endif
+    color_t colorWord = color.toWord();
 
     while (x_outer >= y)
     {
@@ -355,18 +323,7 @@ void graphics::drawFilledDualArc(point center, uint32_t innerRadius, uint32_t ou
     endAngle *= 10;
     
     if (endAngle < startAngle) endAngle += 3600;
-
-#if defined(LCD_COLOR_DEPTH_1)
-    bool colorWord = color.white;
-#elif defined(LCD_COLOR_DEPTH_8)
-    uint8_t colorWord = color.toWord();
-#elif defined(LCD_COLOR_DEPTH_16)
-    uint16_t colorWord = color.toWord();
-#elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
-    uint32_t colorWord = color.toWord();
-#else
-#error "Unsupported color depth"
-#endif
+    color_t colorWord = color.toWord();
 
     for (int32_t angleLUT = startAngle; angleLUT <= endAngle; angleLUT++)
     {

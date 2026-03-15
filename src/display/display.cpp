@@ -189,13 +189,12 @@ color display_obj::getPixel(point point)
     return color(this->frameBuffer[point.x + point.y * this->width]);
 }
 
-#if defined(LCD_COLOR_DEPTH_1)
 /**
  * @brief Get a pixel from the framebuffer
  * @param point Buffer index
  * @return Color The color of the pixel as a bool
 */
-bool display_obj::getPixel(uint32_t index)
+color_t display_obj::getPixel(uint32_t index)
 {
     return this->frameBuffer[index];
 }
@@ -207,7 +206,7 @@ bool display_obj::getPixel(uint32_t index)
  * @param length Length of the data
  * @note length should be number of 16 bit pixels, not bytes!
 */
-void display_obj::writePixels(const bool *data, size_t length)
+void display_obj::writePixels(const color_t *data, size_t length)
 {
     // check if the data mode is set
     if (!this->dataMode)
@@ -217,114 +216,8 @@ void display_obj::writePixels(const bool *data, size_t length)
         this->dataMode = true;
     }
     // write the pixels
-    this->hw->writePixels((const bool *)data, length);
+    this->hw->writePixels((const color_t *)data, length);
 }
-
-#elif defined(LCD_COLOR_DEPTH_8)
-/**
- * @brief Get a pixel from the framebuffer
- * @param point Buffer index
- * @return Color The color of the pixel as an 8 bit value
-*/
-uint8_t display_obj::getPixel(uint32_t index)
-{
-    return this->frameBuffer[index];
-}
-
-/**
- * @private
- * @brief Write pixels to the display
- * @param data data to write
- * @param length Length of the data
- * @note length should be number of 16 bit pixels, not bytes!
-*/
-void display_obj::writePixels(const uint8_t *data, size_t length)
-{
-    // check if the data mode is set
-    if (!this->dataMode)
-    {
-        // set to single spi transfer mode if qspi is enabled
-        this->switchTransmissionMode(false);
-        // set the data mode
-        this->hw->setDataMode(this->RAMWR);
-        this->dataMode = true;
-    }
-    // set to quad spi transfer mode if qspi is enabled
-    this->switchTransmissionMode(true);
-    // write the pixels
-    this->hw->writePixels((const uint8_t *)data, length);
-}
-
-#elif defined(LCD_COLOR_DEPTH_16)
-/**
- * @brief Get a pixel from the framebuffer
- * @param point Buffer index
- * @return Color The color of the pixel as a 16 bit value
-*/
-uint16_t display_obj::getPixel(uint32_t index)
-{
-    return this->frameBuffer[index];
-}
-
-/**
- * @private
- * @brief Write pixels to the display
- * @param data data to write
- * @param length Length of the data
- * @note length should be number of 16 bit pixels, not bytes!
-*/
-void display_obj::writePixels(const uint16_t *data, size_t length)
-{
-    // check if the data mode is set
-    if (!this->dataMode)
-    {
-        // set to single spi transfer mode if qspi is enabled
-        this->switchTransmissionMode(false);
-        // set the data mode
-        this->hw->setDataMode(this->RAMWR);
-        this->dataMode = true;
-    }
-    // set to quad spi transfer mode if qspi is enabled
-    this->switchTransmissionMode(true);
-    // write the pixels
-    this->hw->writePixels((const uint16_t *)data, length);
-}
-
-#elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
-/**
- * @brief Get a pixel from the framebuffer
- * @param point Buffer index
- * @return Color The color of the pixel as a 18 or 24 bit value
-*/
-uint32_t display_obj::getPixel(uint32_t index)
-{
-    return this->frameBuffer[index];
-}
-
-/**
- * @private
- * @brief Write pixels to the display
- * @param data data to write
- * @param length Length of the data
- * @note length should be number of 16 bit pixels, not bytes!
-*/
-void display_obj::writePixels(const uint32_t *data, size_t length)
-{
-    // check if the data mode is set
-    if (!this->dataMode)
-    {
-        // set to single spi transfer mode if qspi is enabled
-        this->switchTransmissionMode(false);
-        // set the data mode
-        this->hw->setDataMode(this->RAMWR);
-        this->dataMode = true;
-    }
-    // set to quad spi transfer mode if qspi is enabled
-    this->switchTransmissionMode(true);
-    // write the pixels
-    this->hw->writePixels((const uint32_t *)data, length);
-}
-#endif
 
 /**
  * @brief Set the cursor position

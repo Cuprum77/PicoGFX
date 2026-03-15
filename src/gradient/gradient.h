@@ -9,7 +9,7 @@
 class gradient_obj
 {
 public:
-    gradient_obj(uint16_t *frameBuffer, display_obj *display_ptr = nullptr);
+    gradient_obj(color_t *frameBuffer, display_obj *display_ptr = nullptr);
 
     void fillGradient(color startColor, color endColor, rect area);
     void fillGradient(color startColor, color endColor, point start, point end);
@@ -18,7 +18,7 @@ public:
     void drawRotRectGradient(point center, int32_t width, int32_t height, int32_t rotationSpeed, color start, color end);
     void drawRotRectGradient(point center, rect area, int32_t rotationSpeed, color start, color end);
 private:
-    uint16_t *frameBuffer;
+    color_t *frameBuffer;
     display_obj *display_ptr;
     size_t totalPixels;
 

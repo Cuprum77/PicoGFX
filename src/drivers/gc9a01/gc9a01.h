@@ -25,12 +25,6 @@ public:
     void set_display_state(bool on);
 
 private:
-#if defined(LCD_COLOR_DEPTH_16)
-    uint16_t framebuffer[FRAMEBUFFER_SIZE];
-#elif defined(LCD_COLOR_DEPTH_18)
-    uint32_t framebuffer[FRAMEBUFFER_SIZE];
-#else
-#error "Unsupported color depth for GC9A01"
-#endif
+    color_t framebuffer[FRAMEBUFFER_SIZE];
 };
 #endif

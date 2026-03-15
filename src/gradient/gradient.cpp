@@ -9,7 +9,7 @@ uint16_t colorLUT[MAX_COLOR_DIFF + 1];
  * @param frameBuffer Pointer to the frame buffer
  * @param params Display parameters
 */
-gradient_obj::gradient_obj(uint16_t *frameBuffer, display_obj *display_ptr)
+gradient_obj::gradient_obj(color_t *frameBuffer, display_obj *display_ptr)
 {
     this->frameBuffer = frameBuffer;
     this->display_ptr = display_ptr;

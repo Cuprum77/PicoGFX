@@ -60,17 +60,7 @@ void graphics::drawRectangle(point center, uint32_t width, uint32_t height, colo
 */
 void graphics::drawFilledRectangle(point start, point end, color color)
 {
-#if defined(LCD_COLOR_DEPTH_1)
-    bool colorWord = color.white;
-#elif defined(LCD_COLOR_DEPTH_8)
-    uint8_t colorWord = color.toWord();
-#elif defined(LCD_COLOR_DEPTH_16)
-    uint16_t colorWord = color.toWord();
-#elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
-    uint32_t colorWord = color.toWord();
-#else
-#error "Unsupported color depth"
-#endif
+    color_t colorWord = color.toWord();
 
     // calculate the size of the rectangle
     uint32_t width = end.x - start.x;
@@ -112,18 +102,7 @@ void graphics::drawFilledPolygon(point *points, size_t numberOfPoints, color col
     int32_t maxX = 0;
     int32_t minY = 0xffffffff;
     int32_t maxY = 0;
-
-#if defined(LCD_COLOR_DEPTH_1)
-    bool colorWord = color.white;
-#elif defined(LCD_COLOR_DEPTH_8)
-    uint8_t colorWord = color.toWord();
-#elif defined(LCD_COLOR_DEPTH_16)
-    uint16_t colorWord = color.toWord();
-#elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
-    uint32_t colorWord = color.toWord();
-#else
-#error "Unsupported color depth"
-#endif
+    color_t colorWord = color.toWord();
 
     // Calculate the bounding box of the polygon by first finding the min and max x and y values
     for (int32_t i = 0; i < numberOfPoints; i++)

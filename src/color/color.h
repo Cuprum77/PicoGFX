@@ -53,43 +53,60 @@ extern "C"
 
 #define COLOR_INV(c) 
 
+#if !defined(LCD_INVERT_COLORS)
+#define COLOR_INV(c) (c)
+#endif
+
 #if defined(LCD_COLOR_DEPTH_8)
 // RGB888 -> RGB332
 #define ADJ_COLOR(c) (((c) & 0xE00000) >> 16 | \
                       ((c) & 0x00E000) >> 11 | \
                       ((c) & 0x0000C0) >> 6)
+#if defined(LCD_INVERT_COLORS)
 #define COLOR_INV(c) ([](uint32_t _c) { \
     _c = ((_c & 0xaa) >> 1) | ((_c & 0x55) << 1); \
     _c = ((_c & 0xcc) >> 2) | ((_c & 0x33) << 2); \
     _c = ((_c & 0xf0) >> 4) | ((_c & 0x0f) << 4); \
     return _c; }(c))
+#endif
+
+    typedef uint8_t color_t;
 
 #elif defined(LCD_COLOR_DEPTH_16)
 // RGB888 -> RGB565
 #define ADJ_COLOR(c) (((c) & 0xF80000) >> 8 | \
                       ((c) & 0x00FC00) >> 5 | \
                       ((c) & 0x0000F8) >> 3)
+#if defined(LCD_INVERT_COLORS)
 #define COLOR_INV(c) ([](uint32_t _c) { \
     _c = ((_c & 0xaaaa) >> 1) | ((_c & 0x5555) << 1); \
     _c = ((_c & 0xcccc) >> 2) | ((_c & 0x3333) << 2); \
     _c = ((_c & 0xf0f0) >> 4) | ((_c & 0x0f0f) << 4); \
     _c = ((_c & 0xff00) >> 8) | ((_c & 0x00ff) << 8); \
     return _c; }(c))
+#endif
+    
+    typedef uint16_t color_t;
 
 #elif defined(LCD_COLOR_DEPTH_18)
 // RGB888 -> RGB666
 #define ADJ_COLOR(c) ((((c >> 18) & 0x3F) << 12) | \
                       (((c >> 10) & 0x3F) <<  6) | \
                       (((c >>  2) & 0x3F)))
+#if defined(LCD_INVERT_COLORS)
 #define COLOR_INV(c) ([](uint32_t _c) { \
     _c = ((_c & 0x2aaaa) >> 1) | ((_c & 0x15555) << 1); \
     _c = ((_c & 0x33333) >> 2) | ((_c & 0x0cccc) << 2); \
     _c = ((_c & 0x3c3c0) >> 4) | ((_c & 0x00f0f) << 4); \
     _c = (_c >> 12) | ((_c & 0x00fff) << 6); \
     return _c & 0x3ffff; }(c))
+#endif
+
+    typedef uint32_t color_t;
 
 #elif defined(LCD_COLOR_DEPTH_24)
 #define ADJ_COLOR(c) (c)
+#if defined(LCD_INVERT_COLORS)
 #define COLOR_INV(c) ([](uint32_t _c) { \
     _c = ((_c & 0xaaaaaa) >> 1) | ((_c & 0x555555) << 1); \
     _c = ((_c & 0xcccccc) >> 2) | ((_c & 0x333333) << 2); \
@@ -98,9 +115,18 @@ extern "C"
     return _c; }(c))
 #endif
 
+    typedef uint32_t color_t;
+#endif
+
 #else
 #define COLOR_WHITE 1
 #define COLOR_BLACK 0
+
+#if defined(LCD_INVERT_COLORS)
+#define COLOR_INV(c) (!c)
+#endif
+
+    typedef bool color_t;
 #endif
 
 #if !defined(LCD_COLOR_DEPTH_1)
@@ -315,56 +341,21 @@ struct color
      * @brief Returns the color as a 16 bit value
      * @return 16-bit color
     */
+    color_t toWord()
+    {
 #if defined(LCD_COLOR_DEPTH_1)
-    bool toWord()
-    {
-#if defined(LCD_INVERT_COLORS)
-        return !this->white;
-#else
-        return this->white;
-#endif
-    }
+        color_t color = this->white;
 #elif defined(LCD_COLOR_DEPTH_8)
-    uint8_t toWord()
-    {
-#if defined(LCD_INVERT_COLORS)
-        uint8_t color = (this->r << 5) | (this->g << 2) | this->b;
-        return COLOR_INV(color);
-#else
-        return (this->r << 5) | (this->g << 2) | this->b;
-#endif
-    }
+        color_t color = (this->r << 5) | (this->g << 2) | this->b;
 #elif defined(LCD_COLOR_DEPTH_16)
-    uint16_t toWord()
-    {
-#if defined(LCD_INVERT_COLORS)
-        uint16_t color = (this->r << 11) | (this->g << 5) | this->b;
-        return COLOR_INV(color);
-#else
-        return (this->r << 11) | (this->g << 5) | this->b;
-#endif
-    }
+        color_t color = (this->r << 11) | (this->g << 5) | this->b;
 #elif defined(LCD_COLOR_DEPTH_18)
-    uint32_t toWord()
-    {
-#if defined(LCD_INVERT_COLORS)
-        uint32_t color = (this->r << 12) | (this->g << 6) | this->b;
-        return COLOR_INV(color);
-#else
-        return (this->r << 12) | (this->g << 6) | this->b;
-#endif
-    }
+        color_t color = (this->r << 12) | (this->g << 6) | this->b;
 #elif defined(LCD_COLOR_DEPTH_24)
-    uint32_t toWord()
-    {
-#if defined(LCD_INVERT_COLORS)
-        uint32_t color = (this->r << 16) | (this->g << 8) | this->b;
+        color_t color = (this->r << 16) | (this->g << 8) | this->b;
+#endif
         return COLOR_INV(color);
-#else
-        return (this->r << 16) | (this->g << 8) | this->b;
-#endif
     }
-#endif
 
     /**
      * @brief Gets the opposite color
@@ -397,46 +388,46 @@ struct color
         return this.white ? c : *this;
 #elif defined(LCD_COLOR_DEPTH_8)
         // split blue and red
-        uint8_t rb = c.toWord() & 0x1f;
+        color_t rb = c.toWord() & 0x1f;
         rb += ((this->toWord() & 0x1f) - rb) * (ratio >> 2) >> 6;
         // split out green
-        uint8_t g = c.toWord() & 0x1c;
+        color_t g = c.toWord() & 0x1c;
         g += ((this->toWord() & 0x1c) - g) * ratio  >> 8;
         // recombine
-        uint8_t result = (rb & 0x1f) | (g & 0x1c);
+        color_t result = (rb & 0x1f) | (g & 0x1c);
 
         return color(result);
 #elif defined(LCD_COLOR_DEPTH_16)
         // split blue and red
-        uint16_t rb = c.toWord() & 0xf81f;
+        color_t rb = c.toWord() & 0xf81f;
         rb += ((this->toWord() & 0xf81f) - rb) * (ratio >> 2) >> 6;
         // split out green
-        uint16_t g = c.toWord() & 0x07e0;
+        color_t g = c.toWord() & 0x07e0;
         g += ((this->toWord() & 0x07e0) - g) * ratio  >> 8;
         // recombine
-        uint16_t result = (rb & 0xf81f) | (g & 0x07e0);
+        color_t result = (rb & 0xf81f) | (g & 0x07e0);
 
         return color(result);
 #elif defined(LCD_COLOR_DEPTH_18)
         // split blue and red
-        uint32_t rb = c.toWord() & 0xfc00fc;
+        color_t rb = c.toWord() & 0xfc00fc;
         rb += ((this->toWord() & 0xfc00fc) - rb) * (ratio >> 2) >> 6;
         // split out green
-        uint32_t g = c.toWord() & 0x03f000;
+        color_t g = c.toWord() & 0x03f000;
         g += ((this->toWord() & 0x03f000) - g) * ratio  >> 8;
         // recombine
-        uint32_t result = (rb & 0xfc00fc) | (g & 0x03f000);
+        color_t result = (rb & 0xfc00fc) | (g & 0x03f000);
 
         return color(result);
 #elif defined(LCD_COLOR_DEPTH_24)
         // split blue and red
-        uint32_t rb = c.toWord() & 0xff00ff;
+        color_t rb = c.toWord() & 0xff00ff;
         rb += ((this->toWord() & 0xff00ff) - rb) * (ratio >> 2) >> 6;
         // split out green
-        uint32_t g = c.toWord() & 0x00ff00;
+        color_t g = c.toWord() & 0x00ff00;
         g += ((this->toWord() & 0x00ff00) - g) * ratio  >> 8;
         // recombine
-        uint32_t result = (rb & 0xff00ff) | (g & 0x00ff00);
+        color_t result = (rb & 0xff00ff) | (g & 0x00ff00);
 
         return color(result);
 #endif

@@ -44,6 +44,7 @@ public:
     void setPixel(point point, color color);
     void setPixel(uint32_t point, uint16_t color);
     color getPixel(point point);
+    color_t getPixel(uint32_t index);
 
     void setCursor(point point);
     point getCursor(void);
@@ -55,22 +56,7 @@ public:
     uint32_t getShortestSide(void) { return imin(this->width, this->height); }
     uint32_t getLongestSide(void) { return imax(this->width, this->height); }
     rect getArea(void) { return rect(point(0, 0), point(this->width, this->height)); }
-
-#if defined(LCD_COLOR_DEPTH_1)
-    bool getPixel(uint32_t index);
-    bool *getFrameBuffer(void) { return this->frameBuffer; }
-#elif defined(LCD_COLOR_DEPTH_8)
-    uint8_t getPixel(uint32_t index);
-    uint8_t *getFrameBuffer(void) { return this->frameBuffer; }
-#elif defined(LCD_COLOR_DEPTH_16)
-    uint16_t getPixel(uint32_t index);
-    uint16_t *getFrameBuffer(void) { return this->frameBuffer; }
-#elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
-    uint32_t getPixel(uint32_t index);
-    uint32_t *getFrameBuffer(void) { return this->frameBuffer; }
-#else
-#error "Unsupported color depth"
-#endif
+    color_t *getFrameBuffer(void) { return this->frameBuffer; }
     
 protected:
     hardware_driver *hw;
@@ -119,21 +105,9 @@ protected:
     uint32_t base_offset_y1 = 0;
 #endif
 
-#if defined(LCD_COLOR_DEPTH_1)
-    bool *frameBuffer;
-    void writePixels(const bool *data, size_t length);
-#elif defined(LCD_COLOR_DEPTH_8)
-    uint8_t *frameBuffer;
-    void writePixels(const uint8_t *data, size_t length);
-#elif defined(LCD_COLOR_DEPTH_16)
-    uint16_t *frameBuffer;
-    void writePixels(const uint16_t *data, size_t length);
-#elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
-    uint32_t *frameBuffer;
-    void writePixels(const uint32_t *data, size_t length);
-#else
-#error "Unsupported color depth"
-#endif
+    color_t *frameBuffer;
+
+    void writePixels(const color_t *data, size_t length);
 
 #if defined(LCD_BACKLIGHT_ENABLED)
 #if defined(LCD_BACKLIGHT_DIMMABLE)

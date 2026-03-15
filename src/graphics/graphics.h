@@ -10,12 +10,10 @@
 class graphics
 {
 public:
-    graphics(void *frameBuffer, display_obj *display_ptr = nullptr);
+    graphics(color_t *frameBuffer, display_obj *display_ptr = nullptr);
 
     void fill(color color);
-    void fill8(uint8_t color);
-    void fill16(uint16_t color);
-    void fill24(uint32_t color);
+    void fillRaw(color_t color);
 
     void testPattern(void);
 
@@ -63,18 +61,7 @@ public:
     void addBlur(rect area);
 private:
     display_obj *display_ptr;
-
-#if defined(LCD_COLOR_DEPTH_1)
-    bool *frameBuffer;
-#elif defined(LCD_COLOR_DEPTH_8)
-    uint8_t *frameBuffer;
-#elif defined(LCD_COLOR_DEPTH_16)
-    uint16_t *frameBuffer;
-#elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
-    uint32_t *frameBuffer;
-#else
-#error "Unsupported color depth"
-#endif
+    color_t *frameBuffer;
 
     const uint8_t bayerMatrix[16] = {
         0, 8, 2, 10,
