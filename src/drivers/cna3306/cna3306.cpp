@@ -21,7 +21,9 @@ void cna3306::init()
     this->writeData(0x11, nullptr, 0); 
     sleep_ms(130); 
 
-#if defined(LCD_COLOR_DEPTH_16) 
+#if defined(LCD_COLOR_DEPTH_8) 
+    this->writeData(0x3a, (const uint8_t*)"\x22", 1); 
+#elif defined(LCD_COLOR_DEPTH_16) 
     this->writeData(0x3a, (const uint8_t*)"\x55", 1); 
 #elif defined(LCD_COLOR_DEPTH_18) 
     this->writeData(0x3a, (const uint8_t*)"\x66", 1); 
