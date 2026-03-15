@@ -1,9 +1,4 @@
 #pragma once
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif
     
 #include <stdint.h>
 #include "lcd_config.h"
@@ -51,8 +46,6 @@ extern "C"
 #define COLOR_VAMPIRE_BLACK  0x0f0404
 #define COLOR_EERIE_BLACK    0x1b1b1b
 
-#define COLOR_INV(c) 
-
 #if !defined(LCD_INVERT_COLORS)
 #define COLOR_INV(c) (c)
 #endif
@@ -69,8 +62,7 @@ extern "C"
     _c = ((_c & 0xf0) >> 4) | ((_c & 0x0f) << 4); \
     return _c; }(c))
 #endif
-
-    typedef uint8_t color_t;
+#define __COLOR_SIZE__ uint8_t
 
 #elif defined(LCD_COLOR_DEPTH_16)
 // RGB888 -> RGB565
@@ -85,8 +77,7 @@ extern "C"
     _c = ((_c & 0xff00) >> 8) | ((_c & 0x00ff) << 8); \
     return _c; }(c))
 #endif
-    
-    typedef uint16_t color_t;
+#define __COLOR_SIZE__ uint16_t
 
 #elif defined(LCD_COLOR_DEPTH_18)
 // RGB888 -> RGB666
@@ -101,8 +92,7 @@ extern "C"
     _c = (_c >> 12) | ((_c & 0x00fff) << 6); \
     return _c & 0x3ffff; }(c))
 #endif
-
-    typedef uint32_t color_t;
+#define __COLOR_SIZE__ uint32_t
 
 #elif defined(LCD_COLOR_DEPTH_24)
 #define ADJ_COLOR(c) (c)
@@ -115,7 +105,7 @@ extern "C"
     return _c; }(c))
 #endif
 
-    typedef uint32_t color_t;
+#define __COLOR_SIZE__ uint32_t
 #endif
 
 #else
@@ -125,9 +115,10 @@ extern "C"
 #if defined(LCD_INVERT_COLORS)
 #define COLOR_INV(c) (!c)
 #endif
-
-    typedef bool color_t;
+#define __COLOR_SIZE__ bool
 #endif
+
+using color_t = __COLOR_SIZE__;
 
 #if !defined(LCD_COLOR_DEPTH_1)
 /**
@@ -494,7 +485,3 @@ struct color
         return color(this->r < c.r ? this->r : c.r, this->g < c.g ? this->g : c.g, this->b < c.b ? this->b : c.b);
     }
 };
-
-#ifdef __cplusplus
-}
-#endif

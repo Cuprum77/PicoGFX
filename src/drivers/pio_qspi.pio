@@ -7,7 +7,7 @@
 .side_set 1
 
 .wrap_target
-    out pins, 4   side 0  ; output 4 bits per clock cycle
+    out pins, 4   side 0
     nop           side 1
 .wrap
 
@@ -39,16 +39,10 @@ static inline void pio_qspi_transmit_8(PIO pio, uint sm, uint8_t x)
     *(volatile uint8_t*)&pio->txf[sm] = x;
 }
 
-static inline void pio_qspi_transmit_16(PIO pio, uint sm, uint16_t x)
+static inline void pio_qspi_transmit(PIO pio, uint sm, uint32_t x, uint32_t offset)
 {
     while (pio_sm_is_tx_fifo_full(pio, sm));
-    *(volatile uint16_t*)&pio->txf[sm] = x;
-}
-
-static inline void pio_qspi_transmit_24(PIO pio, uint sm, uint32_t x)
-{
-    while (pio_sm_is_tx_fifo_full(pio, sm));
-    *(volatile uint32_t*)&pio->txf[sm] = x << 8;
+    *(volatile uint32_t*)&pio->txf[sm] = x << (32 - offset);
 }
 
 static inline void pio_qspi_wait_idle(PIO pio, uint sm)

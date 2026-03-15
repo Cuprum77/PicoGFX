@@ -72,43 +72,16 @@ void hardware_driver::switchTransmissionMode(bool data)
 {
     this->speed_mode = data;
 }
-
-#if defined(LCD_COLOR_DEPTH_8)
 /**
  * @brief Write data to the display
  * @param data The data to send
  * @param length The length of the data
  * @return bytes written on success, -1 on failure
 */
-void hardware_driver::writePixels(const uint8_t *data, size_t length)
+void hardware_driver::writePixels(const color_t *data, size_t length)
 {
-    this->protocol_write_pixels((void*)data, length);
+    this->protocol_write_pixels(data, length);
 }
-#elif defined(LCD_COLOR_DEPTH_16)
-/**
- * @brief Write data to the display
- * @param data The data to send
- * @param length The length of the data
- * @return bytes written on success, -1 on failure
-*/
-void hardware_driver::writePixels(const uint16_t *data, size_t length)
-{
-    this->protocol_write_pixels((void*)data, length);
-}
-#elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
-/**
- * @brief Write data to the display
- * @param data The data to send
- * @param length The length of the data
- * @return bytes written on success, -1 on failure
-*/
-void hardware_driver::writePixels(const uint32_t *data, size_t length)
-{
-    this->protocol_write_pixels((void*)data, length);
-}
-#else
-#error "Unsupported color depth"
-#endif
 
 #if defined(LCD_PROTOCOL_SPI) && defined(LCD_HARDWARE_PIO)
     inline void hardware_driver::protocol_init()
@@ -153,19 +126,19 @@ void hardware_driver::writePixels(const uint32_t *data, size_t length)
         this->set_spi_dc_cs(1, 0);
     }
 
-    inline void hardware_driver::protocol_write_pixels(void *data, size_t length)
+    inline void hardware_driver::protocol_write_pixels(const color_t *data, size_t length)
     {
 #if defined(LCD_COLOR_DEPTH_16)
         this->pio_set_bits(16);
         while(length--)
-            pio_spi_transmit_16(this->pio, this->sm, *(uint16_t *)data++);
+            pio_spi_transmit_16(this->pio, this->sm, *data++);
         pio_spi_wait_idle(this->pio, this->sm);
         this->set_spi_dc_cs(1, 1);
 
 #elif defined(LCD_COLOR_DEPTH_18)
         this->pio_set_bits(8);
 
-        const uint32_t *pixels = (uint32_t *)data;
+        const uint32_t *pixels = data;
         for (size_t i = 0; i < length; i++) 
         {
             uint8_t words[3] = {
@@ -183,7 +156,7 @@ void hardware_driver::writePixels(const uint32_t *data, size_t length)
 #elif defined(LCD_COLOR_DEPTH_24)
         this->pio_set_bits(24);
         while(length--)
-            pio_spi_transmit_24(this->pio, this->sm, *(uint32_t *)data++);
+            pio_spi_transmit_24(this->pio, this->sm, *data++);
         pio_spi_wait_idle(this->pio, this->sm);
         this->set_spi_dc_cs(1, 1);
 
@@ -262,7 +235,7 @@ void hardware_driver::writePixels(const uint32_t *data, size_t length)
         gpio_put(LCD_PIN_DC, 1);
     }
 
-    inline void hardware_driver::protocol_write_pixels(void *data, size_t length)
+    inline void hardware_driver::protocol_write_pixels(const color_t *data, size_t length)
     {
 #if defined(LCD_COLOR_DEPTH_16)
     spi_set_format(this->spi_instance, 16, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
@@ -274,7 +247,7 @@ void hardware_driver::writePixels(const uint32_t *data, size_t length)
     spi_set_format(this->spi_instance, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
 
     gpio_put(LCD_PIN_CS, 0);
-    const uint32_t *pixels = (uint32_t *)data;
+    const uint32_t *pixels = data;
     for (size_t i = 0; i < length; i++) 
     {
         uint8_t words[3] = {
@@ -290,7 +263,7 @@ void hardware_driver::writePixels(const uint32_t *data, size_t length)
     spi_set_format(this->spi_instance, 12, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
 
     gpio_put(LCD_PIN_CS, 0);
-    const uint32_t *pixels = (uint32_t *)data;
+    const uint32_t *pixels = data;
     for (size_t i = 0; i < length; i++) 
     {
         uint16_t words[2] = {
@@ -409,85 +382,20 @@ void hardware_driver::writePixels(const uint32_t *data, size_t length)
         gpio_put(LCD_PIN_CS, 0);
     }
 
-    inline void hardware_driver::protocol_write_pixels(void *data, size_t length)
+    inline void hardware_driver::protocol_write_pixels(const color_t *data, size_t length)
     {
-#if defined(LCD_COLOR_DEPTH_8)
 #if defined(LCD_HARDWARE_PIO)
-        this->pio_set_bits(8);
-        while(length--)
-            pio_qspi_transmit_8(this->pio, this->sm, *(uint8_t *)data++);
-        pio_qspi_wait_idle(this->pio, this->sm);
+        this->pio_set_bits(LCD_COLOR_DEPTH);
 
-        // Force the data pins to 0 to ensure that the command is sent correctly
-        pio_sm_set_pins_with_mask(this->pio, this->sm, 0, (0xf << LCD_PIN_DAT0));
-
-#elif defined(LCD_HARDWARE_GPIO)
-#endif
-        
-#elif defined(LCD_COLOR_DEPTH_16)
-#if defined(LCD_HARDWARE_PIO)
-        this->pio_set_bits(16);
-        while(length--)
-            pio_qspi_transmit_16(this->pio, this->sm, *(uint16_t *)data++);
-        pio_qspi_wait_idle(this->pio, this->sm);
-
-        // Force the data pins to 0 to ensure that the command is sent correctly
-        pio_sm_set_pins_with_mask(this->pio, this->sm, 0, (0xf << LCD_PIN_DAT0));
-
-#elif defined(LCD_HARDWARE_GPIO)
-#endif
-        
-#elif defined(LCD_COLOR_DEPTH_18)
-#if defined(LCD_HARDWARE_PIO)
-        this->pio_set_bits(8);
-
-        const uint32_t *pixels = (uint32_t *)data;
         for (size_t i = 0; i < length; i++) 
         {
-            uint8_t words[3] = {
-                (uint8_t)((pixels[i] >> 12) & 0x3f) << 2,
-                (uint8_t)((pixels[i] >>  6) & 0x3f) << 2,
-                (uint8_t)((pixels[i] >>  0) & 0x3f) << 2,
-            };
-            
-            for (uint32_t j = 0; j < 3; j++)
-                pio_qspi_transmit_8(this->pio, this->sm, words[j]);
+            pio_qspi_transmit(this->pio, this->sm, data[i], LCD_COLOR_DEPTH);
         }
-        pio_qspi_wait_idle(this->pio, this->sm);
-
+        printf("\n");
         // Force the data pins to 0 to ensure that the command is sent correctly
         pio_sm_set_pins_with_mask(this->pio, this->sm, 0, (0xf << LCD_PIN_DAT0));
 
 #elif defined(LCD_HARDWARE_GPIO)
-#endif
-
-#elif defined(LCD_COLOR_DEPTH_24)
-#if defined(LCD_HARDWARE_PIO)
-        this->pio_set_bits(8);
-
-        const uint32_t *pixels = (uint32_t *)data;
-        for (size_t i = 0; i < length; i++) 
-        {
-            uint8_t words[3] = {
-                (uint8_t)(pixels[i] >> 16),
-                (uint8_t)(pixels[i] >>  8),
-                (uint8_t)(pixels[i] >>  0),
-            };
-            
-            for (uint32_t j = 0; j < 3; j++)
-                pio_qspi_transmit_8(this->pio, this->sm, words[j]);
-        }
-        pio_qspi_wait_idle(this->pio, this->sm);
-
-        // Force the data pins to 0 to ensure that the command is sent correctly
-        pio_sm_set_pins_with_mask(this->pio, this->sm, 0, (0xf << LCD_PIN_DAT0));
-
-#elif defined(LCD_HARDWARE_GPIO)
-#endif
-
-#else
-#error "Unsupported color depth"
-
 #endif
         gpio_put(LCD_PIN_CS, 1);
 
@@ -520,10 +428,10 @@ void hardware_driver::writePixels(const uint32_t *data, size_t length)
             // Re-initialize the state machine
 #if defined(LCD_PIN_DAT_REVERSED)
             pio_qspi_init(this->pio, this->sm, this->offset, LCD_PIN_DAT3,
-                LCD_PIN_SCL, this->clkdiv, (int)8);
+                LCD_PIN_SCL, this->clkdiv, (int)bits);
 #else
             pio_qspi_init(this->pio, this->sm, this->offset, LCD_PIN_DAT0,
-                LCD_PIN_SCL, this->clkdiv, (int)8);
+                LCD_PIN_SCL, this->clkdiv, (int)bits);
 #endif
         }
     }
@@ -581,7 +489,7 @@ void hardware_driver::writePixels(const uint32_t *data, size_t length)
         
     }
 
-    inline void hardware_driver::protocol_write_pixels(void *data, size_t length)
+    inline void hardware_driver::protocol_write_pixels(const color_t *data, size_t length)
     {
 
     }
@@ -674,18 +582,18 @@ void hardware_driver::writePixels(const uint32_t *data, size_t length)
         this->protocol_write_data(command, nullptr, 0);
     }
 
-    inline void hardware_driver::protocol_write_pixels(void *data, size_t length)
+    inline void hardware_driver::protocol_write_pixels(const color_t *data, size_t length)
     {
     #if defined(LCD_COLOR_DEPTH_8)
         uint8_t *pixels = (uint8_t *)data;
         for (size_t i = 0; i < length; i++)
             this->write8080(pixels[i], false, false);
     #elif defined(LCD_COLOR_DEPTH_16)
-        uint16_t *pixels = (uint16_t *)data;
+        uint16_t *pixels = data;
         for (size_t i = 0; i < length; i++)
             this->write8080(pixels[i], false, true);
     #elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
-        uint32_t *pixels = (uint32_t *)data;
+        uint32_t *pixels = data;
         for (size_t i = 0; i < length; i++)
             this->write8080(pixels[i], false, true);
     #endif
