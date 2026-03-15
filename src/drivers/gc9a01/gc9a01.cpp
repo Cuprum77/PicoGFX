@@ -157,8 +157,11 @@ void gc9a01::set_rotation(uint32_t rotation)
 */
 void gc9a01::set_display_state(bool on)
 {
-    if(on) this->writeData(0x29);
-    else this->writeData(0x28);
+    if(on) 
+		this->writeData(0x29);
+    else 
+		this->writeData(0x28);
+		
     sleep_ms(10);
 }
 #endif
