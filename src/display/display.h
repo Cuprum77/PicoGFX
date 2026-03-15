@@ -42,7 +42,7 @@ public:
     bool frameLimiter(uint32_t frameRate);
 
     void setPixel(point point, color color);
-    void setPixel(uint32_t point, uint16_t color);
+    void setPixel(uint32_t point, color_t color);
     color getPixel(point point);
     color_t getPixel(uint32_t index);
 
@@ -60,6 +60,7 @@ public:
     
 protected:
     hardware_driver *hw;
+    color_t *frameBuffer;
 
 #if defined(LCD_ROTATION_0)
     uint32_t rotation = 0;
@@ -105,10 +106,6 @@ protected:
     uint32_t base_offset_y1 = 0;
 #endif
 
-    color_t *frameBuffer;
-
-    void writePixels(const color_t *data, size_t length);
-
 #if defined(LCD_BACKLIGHT_ENABLED)
 #if defined(LCD_BACKLIGHT_DIMMABLE)
     uint32_t sliceNum;
@@ -141,6 +138,7 @@ protected:
     void writeData(uint8_t command, const uint8_t *data, size_t length);
     void writeData(uint8_t command, uint8_t data) { writeData(command, &data, 1); }
     void writeData(uint8_t command) { writeData(command, nullptr, 0); }
+    void writePixels(const color_t *data, size_t length);
     void switchTransmissionMode(bool data) { this->hw->switchTransmissionMode(data); }
     void swap_offsets(uint32_t rotation);
     inline void columnAddressSet(uint32_t x0, uint32_t x1);

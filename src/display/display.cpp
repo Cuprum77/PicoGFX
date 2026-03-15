@@ -165,7 +165,7 @@ void display_obj::setPixel(point point, color color)
  * @param point Buffer index
  * @param color Color to draw in as a 16 bit value
 */
-void display_obj::setPixel(uint32_t index, uint16_t color)
+void display_obj::setPixel(uint32_t index, color_t color)
 {
     // set the framebuffer pixel
     this->frameBuffer[index] = color;
@@ -203,11 +203,15 @@ void display_obj::writePixels(const color_t *data, size_t length)
     // check if the data mode is set
     if (!this->dataMode)
     {
+        // set to single spi transfer mode if qspi is enabled
+        this->switchTransmissionMode(false);
         // set the data mode
         this->hw->setDataMode(this->RAMWR);
         this->dataMode = true;
     }
     
+    // set to quad spi transfer mode if qspi is enabled
+    this->switchTransmissionMode(true);
     // write the pixels
     this->hw->writePixels(data, length);
 }
