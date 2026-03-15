@@ -51,26 +51,51 @@ extern "C"
 #define COLOR_VAMPIRE_BLACK  0x0f0404
 #define COLOR_EERIE_BLACK    0x1b1b1b
 
+#define COLOR_INV(c) 
+
 #if defined(LCD_COLOR_DEPTH_8)
 // RGB888 -> RGB332
 #define ADJ_COLOR(c) (((c) & 0xE00000) >> 16 | \
                       ((c) & 0x00E000) >> 11 | \
                       ((c) & 0x0000C0) >> 6)
+#define COLOR_INV(c) ([](uint32_t _c) { \
+    _c = ((_c & 0xaa) >> 1) | ((_c & 0x55) << 1); \
+    _c = ((_c & 0xcc) >> 2) | ((_c & 0x33) << 2); \
+    _c = ((_c & 0xf0) >> 4) | ((_c & 0x0f) << 4); \
+    return _c; }(c))
 
 #elif defined(LCD_COLOR_DEPTH_16)
 // RGB888 -> RGB565
 #define ADJ_COLOR(c) (((c) & 0xF80000) >> 8 | \
                       ((c) & 0x00FC00) >> 5 | \
                       ((c) & 0x0000F8) >> 3)
+#define COLOR_INV(c) ([](uint32_t _c) { \
+    _c = ((_c & 0xaaaa) >> 1) | ((_c & 0x5555) << 1); \
+    _c = ((_c & 0xcccc) >> 2) | ((_c & 0x3333) << 2); \
+    _c = ((_c & 0xf0f0) >> 4) | ((_c & 0x0f0f) << 4); \
+    _c = ((_c & 0xff00) >> 8) | ((_c & 0x00ff) << 8); \
+    return _c; }(c))
 
 #elif defined(LCD_COLOR_DEPTH_18)
 // RGB888 -> RGB666
 #define ADJ_COLOR(c) ((((c >> 18) & 0x3F) << 12) | \
                       (((c >> 10) & 0x3F) <<  6) | \
                       (((c >>  2) & 0x3F)))
+#define COLOR_INV(c) ([](uint32_t _c) { \
+    _c = ((_c & 0x2aaaa) >> 1) | ((_c & 0x15555) << 1); \
+    _c = ((_c & 0x33333) >> 2) | ((_c & 0x0cccc) << 2); \
+    _c = ((_c & 0x3c3c0) >> 4) | ((_c & 0x00f0f) << 4); \
+    _c = (_c >> 12) | ((_c & 0x00fff) << 6); \
+    return _c & 0x3ffff; }(c))
 
 #elif defined(LCD_COLOR_DEPTH_24)
 #define ADJ_COLOR(c) (c)
+#define COLOR_INV(c) ([](uint32_t _c) { \
+    _c = ((_c & 0xaaaaaa) >> 1) | ((_c & 0x555555) << 1); \
+    _c = ((_c & 0xcccccc) >> 2) | ((_c & 0x333333) << 2); \
+    _c = ((_c & 0xf0f0f0) >> 4) | ((_c & 0x0f0f0f) << 4); \
+    _c = (_c >> 16) | (_c & 0x00ff00) | ((_c & 0x0000ff) << 16); \
+    return _c; }(c))
 #endif
 
 #else
@@ -293,25 +318,28 @@ struct color
 #if defined(LCD_COLOR_DEPTH_1)
     bool toWord()
     {
+#if defined(LCD_INVERT_COLORS)
+        return !this->white;
+#else
         return this->white;
+#endif
     }
 #elif defined(LCD_COLOR_DEPTH_8)
     uint8_t toWord()
     {
+#if defined(LCD_INVERT_COLORS)
+        uint8_t color = (this->r << 5) | (this->g << 2) | this->b;
+        return COLOR_INV(color);
+#else
         return (this->r << 5) | (this->g << 2) | this->b;
+#endif
     }
 #elif defined(LCD_COLOR_DEPTH_16)
     uint16_t toWord()
     {
 #if defined(LCD_INVERT_COLORS)
         uint16_t color = (this->r << 11) | (this->g << 5) | this->b;
-
-        color = ((color & 0xaaaa) >> 1) | ((color & 0x5555) << 1);
-        color = ((color & 0xcccc) >> 2) | ((color & 0x3333) << 2);
-        color = ((color & 0xf0f0) >> 4) | ((color & 0x0f0f) << 4);
-        color = (color >> 8) | (color << 8);
-
-        return color;
+        return COLOR_INV(color);
 #else
         return (this->r << 11) | (this->g << 5) | this->b;
 #endif
@@ -320,18 +348,8 @@ struct color
     uint32_t toWord()
     {
 #if defined(LCD_INVERT_COLORS)
-        uint32_t r6 = r;
-        r6 = ((r6 & 0x2a) >> 1) | ((r6 & 0x15) << 1);
-        r6 = ((r6 & 0x30) >> 4) | (r6 & 0x0c) | ((r6 & 0x03) << 4);
-
-        uint32_t g6 = g;
-        g6 = ((g6 & 0x2a) >> 1) | ((g6 & 0x15) << 1);
-        g6 = ((g6 & 0x30) >> 4) | (g6 & 0x0c) | ((g6 & 0x03) << 4);
-
-        uint32_t b6 = b;
-        b6 = ((b6 & 0x2a) >> 1) | ((b6 & 0x15) << 1);
-        b6 = ((b6 & 0x30) >> 4) | (b6 & 0x0c) | ((b6 & 0x03) << 4);
-        return (b6 << 12) | (g6 << 6) | r6;
+        uint32_t color = (this->r << 12) | (this->g << 6) | this->b;
+        return COLOR_INV(color);
 #else
         return (this->r << 12) | (this->g << 6) | this->b;
 #endif
@@ -341,13 +359,7 @@ struct color
     {
 #if defined(LCD_INVERT_COLORS)
         uint32_t color = (this->r << 16) | (this->g << 8) | this->b;
-
-        color = ((color & 0xaaaaaa) >> 1) | ((color & 0x555555) << 1);
-        color = ((color & 0xcccccc) >> 2) | ((color & 0x333333) << 2);
-        color = ((color & 0xf0f0f0) >> 4) | ((color & 0x0f0f0f) << 4);
-        color = (color >> 8) | (color << 16);
-
-        return color;
+        return COLOR_INV(color);
 #else
         return (this->r << 16) | (this->g << 8) | this->b;
 #endif
