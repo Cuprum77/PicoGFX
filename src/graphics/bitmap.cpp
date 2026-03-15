@@ -177,7 +177,11 @@ void graphics::drawBitmap(const uint32_t *bitmap, uint32_t width, uint32_t heigh
                 uint8_t colorByte = ((const uint8_t*)bitmap)[(by * width + bx) * 3 + i];
                 colorWord |= colorByte << ((2 - i) * 8);
             }
-            colorWord = COLOR_INV(colorWord);
+
+            // convert to color first to fix the color depth if needed
+            color c = color(colorWord);
+            colorWord = c.toWord();
+            
             this->frameBuffer[y * this->display_ptr->getWidth() + x] = colorWord;
         }
     }
