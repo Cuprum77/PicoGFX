@@ -52,6 +52,10 @@ public:
     void drawBitmap(const uint16_t *bitmap, uint32_t width, uint32_t height, bool center);
     void drawBitmap(const uint16_t *bitmap, uint32_t width, uint32_t height, point start);
 
+    void drawBitmap(const uint32_t *bitmap, uint32_t width, uint32_t height);
+    void drawBitmap(const uint32_t *bitmap, uint32_t width, uint32_t height, bool center);
+    void drawBitmap(const uint32_t *bitmap, uint32_t width, uint32_t height, point start);
+
     void addBayerFilter(void);
     void addFloydSteinbergDithering(void);
     void addAntiAliasingFilter(void);
