@@ -385,13 +385,15 @@ void hardware_driver::writePixels(const color_t *data, size_t length)
     inline void hardware_driver::protocol_write_pixels(const color_t *data, size_t length)
     {
 #if defined(LCD_HARDWARE_PIO)
+#if defined(LCD_COLOR_DEPTH_18)
+        this->pio_set_bits(24);
+#else
         this->pio_set_bits(LCD_COLOR_DEPTH);
+#endif
 
-        for (size_t i = 0; i < length; i++) 
-        {
+        for (size_t i = 0; i < length; i++)
             pio_qspi_transmit(this->pio, this->sm, data[i], LCD_COLOR_DEPTH);
-        }
-        printf("\n");
+
         // Force the data pins to 0 to ensure that the command is sent correctly
         pio_sm_set_pins_with_mask(this->pio, this->sm, 0, (0xf << LCD_PIN_DAT0));
 
