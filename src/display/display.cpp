@@ -33,7 +33,6 @@ void display_obj::clear()
     uint32_t totalPixels = this->width * this->height;
     for (int32_t i = 0; i < totalPixels; i++)
         this->frameBuffer[i] = COLOR_BLACK;
-    this->setCursor({ 0, 0 });
     this->update();
 }
 
@@ -244,10 +243,14 @@ void display_obj::writePixels(const uint8_t *data, size_t length)
     // check if the data mode is set
     if (!this->dataMode)
     {
+        // set to single spi transfer mode if qspi is enabled
+        this->switchTransmissionMode(false);
         // set the data mode
         this->hw->setDataMode(this->RAMWR);
         this->dataMode = true;
     }
+    // set to quad spi transfer mode if qspi is enabled
+    this->switchTransmissionMode(true);
     // write the pixels
     this->hw->writePixels((const uint8_t *)data, length);
 }
@@ -275,10 +278,14 @@ void display_obj::writePixels(const uint16_t *data, size_t length)
     // check if the data mode is set
     if (!this->dataMode)
     {
+        // set to single spi transfer mode if qspi is enabled
+        this->switchTransmissionMode(false);
         // set the data mode
         this->hw->setDataMode(this->RAMWR);
         this->dataMode = true;
     }
+    // set to quad spi transfer mode if qspi is enabled
+    this->switchTransmissionMode(true);
     // write the pixels
     this->hw->writePixels((const uint16_t *)data, length);
 }
@@ -306,14 +313,17 @@ void display_obj::writePixels(const uint32_t *data, size_t length)
     // check if the data mode is set
     if (!this->dataMode)
     {
+        // set to single spi transfer mode if qspi is enabled
+        this->switchTransmissionMode(false);
         // set the data mode
         this->hw->setDataMode(this->RAMWR);
         this->dataMode = true;
     }
+    // set to quad spi transfer mode if qspi is enabled
+    this->switchTransmissionMode(true);
     // write the pixels
     this->hw->writePixels((const uint32_t *)data, length);
 }
-
 #endif
 
 /**
@@ -369,6 +379,9 @@ void display_obj::writeData(uint8_t command, const uint8_t *data, size_t length)
 {
     // set the data mode
     this->dataMode = false;
+
+    // set to single spi transfer mode if qspi is enabled
+    this->switchTransmissionMode(false);
     // write the command
     this->hw->writeData(command, data, length);
 }
@@ -393,6 +406,8 @@ inline void display_obj::columnAddressSet(uint32_t x0, uint32_t x1)
         (uint8_t)(x1 & 0xff)
     };
 
+    // set to single spi transfer mode if qspi is enabled
+    this->switchTransmissionMode(false);
     // write the data
     this->writeData(this->CASET, data, sizeof(data));
 }
@@ -417,6 +432,8 @@ inline void display_obj::rowAddressSet(uint32_t y0, uint32_t y1)
         (uint8_t)(y1 & 0xff)
     };
 
+    // set to single spi transfer mode if qspi is enabled
+    this->switchTransmissionMode(false);
     // write the data
     this->writeData(this->RASET, data, sizeof(data));
 }

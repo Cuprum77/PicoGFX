@@ -27,12 +27,12 @@ void hardware_driver::reset(uint32_t time_ms)
 #if defined(LCD_PIN_RST)
 #if defined(LCD_PIN_INV)
     gpio_put(LCD_PIN_RST, 1);
-    sleep_ms(time_ms);
+    sleep_ms(20);
     gpio_put(LCD_PIN_RST, 0);
     sleep_ms(time_ms);
 #else
     gpio_put(LCD_PIN_RST, 0);
-    sleep_ms(time_ms);
+    sleep_ms(20);
     gpio_put(LCD_PIN_RST, 1);
     sleep_ms(time_ms);
 #endif
@@ -59,6 +59,18 @@ void hardware_driver::writeData(uint8_t command, const uint8_t *data, size_t len
 void hardware_driver::setDataMode(uint8_t command)
 {
     this->protocol_set_data_mode(command);
+}
+
+/** 
+ * @brief Switch from slower to faster mode (e.g. SPI to QSPI) for pixel data transmission
+ * @param data Whether to switch to data mode (true) or command mode (false)
+ * @return void
+ * @note Does absolutely nothing in most drivers!
+ * @note But it is necessary for some protocols like QSPI that initializes in SPI
+ */
+void hardware_driver::switchTransmissionMode(bool data)
+{
+    this->speed_mode = data;
 }
 
 #if defined(LCD_COLOR_DEPTH_8)
@@ -301,95 +313,256 @@ void hardware_driver::writePixels(const uint32_t *data, size_t length)
 #elif defined(LCD_PROTOCOL_QSPI) 
     inline void hardware_driver::protocol_init()
     {
-        // create the first hw state machine
-        this->pio = pio0;
-        this->sm = pio_claim_unused_sm(this->pio, true);
-        this->offset = pio_add_program(this->pio, &pio_spi_program);
-        this->clkdiv = (float)clock_get_hz(clk_sys) / (float)LCD_BAUD_RATE;
-        pio_qspi_init(this->pio, this->sm, this->offset, LCD_PIN_DAT0,
-            LCD_PIN_SCL, this->clkdiv, (int)8);
-
         // set the pins to hw function
         gpio_init(LCD_PIN_CS);
-        gpio_init(LCD_PIN_DC);
         gpio_set_dir(LCD_PIN_CS, GPIO_OUT);
-        gpio_set_dir(LCD_PIN_DC, GPIO_OUT);
         gpio_put(LCD_PIN_CS, 1);
-        gpio_put(LCD_PIN_DC, 1);
+        this->reset(100);
+
+#if defined(LCD_HARDWARE_PIO)
+        // create the first hw state machine
+        if (!this->speed_mode)
+        {
+            this->pio = pio0;
+            this->sm = pio_claim_unused_sm(this->pio, true);
+            this->offset = pio_add_program(this->pio, &pio_spi_program);
+            this->clkdiv = (float)clock_get_hz(clk_sys) / (float)LCD_BAUD_RATE;
+            pio_spi_init(this->pio, this->sm, this->offset, LCD_PIN_DAT0, 
+                LCD_PIN_SCL, this->clkdiv, (int)8);
+        }
+        else
+        {
+            this->pio = pio0;
+            this->sm = pio_claim_unused_sm(this->pio, true);
+            this->offset = pio_add_program(this->pio, &pio_qspi_program);
+            this->clkdiv = (float)clock_get_hz(clk_sys) / (float)LCD_BAUD_RATE;
+#if defined(LCD_PIN_DAT_REVERSED)
+            pio_qspi_init(this->pio, this->sm, this->offset, LCD_PIN_DAT3,
+                LCD_PIN_SCL, this->clkdiv, (int)8);
+#else
+            pio_qspi_init(this->pio, this->sm, this->offset, LCD_PIN_DAT0,
+                LCD_PIN_SCL, this->clkdiv, (int)8);
+#endif
+        }
+
+#elif defined(LCD_HARDWARE_GPIO)
+#error "GPIO-based QSPI is not supported yet"
+#endif
     }
     
-    inline void hardware_driver::protocol_write_data(uint8_t command, const uint8_t *data, size_t length)
-    {
-        this->pio_set_bits(8);
-        pio_qspi_wait_idle(this->pio, this->sm);
-        this->set_spi_dc_cs(0, 0);
-        pio_qspi_transmit_8(this->pio, this->sm, command);
-        if(length)
+    inline void hardware_driver::protocol_write_data(uint8_t command, const uint8_t *data, size_t length, bool keep_cs)
+    {        
+#if defined(LCD_HARDWARE_PIO)
+        if (!this->speed_mode)
         {
-            pio_qspi_wait_idle(this->pio, this->sm);
-            this->set_spi_dc_cs(1, 0);
-            for(size_t i = 0; i < length; i++)
-                pio_qspi_transmit_8(this->pio, this->sm, *data++);
+            this->pio_set_bits(8);
+            pio_spi_wait_idle(this->pio, this->sm);
+            gpio_put(LCD_PIN_CS, 0);
+            int header = command == 0x2c ? 0x32 : 0x02;
+            pio_spi_transmit_8(this->pio, this->sm, header);
+            pio_spi_transmit_8(this->pio, this->sm, 0x00);
+            pio_spi_transmit_8(this->pio, this->sm, command);
+            pio_spi_transmit_8(this->pio, this->sm, 0x00);
+
+            if(length)
+            {
+                for(size_t i = 0; i < length; i++)
+                    pio_spi_transmit_8(this->pio, this->sm, *data++);
+            }
+            pio_spi_wait_idle(this->pio, this->sm);
+
+            // Force the data pins to 0 to ensure that the command is sent correctly
+            pio_sm_set_pins_with_mask(this->pio, this->sm, 0, (0xf << LCD_PIN_DAT0));
         }
-        pio_qspi_wait_idle(this->pio, this->sm);
-        this->set_spi_dc_cs(1, 1);
+        else
+        {            
+            gpio_put(LCD_PIN_CS, 0);
+            this->send_command_over_spi(0x12);
+
+            // Address bytes
+            this->pio_set_bits(8);
+            pio_qspi_transmit_8(this->pio, this->sm, 0x00);
+            pio_qspi_transmit_8(this->pio, this->sm, command);
+            pio_qspi_transmit_8(this->pio, this->sm, 0x00);
+            pio_spi_wait_idle(this->pio, this->sm);
+            if(length)
+            {
+                for(size_t i = 0; i < length; i++)
+                    pio_qspi_transmit_8(this->pio, this->sm, *data++);
+            }
+            pio_qspi_wait_idle(this->pio, this->sm);
+
+            // Force the data pins to 0 to ensure that the command is sent correctly
+            pio_sm_set_pins_with_mask(this->pio, this->sm, 0, (0xf << LCD_PIN_DAT0));
+        }
+#elif defined(LCD_HARDWARE_GPIO)
+        gpio_put(LCD_PIN_CS, 0);
+#error "GPIO-based QSPI is not supported yet"
+#endif
+        if (!keep_cs)
+            gpio_put(LCD_PIN_CS, 1);
     }
 
     inline void hardware_driver::protocol_set_data_mode(uint8_t command)
     {
-        this->protocol_write_data(command, nullptr, 0);
-        this->set_spi_dc_cs(1, 0);
+        this->protocol_write_data(command, nullptr, 0, true);
+        gpio_put(LCD_PIN_CS, 0);
     }
 
     inline void hardware_driver::protocol_write_pixels(void *data, size_t length)
     {
 #if defined(LCD_COLOR_DEPTH_8)
+#if defined(LCD_HARDWARE_PIO)
         this->pio_set_bits(8);
         while(length--)
             pio_qspi_transmit_8(this->pio, this->sm, *(uint8_t *)data++);
         pio_qspi_wait_idle(this->pio, this->sm);
-        this->set_spi_dc_cs(1, 1);
+
+        // Force the data pins to 0 to ensure that the command is sent correctly
+        pio_sm_set_pins_with_mask(this->pio, this->sm, 0, (0xf << LCD_PIN_DAT0));
+
+#elif defined(LCD_HARDWARE_GPIO)
+#endif
         
 #elif defined(LCD_COLOR_DEPTH_16)
+#if defined(LCD_HARDWARE_PIO)
         this->pio_set_bits(16);
         while(length--)
             pio_qspi_transmit_16(this->pio, this->sm, *(uint16_t *)data++);
         pio_qspi_wait_idle(this->pio, this->sm);
-        this->set_spi_dc_cs(1, 1);
+
+        // Force the data pins to 0 to ensure that the command is sent correctly
+        pio_sm_set_pins_with_mask(this->pio, this->sm, 0, (0xf << LCD_PIN_DAT0));
+
+#elif defined(LCD_HARDWARE_GPIO)
+#endif
+        
+#elif defined(LCD_COLOR_DEPTH_18)
+#if defined(LCD_HARDWARE_PIO)
+        this->pio_set_bits(8);
+
+        const uint32_t *pixels = (uint32_t *)data;
+        for (size_t i = 0; i < length; i++) 
+        {
+            uint8_t words[3] = {
+                (uint8_t)((pixels[i] >> 12) & 0x3f) << 2,
+                (uint8_t)((pixels[i] >>  6) & 0x3f) << 2,
+                (uint8_t)((pixels[i] >>  0) & 0x3f) << 2,
+            };
+            
+            for (uint32_t j = 0; j < 3; j++)
+                pio_qspi_transmit_8(this->pio, this->sm, words[j]);
+        }
+        pio_qspi_wait_idle(this->pio, this->sm);
+
+        // Force the data pins to 0 to ensure that the command is sent correctly
+        pio_sm_set_pins_with_mask(this->pio, this->sm, 0, (0xf << LCD_PIN_DAT0));
+
+#elif defined(LCD_HARDWARE_GPIO)
+#endif
 
 #elif defined(LCD_COLOR_DEPTH_24)
-        this->pio_set_bits(24);
-        while(length--)
-            pio_qspi_transmit_24(this->pio, this->sm, *(uint32_t *)data++);
+#if defined(LCD_HARDWARE_PIO)
+        this->pio_set_bits(8);
+
+        const uint32_t *pixels = (uint32_t *)data;
+        for (size_t i = 0; i < length; i++) 
+        {
+            uint8_t words[3] = {
+                (uint8_t)(pixels[i] >> 16),
+                (uint8_t)(pixels[i] >>  8),
+                (uint8_t)(pixels[i] >>  0),
+            };
+            
+            for (uint32_t j = 0; j < 3; j++)
+                pio_qspi_transmit_8(this->pio, this->sm, words[j]);
+        }
         pio_qspi_wait_idle(this->pio, this->sm);
-        this->set_spi_dc_cs(1, 1);
+
+        // Force the data pins to 0 to ensure that the command is sent correctly
+        pio_sm_set_pins_with_mask(this->pio, this->sm, 0, (0xf << LCD_PIN_DAT0));
+
+#elif defined(LCD_HARDWARE_GPIO)
+#endif
 
 #else
 #error "Unsupported color depth"
 
 #endif
+        gpio_put(LCD_PIN_CS, 1);
+
     }
 
     inline void hardware_driver::pio_set_bits(uint32_t bits)
     {
-        // Stop the state machine
-        pio_sm_set_enabled(this->pio, this->sm, false);
-        // Remove the program
-        pio_remove_program(this->pio, &pio_qspi_program, this->offset);
-        
-        // Re-add the program
-        this->offset = pio_add_program(this->pio, &pio_qspi_program);
-        // Re-initialize the state machine
-        pio_qspi_init(this->pio, this->sm, this->offset, LCD_PIN_DAT0, 
-            LCD_PIN_SCL, this->clkdiv, (int)bits);
+        if (!this->speed_mode)
+        {
+            // Stop the state machine
+            pio_sm_set_enabled(this->pio, this->sm, false);
+            // Remove the program and handle the case where the program was switched in the meantime
+            pio_remove_program(this->pio, &pio_spi_program, this->offset);
+            
+            // Re-add the program
+            this->offset = pio_add_program(this->pio, &pio_spi_program);
+            // Re-initialize the state machine
+            pio_spi_init(this->pio, this->sm, this->offset, LCD_PIN_DAT0, 
+                LCD_PIN_SCL, this->clkdiv, (int)bits);
+        }
+        else
+        {
+            // Stop the state machine
+            pio_sm_set_enabled(this->pio, this->sm, false);
+            // Remove the program and handle the case where the program was switched in the meantime
+            pio_remove_program(this->pio, &pio_qspi_program, this->offset);
+            
+            // Re-add the program
+            this->offset = pio_add_program(this->pio, &pio_qspi_program);
+            // Re-initialize the state machine
+#if defined(LCD_PIN_DAT_REVERSED)
+            pio_qspi_init(this->pio, this->sm, this->offset, LCD_PIN_DAT3,
+                LCD_PIN_SCL, this->clkdiv, (int)8);
+#else
+            pio_qspi_init(this->pio, this->sm, this->offset, LCD_PIN_DAT0,
+                LCD_PIN_SCL, this->clkdiv, (int)8);
+#endif
+        }
     }
 
-    inline void hardware_driver::set_spi_dc_cs(bool dc, bool cs)
+    inline void hardware_driver::send_command_over_spi(uint8_t command)
     {
-        sleep_us(1);
-        gpio_put_masked((1u << LCD_PIN_DC) | (1u << LCD_PIN_CS), 
-            !!dc << LCD_PIN_DC | !!cs << LCD_PIN_CS);
-        sleep_us(1);
+        if (!this->speed_mode)
+            return;
+        pio_spi_wait_idle(this->pio, this->sm);
+
+        // Stop the state machine
+        pio_sm_set_enabled(this->pio, this->sm, false);
+        // Remove the qspi program and handle the case where the program was switched in the meantime
+        pio_remove_program(this->pio, &pio_qspi_program, this->offset);
+
+        // Re-add the spi program
+        this->offset = pio_add_program(this->pio, &pio_spi_program);
+        // Re-initialize the state machine
+        pio_spi_init(this->pio, this->sm, this->offset, LCD_PIN_DAT0, 
+            LCD_PIN_SCL, this->clkdiv, (int)8);
+
+        pio_spi_transmit_8(this->pio, this->sm, command);
+        pio_spi_wait_idle(this->pio, this->sm);
+
+        // Stop the state machine
+        pio_sm_set_enabled(this->pio, this->sm, false);
+        // Remove the spi program and handle the case where the program was switched in the meantime
+        pio_remove_program(this->pio, &pio_spi_program, this->offset);
+
+        // Re-add the qspi program
+        this->offset = pio_add_program(this->pio, &pio_qspi_program);
+        // Re-initialize the state machine
+#if defined(LCD_PIN_DAT_REVERSED)
+            pio_qspi_init(this->pio, this->sm, this->offset, LCD_PIN_DAT3,
+                LCD_PIN_SCL, this->clkdiv, (int)8);
+#else
+            pio_qspi_init(this->pio, this->sm, this->offset, LCD_PIN_DAT0,
+                LCD_PIN_SCL, this->clkdiv, (int)8);
+#endif
     }
 
 #elif defined(LCD_PROTOCOL_I2C) 

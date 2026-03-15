@@ -72,9 +72,28 @@ void display_obj::setBrightnessRaw(uint8_t brightness)
 
 /**
  * @brief Get the backlight brightness
- * @return Brightness (0-255)
+ * @return Brightness (0-100%)
  */
 uint8_t display_obj::getBrightness(void)
+{
+    uint32_t brightness32 = this->brightness;
+#if defined(LCD_BACKLIGHT_INV)
+    brightness32 = 100 - brightness32;
+#endif
+    // convert brightness from 0-255 to 0-100
+    brightness32 = (brightness32 * 100) / 255;
+
+    // convert the brightness curve back to linear
+    brightness32 = sqrt(brightness32 * 100);
+
+    return brightness32;
+}
+
+/**
+ * @brief Get the backlight brightness
+ * @return Brightness (0-255)
+ */
+uint8_t display_obj::getBrightnessRaw(void)
 {
     return this->brightness;
 }

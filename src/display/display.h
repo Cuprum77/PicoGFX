@@ -25,6 +25,7 @@ public:
     void setBrightness(uint8_t brightness);
     void setBrightnessRaw(uint8_t brightness);
     uint8_t getBrightness(void);
+    uint8_t getBrightnessRaw(void);
 #else
     void setBrightness(bool on);
     bool getBrightness(void);
@@ -148,9 +149,9 @@ protected:
     point cursor = {0, 0};
     uint32_t totalPixels;
 
-    uint32_t width;
+    uint32_t width = LCD_WIDTH;
     uint32_t maxWidth;
-    uint32_t height;
+    uint32_t height = LCD_HEIGHT;
     uint32_t maxHeight;
 
     int32_t CASET;
@@ -166,6 +167,7 @@ protected:
     void writeData(uint8_t command, const uint8_t *data, size_t length);
     void writeData(uint8_t command, uint8_t data) { writeData(command, &data, 1); }
     void writeData(uint8_t command) { writeData(command, nullptr, 0); }
+    void switchTransmissionMode(bool data) { this->hw->switchTransmissionMode(data); }
     void swap_offsets(uint32_t rotation);
     inline void columnAddressSet(uint32_t x0, uint32_t x1);
     inline void rowAddressSet(uint32_t y0, uint32_t y1);

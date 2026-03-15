@@ -27,6 +27,14 @@
 #error "SPI protocol requires GPIO or PIO hardware interface"
 #endif
 
+#if defined(QSPI) && (!defined(GPIO) || !defined(PIO))
+// #error "QSPI protocol requires GPIO or PIO hardware interface"
+#endif
+
+#if defined(QSPI) && !defined(LCD_PIN_DAT_SEQUENTIAL)
+#error "QSPI protocol requires sequential data pins"
+#endif
+
 typedef struct pio_spi_inst 
 {
     PIO pio;
@@ -42,6 +50,7 @@ public:
 
     void writeData(uint8_t command, const uint8_t *data, size_t length);
     void setDataMode(uint8_t command);
+    void switchTransmissionMode(bool data);
     
 #if defined(LCD_COLOR_DEPTH_1)
     void writePixels(const bool *data, size_t length);
@@ -73,6 +82,7 @@ private:
 
     // general
     bool enabled = false;
+    bool speed_mode = false;
     uint32_t parallel_interface_mask = 0;
     uint32_t parallel_interface_min_pin = 0;
     uint32_t parallel_interface_max_pin = 0;
@@ -104,11 +114,11 @@ private:
 #elif defined(LCD_PROTOCOL_QSPI)
 #if defined(LCD_PIN_DAT_SEQUENTIAL)
     inline void protocol_init();
-    inline void protocol_write_data(uint8_t command, const uint8_t *data, size_t length);
+    inline void protocol_write_data(uint8_t command, const uint8_t *data, size_t length, bool keep_cs = false);
     inline void protocol_set_data_mode(uint8_t command);
     inline void protocol_write_pixels(void *data, size_t length);
     inline void pio_set_bits(uint32_t bits);
-    inline void set_spi_dc_cs(bool dc, bool cs);
+    inline void send_command_over_spi(uint8_t command);
 #else
 #error "QSPI protocol requires sequential data pins"
 #endif
