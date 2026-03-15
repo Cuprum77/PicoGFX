@@ -15,7 +15,7 @@
 class display_obj
 {
 public:
-    display_obj(hardware_driver *hw, void *frameBuffer, uint8_t CASET, uint8_t RASET, uint8_t RAMWR);
+    display_obj(hardware_driver *hw, color_t *frameBuffer, uint8_t CASET, uint8_t RASET, uint8_t RAMWR);
     uint32_t getRotation(void) { return this->rotation; }
     void clear(void);
 

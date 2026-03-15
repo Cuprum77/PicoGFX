@@ -3,18 +3,10 @@
 /**
  * @brief display initialization
 */
-display_obj::display_obj(hardware_driver *hw, void *frameBuffer, uint8_t CASET, uint8_t RASET, uint8_t RAMWR)
+display_obj::display_obj(hardware_driver *hw, color_t *frameBuffer, uint8_t CASET, uint8_t RASET, uint8_t RAMWR)
 {
     this->hw = hw;
-#if defined(LCD_COLOR_DEPTH_1)
-    this->frameBuffer = (bool *)frameBuffer;
-#elif defined(LCD_COLOR_DEPTH_8)
-    this->frameBuffer = (uint8_t *)frameBuffer;
-#elif defined(LCD_COLOR_DEPTH_16)
-    this->frameBuffer = (uint16_t *)frameBuffer;
-#elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
-    this->frameBuffer = (uint32_t *)frameBuffer;
-#endif
+    this->frameBuffer = frameBuffer;
     this->CASET = CASET;
     this->RASET = RASET;
     this->RAMWR = RAMWR;
@@ -215,8 +207,9 @@ void display_obj::writePixels(const color_t *data, size_t length)
         this->hw->setDataMode(this->RAMWR);
         this->dataMode = true;
     }
+    
     // write the pixels
-    this->hw->writePixels((const color_t *)data, length);
+    this->hw->writePixels(data, length);
 }
 
 /**
