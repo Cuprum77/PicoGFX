@@ -4,3 +4,4 @@ build/
 .vscode/
 *.uf2
 *.code-workspace
+*pico_sdk_import.cmake

@@ -10,7 +10,7 @@ font_file = ["RobotoMono.ttf", "ComicSans.ttf"]
 # Output directory
 output_dir = "../fonts/"
 # Standard font sizes
-font_size = [20, 22, 24, 28, 32, 48]
+font_size = [16, 20, 22, 24, 28, 32, 36, 48, 72]
 #font_size = [48]
 # Variables
 total_memory_usage = 0
@@ -62,7 +62,7 @@ def Compress(data):
         else:
             blacks += 1
 
-        if i == 0 or data[i - 1] == pixel:
+        if data[i - 1] == pixel:
             continue
 
         if pixel == 1:
@@ -158,12 +158,12 @@ def Generate_File(font_file, size):
         header = f"""#pragma once
 
 // Include the font struct for storing the font data
-#include "FontStruct.h"
+#include "fontstruct.h"
 
 // Estimated memory usage: {str(size_of_font).replace(",", " ")} bytes
 
 // Font bitmap data
-static const unsigned int {font_name}{size}_bitmap[] = {{
+static const uint32_t {font_name}{size}_bitmap[] = {{
     """
         f.write(header)
 
@@ -231,29 +231,31 @@ def Generate_Header():
     global total_memory_usage
 
     # Output bitmap as C header file
-    with open(os.path.abspath(output_dir) + '/' + "FontStruct.h", "w") as f:
+    with open(os.path.abspath(output_dir) + '/' + "fontstruct.h", "w") as f:
         header = f"""#pragma once
+
+#include <stdint.h>
 
 // Estimated total memory usage: {total_memory_usage} bytes
 
 // Struct for storing the location of the bitmap in memory
 // Offset is the number of pixels from the upper left corner
 typedef struct {{
-    unsigned int pointer;
-    unsigned int length;
-    unsigned char width;
-    unsigned char height;
-    signed char xOffset;
-    signed char yOffset;
+    uint32_t pointer;
+    uint32_t length;
+    uint8_t width;
+    uint8_t height;
+    int8_t xOffset;
+    int8_t yOffset;
 }} FontCharacter;
 
 
 // Struct for storing the font data
 typedef struct {{
-    const unsigned int *bitmap;
+    const uint32_t *bitmap;
     const FontCharacter *characters;
-    unsigned int size;
-    unsigned int newLineDistance;
+    uint32_t size;
+    uint32_t newLineDistance;
 }} FontStruct;
 """
         f.write(header)
