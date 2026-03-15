@@ -9,6 +9,8 @@
 #define COMMAND_RAMWR 0x2c
 #define COMMAND_CASET 0x2a
 #define COMMAND_RASET 0x2b
+#define COMMAND_BRIGHTNESS 0x51
+
 #define MAX_WIDTH 240
 #define MAX_HEIGHT 360
 
@@ -23,6 +25,10 @@ public:
 
     void set_rotation(uint32_t rotation);
     void set_display_state(bool on);
+    void setBrightness(uint8_t brightness);
+    void setBrightnessRaw(uint8_t brightness);
+    uint8_t getBrightness(void);
+    uint8_t getBrightnessRaw(void);
 
 private:
 #if defined(LCD_COLOR_DEPTH_16)
@@ -34,5 +40,7 @@ private:
 #else
 #error "Unsupported color depth for CNA3306"
 #endif
+
+    uint8_t brightness = 0;
 };
 #endif
