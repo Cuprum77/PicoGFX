@@ -11,12 +11,15 @@ class gradient_obj
 public:
     gradient_obj(color_t *frameBuffer, display_obj *display_ptr = nullptr);
 
-    void fillGradient(color startColor, color endColor, rect area);
-    void fillGradient(color startColor, color endColor, point start, point end);
-    void drawRotCircleGradient(circle c, int32_t rotationSpeed, color start, color end);
-    void drawRotCircleGradient(point center, int32_t radius, int32_t rotationSpeed, color start, color end);
-    void drawRotRectGradient(point center, int32_t width, int32_t height, int32_t rotationSpeed, color start, color end);
-    void drawRotRectGradient(point center, rect area, int32_t rotationSpeed, color start, color end);
+    void fillGradient(color lightColor, color darkColor, rect area);
+    void fillGradient(color lightColor, color darkColor, point start, point end);
+    void drawRotCircleGradient(circle c, int32_t rotationSpeed, color lightColor, color darkColor);
+    void drawRotCircleGradient(point center, int32_t radius, int32_t rotationSpeed, 
+        color lightColor, color darkColor);
+    void drawRotRectGradient(point center, int32_t width, int32_t height, 
+        int32_t rotationSpeed, color lightColor, color darkColor);
+    void drawRotRectGradient(point center, rect area, int32_t rotationSpeed, 
+        color lightColor, color end);
 private:
     color_t *frameBuffer;
     display_obj *display_ptr;

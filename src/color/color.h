@@ -2,8 +2,17 @@
     
 #include <stdint.h>
 #include "lcd_config.h"
+#include "gfxmath.h"
 
+#if defined(LCD_COLOR_DEPTH_1)
+#define MAX_COLOR_DIFF 1
+#elif defined(LCD_COLOR_DEPTH_8)
 #define MAX_COLOR_DIFF 255
+#elif defined(LCD_COLOR_DEPTH_16)
+#define MAX_COLOR_DIFF 511
+#elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
+#define MAX_COLOR_DIFF 1023
+#endif
 
 #if !defined(LCD_COLOR_DEPTH_1)
 #define COLOR_BLACK          0x000000
@@ -81,8 +90,8 @@
 
 #elif defined(LCD_COLOR_DEPTH_18)
 // RGB888 -> RGB666
-#define ADJ_COLOR(c) ((((c >> 18) & 0x3F) << 12) | \
-                      (((c >> 10) & 0x3F) <<  6) | \
+#define ADJ_COLOR(c) ((((c >> 18) & 0x3F) << 16) | \
+                      (((c >> 10) & 0x3F) <<  8) | \
                       (((c >>  2) & 0x3F)))
 #if defined(LCD_INVERT_COLORS)
 #define COLOR_INV(c) ([](uint32_t _c) { \
@@ -180,14 +189,8 @@ struct color
     uint16_t r : 5;
     uint16_t g : 6;
     uint16_t b : 5;
-// Unless the color depth can take advantage of a smaller data type, theres no point in keeping them separated
-#elif defined(LCD_COLOR_DEPTH_18)
-    uint32_t   : 14; // padding to align to byte boundary
-    uint32_t r : 6;
-    uint32_t g : 6;
-    uint32_t b : 6;
-#elif defined(LCD_COLOR_DEPTH_24)
-    uint32_t   : 8; // padding to align to byte boundary
+#elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
+    uint32_t   : 8;
     uint32_t r : 8;
     uint32_t g : 8;
     uint32_t b : 8;
@@ -219,9 +222,9 @@ struct color
         this->g = (c >> 5) & 0x3f;
         this->b = c & 0x1f;
 #elif defined(LCD_COLOR_DEPTH_18)
-        this->r = (c >> 12) & 0x3f;
-        this->g = (c >> 6) & 0x3f;
-        this->b = c & 0x3f;
+        this->r = ((c >> 16) & 0x3f) << 2;
+        this->g = ((c >> 8) & 0x3f) << 2;
+        this->b = (c & 0x3f) << 2;
 #elif defined(LCD_COLOR_DEPTH_24)
         this->r = (c >> 16) & 0xff;
         this->g = (c >> 8) & 0xff;
@@ -236,9 +239,27 @@ struct color
     */
     color(uint8_t c)
     {
-        this->r = (c >> 5) & 0x03;
-        this->g = (c >> 2) & 0x03;
-        this->b = c & 0x02;
+#if defined(LCD_COLOR_DEPTH_1)
+        this->white = c >= 0x7f;
+#else
+        uint8_t r = (c >> 5) & 0x7;
+        uint8_t g = (c >> 2) & 0x7;
+        uint8_t b = c & 0x3;
+
+// We can't get more information out of nothing, so we just put the bits in the right place
+#if defined(LCD_COLOR_DEPTH_16)
+        r <<= 2;
+        g <<= 3;
+        b <<= 3;
+#elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
+        r <<= 5;
+        g <<= 5;
+        b <<= 6;
+#endif
+        this->r = r;
+        this->g = g;
+        this->b = b;
+#endif
     }
 
     /**
@@ -249,23 +270,24 @@ struct color
     {
 #if defined(LCD_COLOR_DEPTH_1)
         this->white = c >= 0x7fff;
-#elif defined(LCD_COLOR_DEPTH_8)
-        this->r = (c >> 5) & 0x07;
-        this->g = (c >> 2) & 0x07;
-        this->b = c & 0x03;
-#elif defined(LCD_COLOR_DEPTH_16)
-        this->r = (c >> 11) & 0x1f;
-        this->g = (c >> 5) & 0x3f;
-        this->b = c & 0x1f;
+#else
+        uint8_t r = (c >> 11) & 0x1f;
+        uint8_t g = (c >> 5) & 0x3f;
+        uint8_t b = c & 0x1f;
+
+#if defined(LCD_COLOR_DEPTH_8)
+        r >>= 2;
+        g >>= 3;
+        b >>= 3;
 // We can't get more information out of nothing, so we just put the bits in the right place
-#elif defined(LCD_COLOR_DEPTH_18)
-        this->r = ((c >> 11) & 0x1f) << 1;
-        this->g = ((c >> 5) & 0x3f);
-        this->b = (c & 0x1f) << 1;
-#elif defined(LCD_COLOR_DEPTH_24)
-        this->r = ((c >> 11) & 0x1f) << 3;
-        this->g = ((c >> 5) & 0x3f) << 2;
-        this->b = (c & 0x1f) << 3;
+#elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
+        r <<= 3;
+        g <<= 2;
+        b <<= 3;
+#endif
+        this->r = r;
+        this->g = g;
+        this->b = b;
 #endif
     }
 
@@ -280,34 +302,24 @@ struct color
             this->white = true;
         else
             this->white = false;
-#elif defined(LCD_COLOR_DEPTH_8)
+#else
         uint8_t r = (c >> 16) & 0xff;
         uint8_t g = (c >> 8) & 0xff;
         uint8_t b = c & 0xff;
+#endif
 
-        this->r = r >> 5 & 0x07;
-        this->g = g >> 5 & 0x07;
-        this->b = b >> 6 & 0x03;
+#if defined(LCD_COLOR_DEPTH_8)
+        this->r = (r >> 5) & 0x07;
+        this->g = (g >> 5) & 0x07;
+        this->b = (b >> 6) & 0x03;
 #elif defined(LCD_COLOR_DEPTH_16)
-        uint8_t r = (c >> 16) & 0xff;
-        uint8_t g = (c >> 8) & 0xff;
-        uint8_t b = c & 0xff;
-
-        this->r = r >> 3 & 0x1f;
-        this->g = g >> 2 & 0x3f;
-        this->b = b >> 3 & 0x1f;
-#elif defined(LCD_COLOR_DEPTH_18)
-        uint8_t r = (c >> 16) & 0xff;
-        uint8_t g = (c >> 8) & 0xff;
-        uint8_t b = c & 0xff;
-
-        this->r = r >> 2 & 0x3f;
-        this->g = g >> 2 & 0x3f;
-        this->b = b >> 2 & 0x3f;
-#elif defined(LCD_COLOR_DEPTH_24)
-        this->r = (c >> 16) & 0xff;
-        this->g = (c >> 8) & 0xff;
-        this->b = c & 0xff;
+        this->r = (r >> 3) & 0x1f;
+        this->g = (g >> 2) & 0x3f;
+        this->b = (b >> 3) & 0x1f;
+#elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
+        this->r = r & 0xff;
+        this->g = g & 0xff;
+        this->b = b & 0xff;
 #endif
     }
 
@@ -330,8 +342,8 @@ struct color
     }
 
     /**
-     * @brief Returns the color as a 16 bit value
-     * @return 16-bit color
+     * @brief Returns the color as a the word size for the current color depth
+     * @return Color as a word
     */
     color_t toWord()
     {
@@ -341,9 +353,7 @@ struct color
         color_t color = (this->r << 5) | (this->g << 2) | this->b;
 #elif defined(LCD_COLOR_DEPTH_16)
         color_t color = (this->r << 11) | (this->g << 5) | this->b;
-#elif defined(LCD_COLOR_DEPTH_18)
-        color_t color = (this->r << 12) | (this->g << 6) | this->b;
-#elif defined(LCD_COLOR_DEPTH_24)
+#elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
         color_t color = (this->r << 16) | (this->g << 8) | this->b;
 #endif
         return COLOR_INV(color);
@@ -362,7 +372,7 @@ struct color
 #elif defined(LCD_COLOR_DEPTH_16)
         return color(0x1f - this->r, 0x3f - this->g, 0x1f - this->b);
 #elif defined(LCD_COLOR_DEPTH_18)
-        return color(0x3f - this->r, 0x3f - this->g, 0x3f - this->b);
+        return color(0xfc - this->r, 0xfc - this->g, 0xfc - this->b);
 #elif defined(LCD_COLOR_DEPTH_24)
         return color(0xff - this->r, 0xff - this->g, 0xff - this->b);
 #endif
@@ -422,6 +432,25 @@ struct color
         color_t result = (rb & 0xff00ff) | (g & 0x00ff00);
 
         return color(result);
+#endif
+    }
+
+    color interp(color c, uint32_t ratio, uint32_t max_diff = MAX_COLOR_DIFF) {
+#if defined(LCD_COLOR_DEPTH_1)
+        return ratio > (max_diff / 2) ? c : *this;
+#else
+        int32_t r = (int32_t)this->r + (((int32_t)c.r - this->r) 
+            * (int32_t)ratio + (int32_t)max_diff / 2) / (int32_t)max_diff;
+        int32_t g = (int32_t)this->g + (((int32_t)c.g - this->g) 
+            * (int32_t)ratio + (int32_t)max_diff / 2) / (int32_t)max_diff;
+        int32_t b = (int32_t)this->b + (((int32_t)c.b - this->b) 
+            * (int32_t)ratio + (int32_t)max_diff / 2) / (int32_t)max_diff;
+
+        clamp(r, 0, 255);
+        clamp(g, 0, 255);
+        clamp(b, 0, 255);
+
+        return color((uint8_t)r, (uint8_t)g, (uint8_t)b);
 #endif
     }
 

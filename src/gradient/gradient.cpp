@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 // create a global instance of the lookup tables
-uint16_t colorLUT[MAX_COLOR_DIFF + 1];
+color_t colorLUT[MAX_COLOR_DIFF + 1];
 
 /**
  * @brief Construct a new Advanced Graphics object
@@ -18,9 +18,10 @@ gradient_obj::gradient_obj(color_t *frameBuffer, display_obj *display_ptr)
 
 /**
  * @brief Fill the display with a color gradient
- * @param startColor color to start with
- * @param endColor color to end with
+ * @param lightColor color to start with
+ * @param darkColor color to end with
  * @param area The area to fill
+ * @warning The gradients will not properly work if the light and dark colors are not properly selected
 */
 void gradient_obj::fillGradient(color startColor, color endColor, rect area)
 {
@@ -29,21 +30,22 @@ void gradient_obj::fillGradient(color startColor, color endColor, rect area)
 
 /**
  * @brief Fill the display with a color gradient
- * @param startColor color to start with
- * @param endColor color to end with
+ * @param lightColor color to start with
+ * @param darkColor color to end with
  * @param start Start point
  * @param end End point
  * @note The start and end points are only used to find the direction of the gradient, it will still fill the entire display!
+ * @warning The gradients will not properly work if the light and dark colors are not properly selected
 */
-void gradient_obj::fillGradient(color startColor, color endColor, point start, point end)
+void gradient_obj::fillGradient(color lightColor, color darkColor, point start, point end)
 {
     // check if the start and end Points are the same
     if(start == end)
     {
-        uint16_t startColor16 = startColor.toWord();
+        color_t startColorWord = lightColor.toWord();
         uint32_t totalPixels = this->display_ptr->getWidth() * this->display_ptr->getHeight();
         for(int32_t i = 0; i < totalPixels; i++)
-            this->frameBuffer[i] = startColor16;
+            this->frameBuffer[i] = startColorWord;
 
         return;
     }
@@ -52,29 +54,33 @@ void gradient_obj::fillGradient(color startColor, color endColor, point start, p
     int32_t deltaX = end.x - start.x;
     int32_t deltaY = end.y - start.y;
     int32_t magnitudeSquared = (deltaX * deltaX + deltaY * deltaY);
+    int32_t gradientLengthFP = ((int64_t)magnitudeSquared << FIXED_POINT_SCALE_HIGH_RES_BITS) / magnitudeSquared;
 
     // find the maximum difference between the color components
-    int32_t dr = iabs(endColor.r - startColor.r);
-    int32_t dg = iabs(endColor.g - startColor.g);
-    int32_t db = iabs(endColor.b - startColor.b);
-    int32_t maxDiff = imax(dr, imax(dg, db));
+    int32_t dr = darkColor.r - lightColor.r;
+    int32_t dg = darkColor.g - lightColor.g;
+    int32_t db = darkColor.b - lightColor.b;
+    int32_t colorDistance = (dr * dr) + (dg * dg) + (db * db);
 
-    // create the lookup tables based on the maximum difference
-    uint32_t numPositions = maxDiff + 1;
+#if defined(LCD_COLOR_DEPTH_1)
+    uint32_t maxDistance = 3;
+#elif defined(LCD_COLOR_DEPTH_8)
+    uint32_t maxDistance = 7*7 + 7*7 + 3*3;
+#elif defined(LCD_COLOR_DEPTH_16)
+    uint32_t maxDistance = 31*31 + 63*63 + 31*31;
+#elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
+    uint32_t maxDistance = (255 * 255) * 3;
+#endif
 
     // loop through each position in the gradient
-    for(int32_t i = 0; i < numPositions; i++)
+    for(int32_t i = 0; i < MAX_COLOR_DIFF; i++)
     {
-        // interpolate the color components based on the position and add them to the lookup tables
-        unsigned char r = (((endColor.r - startColor.r) * i) / maxDiff + startColor.r) & 0x1f;
-        unsigned char g = (((endColor.g - startColor.g) * i) / maxDiff + startColor.g) & 0x3f;
-        unsigned char b = (((endColor.b - startColor.b) * i) / maxDiff + startColor.b) & 0x1f;
-		colorLUT[i] = (r << 11) | (g << 5) | b;
+        int32_t gammaIndex = ((int64_t)i * i) / MAX_COLOR_DIFF;
+        colorLUT[i] = (lightColor.interp(darkColor, gammaIndex, MAX_COLOR_DIFF)).toWord();
     }
 
     // precalculate the divisor
     int32_t magnitudeInverse = (FIXED_POINT_SCALE_HIGH_RES + (magnitudeSquared / 2)) / magnitudeSquared;
-
     // loop through each pixel in the buffer
     for(int32_t x = 0; x < this->display_ptr->getWidth(); x++)
     {
@@ -86,12 +92,10 @@ void gradient_obj::fillGradient(color startColor, color endColor, point start, p
 
             // calculate the distance along the gradient direction
             int32_t dotProduct = (vectorX * deltaX + vectorY * deltaY);
-            //int32_t position = (dotProduct * maxDiff) / magnitudeSquared;
-            int32_t position = ((dotProduct * maxDiff) * magnitudeInverse);
-            position >>= FIXED_POINT_SCALE_HIGH_RES_BITS;
+            int32_t position = ((int64_t)dotProduct * (MAX_COLOR_DIFF - 1) * magnitudeInverse) >> FIXED_POINT_SCALE_HIGH_RES_BITS;
 
             // clamp the position within the valid range
-            position = (position < 0) ? 0 : (position > maxDiff) ? maxDiff : position;
+            position = (position < 0) ? 0 : (position > MAX_COLOR_DIFF) ? MAX_COLOR_DIFF : position;
 
             // draw the pixel
 			this->frameBuffer[x + y * this->display_ptr->getWidth()] = colorLUT[position];
@@ -103,12 +107,12 @@ void gradient_obj::fillGradient(color startColor, color endColor, point start, p
  * @brief Draw a circle gradient
  * @param c Circle to draw
  * @param rotationSpeed The speed at which the gradient rotates
- * @param start The color to start the gradient with
- * @param end The color to end the gradient with
+ * @param lightColor The color to start the gradient with
+ * @param darkColor The color to end the gradient with
  */
-void gradient_obj::drawRotCircleGradient(circle c, int32_t rotationSpeed, color start, color end)
+void gradient_obj::drawRotCircleGradient(circle c, int32_t rotationSpeed, color lightColor, color darkColor)
 {
-    this->drawRotCircleGradient(c.getCenter(), c.getRadius(), rotationSpeed, start, end);
+    this->drawRotCircleGradient(c.getCenter(), c.getRadius(), rotationSpeed, lightColor, darkColor);
 }
 
 /**
@@ -116,30 +120,29 @@ void gradient_obj::drawRotCircleGradient(circle c, int32_t rotationSpeed, color 
  * @param center The center of the circle
  * @param radius The radius of the circle
  * @param rotationSpeed The speed at which the gradient rotates
- * @param start The color to start the gradient with
- * @param end The color to end the gradient with
+ * @param lightColor The color to start the gradient with
+ * @param darkColor The color to end the gradient with
 */
-void gradient_obj::drawRotCircleGradient(point center, int32_t radius, int32_t rotationSpeed, color start, color end)
+void gradient_obj::drawRotCircleGradient(point center, int32_t radius, int32_t rotationSpeed, 
+    color lightColor, color darkColor)
 {
-    this->theta += rotationSpeed;
-    this->theta = this->theta % 360;
+    // Ensure theta stays positive for the modulo
+    this->theta = (this->theta + rotationSpeed + 360) % 360;
 
     int32_t cosTheta = icos(this->theta);
     int32_t sinTheta = isin(this->theta);
 
-    point rotGradStart = point(
-        center.x - (radius * cosTheta),
-        center.y - (radius * sinTheta)
-    );
-    rotGradStart >>= SIN_MULTIPLIER_BITS;
-    
-    point rotGradEnd = point(
-        center.x + (radius * cosTheta),
-        center.y + (radius * sinTheta)
-    );
-    rotGradEnd >>= SIN_MULTIPLIER_BITS;
+    // Calculate the scaled offsets
+    // radius * 2^16 can be up to 2,147,483,647 (max int32) if radius is ~32767
+    // So we are safe with int32_t here for standard screen sizes.
+    int32_t dx = (radius * cosTheta) >> 16;
+    int32_t dy = (radius * sinTheta) >> 16;
 
-    this->fillGradient(start, end, rotGradStart, rotGradEnd);
+    // Now apply to the center pixel coordinates
+    point rotGradStart = point(center.x - dx, center.y - dy);
+    point rotGradEnd   = point(center.x + dx, center.y + dy);
+
+    this->fillGradient(lightColor, darkColor, rotGradStart, rotGradEnd);
 }
 
 /**
@@ -148,10 +151,11 @@ void gradient_obj::drawRotCircleGradient(point center, int32_t radius, int32_t r
  * @param width The width of the rectangle
  * @param height The height of the rectangle
  * @param rotationSpeed The speed at which the gradient rotates
- * @param start The color to start the gradient with
- * @param end The color to end the gradient with
+ * @param lightColor The color to start the gradient with
+ * @param darkColor The color to end the gradient with
 */
-void gradient_obj::drawRotRectGradient(point center, int32_t width, int32_t height, int32_t rotationSpeed, color start, color end)
+void gradient_obj::drawRotRectGradient(point center, int32_t width, int32_t height, 
+    int32_t rotationSpeed, color lightColor, color darkColor)
 {
     this->theta += rotationSpeed;
     this->theta = this->theta % 360;
@@ -185,7 +189,7 @@ void gradient_obj::drawRotRectGradient(point center, int32_t width, int32_t heig
         center.y - (rotGradStart.y - center.y)
     );
 
-    this->fillGradient(start, end, rotGradStart, rotGradEnd);
+    this->fillGradient(lightColor, darkColor, rotGradStart, rotGradEnd);
 }
 
 /**
@@ -193,10 +197,11 @@ void gradient_obj::drawRotRectGradient(point center, int32_t width, int32_t heig
  * @param center The center of the rectangle
  * @param area The area to fill
  * @param rotationSpeed The speed at which the gradient rotates
- * @param start The color to start the gradient with
- * @param end The color to end the gradient with
+ * @param lightColor The color to start the gradient with
+ * @param darkColor The color to end the gradient with
  */
-void gradient_obj::drawRotRectGradient(point center, rect area, int32_t rotationSpeed, color start, color end)
+void gradient_obj::drawRotRectGradient(point center, rect area, int32_t rotationSpeed, 
+    color lightColor, color darkColor)
 {
-    this->drawRotRectGradient(center, area.width(), area.height(), rotationSpeed, start, end);
+    this->drawRotRectGradient(center, area.width(), area.height(), rotationSpeed, lightColor, darkColor);
 }
