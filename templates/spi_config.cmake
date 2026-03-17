@@ -18,6 +18,8 @@ set(LCD_SPI_INSTANCE    ?)
 set(LCD_BAUD_RATE       ?)
 # Set the color depth of the display (1, 8, 16, 18, or 24 bits per pixel)
 set(LCD_COLOR_DEPTH     ?)
+# What memory to store the framebuffer in (SRAM or PSRAM or NONE), most use SRAM
+set(LCD_FB_MEMORY       SRAM)
 
 # Set the width of the display in pixels
 set(LCD_WIDTH           ?)
