@@ -8,10 +8,6 @@
 #define COMMAND_RAMWR 0x2c
 #define COMMAND_CASET 0x2a
 #define COMMAND_RASET 0x2b
-#define MAX_WIDTH 240
-#define MAX_HEIGHT 240
-
-#define FRAMEBUFFER_SIZE MAX_WIDTH * MAX_HEIGHT
 
 class gc9a01 : public display_obj
 {
