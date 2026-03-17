@@ -20,6 +20,22 @@ string(APPEND CONFIG_CONTENT "#define LCD_ROTATION_${LCD_ROTATION}\n\n")
 string(APPEND CONFIG_CONTENT "#define LCD_DRIVER_${LCD_DRIVER}\n")
 string(APPEND CONFIG_CONTENT "#define LCD_HARDWARE_${LCD_HARDWARE}\n")
 string(APPEND CONFIG_CONTENT "#define LCD_COLOR_DEPTH_${LCD_COLOR_DEPTH}\n")
+
+# If the user sets a framebuffer memory type, define it
+if (DEFINED LCD_FB_MEMORY)
+    string(APPEND CONFIG_CONTENT "#define LCD_FB_MEMORY_${LCD_FB_MEMORY}\n")
+else()
+    string(APPEND CONFIG_CONTENT "#define LCD_FB_MEMORY_NONE\n")
+endif()
+# Define the max framebuffer size based on the display resolution
+math(EXPR FRAMEBUFFER_SIZE "${LCD_WIDTH} * ${LCD_HEIGHT}")
+string(APPEND CONFIG_CONTENT "#define LCD_FRAMEBUFFER_SIZE ${FRAMEBUFFER_SIZE}\n\n")
+
+# If the user sets RGB and not SPI_RGB, set the define for disabling memory commands
+if (LCD_HARDWARE STREQUAL "RGB" AND NOT LCD_PROTOCOL STREQUAL "SPI_RGB")
+    string(APPEND CONFIG_CONTENT "#define LCD_NO_MEMORY_COMMANDS\n")
+endif()
+
 # Color depth of 18 bits is technically pseudo 24 bit on several displays
 if (LCD_COLOR_DEPTH STREQUAL "18")
     string(APPEND CONFIG_CONTENT "#define LCD_COLOR_DEPTH 24\n")
@@ -46,12 +62,32 @@ if(LCD_PROTOCOL STREQUAL "PARALLEL_8" OR
     endforeach()
 
     string(APPEND CONFIG_CONTENT "\n")
-    string(APPEND CONFIG_CONTENT "#define LCD_PIN_WR  ${LCD_PIN_WR}\n")
-    string(APPEND CONFIG_CONTENT "#define LCD_PIN_RD  ${LCD_PIN_RD}\n")
-    string(APPEND CONFIG_CONTENT "#define LCD_PIN_CS  ${LCD_PIN_CS}\n")
-    string(APPEND CONFIG_CONTENT "#define LCD_PIN_DC  ${LCD_PIN_DC}\n")
-    string(APPEND CONFIG_CONTENT "#define LCD_PIN_RST ${LCD_PIN_RST}\n")
-    string(APPEND CONFIG_CONTENT "#define LCD_PIN_IM0 ${LCD_PIN_IM0}\n")
+    if (LCD_HARDWARE STREQUAL "GPIO")
+        string(APPEND CONFIG_CONTENT "#define LCD_PIN_WR  ${LCD_PIN_WR}\n")
+        string(APPEND CONFIG_CONTENT "#define LCD_PIN_RD  ${LCD_PIN_RD}\n")
+        string(APPEND CONFIG_CONTENT "#define LCD_PIN_CS  ${LCD_PIN_CS}\n")
+        string(APPEND CONFIG_CONTENT "#define LCD_PIN_DC  ${LCD_PIN_DC}\n")
+        string(APPEND CONFIG_CONTENT "#define LCD_PIN_RST ${LCD_PIN_RST}\n")
+        string(APPEND CONFIG_CONTENT "#define LCD_PIN_IM0 ${LCD_PIN_IM0}\n")
+    elseif (LCD_HARDWARE STREQUAL "RGB")
+        string(APPEND CONFIG_CONTENT "#define LCD_PIN_DE  ${LCD_PIN_DE}\n")
+        string(APPEND CONFIG_CONTENT "#define LCD_PIN_VSYNC  ${LCD_PIN_VSYNC}\n")
+        string(APPEND CONFIG_CONTENT "#define LCD_PIN_HSYNC  ${LCD_PIN_HSYNC}\n")
+        string(APPEND CONFIG_CONTENT "#define LCD_PIN_PCLK   ${LCD_PIN_PCLK}\n")
+        if (DEFINED LCD_PIN_EN)
+            string(APPEND CONFIG_CONTENT "#define LCD_PIN_EN     ${LCD_PIN_RST}\n")
+        endif()
+        string(APPEND CONFIG_CONTENT "#define LCD_PIN_RST    ${LCD_PIN_RST}\n")
+
+        # For RGB, also include the timing parameters
+        string(APPEND CONFIG_CONTENT "\n#define LCD_DCLK_FREQ ${LCD_DCLK_FREQ}\n")
+        string(APPEND CONFIG_CONTENT "#define LCD_HSYNC_BPORCH ${LCD_HSYNC_BPORCH}\n")
+        string(APPEND CONFIG_CONTENT "#define LCD_HSYNC_FPORCH ${LCD_HSYNC_FPORCH}\n")
+        string(APPEND CONFIG_CONTENT "#define LCD_HSYNC_PULSE ${LCD_HSYNC_PULSE}\n")
+        string(APPEND CONFIG_CONTENT "#define LCD_VSYNC_BPORCH ${LCD_VSYNC_BPORCH}\n")
+        string(APPEND CONFIG_CONTENT "#define LCD_VSYNC_FPORCH ${LCD_VSYNC_FPORCH}\n")
+        string(APPEND CONFIG_CONTENT "#define LCD_VSYNC_PULSE ${LCD_VSYNC_PULSE}\n")
+    endif()
 
     # After the DB pin defines are written, check ordering
     set(DB_PINS "")
@@ -94,7 +130,7 @@ if(LCD_PROTOCOL STREQUAL "PARALLEL_8" OR
         list(GET DB_PINS 0 DB_BASE_PIN)
         string(APPEND CONFIG_CONTENT "#define LCD_PIN_DB_SEQUENTIAL\n")
         string(APPEND CONFIG_CONTENT "#define LCD_PIN_DB_REVERSED\n")
-        string(APPEND CONFIG_CONTENT "#define LCD_INVERT_COLORS\n\n")
+        string(APPEND CONFIG_CONTENT "#define LCD_INVERT_COLORS\n")
     endif()
 
     set(DB_ARRAY_CONTENT "")
@@ -108,7 +144,7 @@ if(LCD_PROTOCOL STREQUAL "PARALLEL_8" OR
     endforeach()
 
     string(JOIN ", " DB_ARRAY_CONTENT ${DB_ARRAY_CONTENT})
-    string(APPEND CONFIG_CONTENT "\n#define LCD_PIN_DB_ARRAY { ${DB_ARRAY_CONTENT} }\n")
+    string(APPEND CONFIG_CONTENT "#define LCD_PIN_DB_ARRAY { ${DB_ARRAY_CONTENT} }\n")
 
 elseif(LCD_PROTOCOL STREQUAL "SPI")
     string(APPEND CONFIG_CONTENT "#define LCD_PIN_SCL  ${LCD_PIN_SCL}\n")
@@ -174,7 +210,7 @@ elseif(LCD_PROTOCOL STREQUAL "QSPI")
         list(GET DAT_PIN_LIST 0 DAT_BASE_PIN)
         string(APPEND CONFIG_CONTENT "#define LCD_PIN_DAT_SEQUENTIAL\n")
         string(APPEND CONFIG_CONTENT "#define LCD_PIN_DAT_REVERSED\n")
-        string(APPEND CONFIG_CONTENT "#define LCD_INVERT_COLORS\n\n")
+        string(APPEND CONFIG_CONTENT "#define LCD_INVERT_COLORS\n")
     endif()
     
     if (DEFINED LCD_BAUD_RATE)
@@ -205,7 +241,7 @@ endif()
 # Touch (optional)
 # ==========================================
 if(DEFINED TOUCH_DRIVER)
-    string(APPEND CONFIG_CONTENT "\n/* Touch configuration */\n\n")
+    string(APPEND CONFIG_CONTENT "\n/* Touch configuration */\n")
     string(APPEND CONFIG_CONTENT "#define TOUCH_ENABLED\n")
     string(APPEND CONFIG_CONTENT "\n#define TOUCH_DRIVER_${TOUCH_DRIVER}\n")
     string(APPEND CONFIG_CONTENT "#define TOUCH_PROTOCOL_${TOUCH_PROTOCOL}\n")

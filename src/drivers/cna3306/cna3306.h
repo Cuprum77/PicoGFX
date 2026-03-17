@@ -11,11 +11,6 @@
 #define COMMAND_RASET 0x2b
 #define COMMAND_BRIGHTNESS 0x51
 
-#define MAX_WIDTH 240
-#define MAX_HEIGHT 360
-
-#define FRAMEBUFFER_SIZE MAX_WIDTH * MAX_HEIGHT
-
 class cna3306 : public display_obj
 {
 public:
@@ -31,7 +26,7 @@ public:
     uint8_t getBrightnessRaw(void);
 
 private:
-    color_t framebuffer[FRAMEBUFFER_SIZE];
+    color_t framebuffer[LCD_FRAMEBUFFER_SIZE];
     uint8_t brightness = 0;
 };
 #endif

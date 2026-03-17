@@ -8,10 +8,6 @@
 #define COMMAND_RAMWR 0x2c
 #define COMMAND_CASET 0x2a
 #define COMMAND_RASET 0x2b
-#define MAX_WIDTH 240
-#define MAX_HEIGHT 320
-
-#define FRAMEBUFFER_SIZE MAX_WIDTH * MAX_HEIGHT
 
 class st7789 : public display_obj
 {
@@ -24,6 +20,6 @@ public:
     void set_display_state(bool on);
 
 private:
-    color_t framebuffer[FRAMEBUFFER_SIZE];
+    color_t framebuffer[LCD_FRAMEBUFFER_SIZE];
 };
 #endif

@@ -3,8 +3,8 @@
 
 void cna3306::init() 
 { 
-    this->maxWidth  = MAX_WIDTH; 
-    this->maxHeight = MAX_HEIGHT; 
+    this->maxWidth  = LCD_WIDTH; 
+    this->maxHeight = LCD_HEIGHT; 
 
     // Software reset 
     this->writeData(0x01, nullptr, 0); 
@@ -67,29 +67,29 @@ void cna3306::set_rotation(uint32_t rotation)
             this->writeData(0x36, 0x00);
 			this->height = height;
 			this->width = width;
-            this->maxWidth = MAX_WIDTH;
-            this->maxHeight = MAX_HEIGHT;
+            this->maxWidth = LCD_WIDTH;
+            this->maxHeight = LCD_HEIGHT;
             break;
         case 90:
 			this->writeData(0x36, 0x20);
 			this->height = width;
 			this->width = height;
-            this->maxWidth = MAX_HEIGHT;
-            this->maxHeight = MAX_WIDTH;
+            this->maxWidth = LCD_HEIGHT;
+            this->maxHeight = LCD_WIDTH;
             break;
         case 180:
 			this->writeData(0x36, 0xc0);
 			this->height = height;
 			this->width = width;
-            this->maxWidth = MAX_WIDTH;
-            this->maxHeight = MAX_HEIGHT;
+            this->maxWidth = LCD_WIDTH;
+            this->maxHeight = LCD_HEIGHT;
             break;
         case 270:
 			this->writeData(0x36, 0x60);
 			this->height = width;
 			this->width = height;
-            this->maxWidth = MAX_HEIGHT;
-            this->maxHeight = MAX_WIDTH;
+            this->maxWidth = LCD_HEIGHT;
+            this->maxHeight = LCD_WIDTH;
             break;
         default:
             return;
