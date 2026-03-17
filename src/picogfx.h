@@ -18,6 +18,9 @@
 #elif defined(LCD_DRIVER_UC8151)
     #include "uc8151.h"
     using display_driver_t = uc8151;
+#elif defined(LCD_DRIVER_ST7262)
+    #include "st7262.h"
+    using display_driver_t = st7262;
 #else
     #error "No display driver defined"
 #endif

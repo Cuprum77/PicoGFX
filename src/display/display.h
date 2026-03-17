@@ -15,7 +15,7 @@
 class display_obj
 {
 public:
-#if defined(LCD_EINK_DRIVER)
+#if defined(LCD_NO_MEMORY_COMMANDS) || defined(LCD_EINK_DRIVER)
     display_obj(hardware_driver *hw, color_t *frameBuffer);
 #else
     display_obj(hardware_driver *hw, color_t *frameBuffer, 

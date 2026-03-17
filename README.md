@@ -7,6 +7,7 @@ This is my work in progress RP2040 based display driver for the different cheap 
 * ST7789    (240x320)
 * CNA3306   (240x320)
 * UC8151    (128x296)
+* ST7262    (800x480) (RGB interface only, requires PSRAM for framebuffer)
 
 ## License
 See the [LICENSE](LICENSE) file for license rights and limitations.

@@ -1,8 +1,8 @@
 #include "display.h"
 
-#if defined(LCD_EINK_DRIVER)
+#if defined(LCD_EINK_DRIVER) || defined(LCD_NO_MEMORY_COMMANDS)
 /**
- * @brief display initialization for e-ink displays
+ * @brief display initialization for non-mipi displays
 */
 display_obj::display_obj(hardware_driver *hw, color_t *frameBuffer)
 {
@@ -10,14 +10,18 @@ display_obj::display_obj(hardware_driver *hw, color_t *frameBuffer)
     this->frameBuffer = frameBuffer;
     this->width = LCD_WIDTH;
     this->height = LCD_HEIGHT;
-    this->isEINK = true;
 }
 #else
 /**
  * @brief display initialization
+ * @param hw Pointer to the hardware driver
+ * @param frameBuffer Pointer to the frame buffer
+ * @param CASET Command to set the column address
+ * @param RASET Command to set the row address
+ * @param RAMWR Command to write to memory
 */
 display_obj::display_obj(hardware_driver *hw, color_t *frameBuffer, 
-    uint32_t *CASET, uint32_t *RASET, uint32_t *RAMWR)
+    uint32_t CASET, uint32_t RASET, uint32_t RAMWR)
 {
     this->hw = hw;
     this->frameBuffer = frameBuffer;
@@ -26,7 +30,6 @@ display_obj::display_obj(hardware_driver *hw, color_t *frameBuffer,
     this->RAMWR = RAMWR;
     this->width = LCD_WIDTH;
     this->height = LCD_HEIGHT;
-    this->isEINK = false;
 }
 #endif
 

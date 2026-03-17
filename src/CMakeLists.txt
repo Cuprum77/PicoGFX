@@ -16,6 +16,7 @@ add_library(${PROJECT_NAME}
     display/display.cpp
     drivers/driver.cpp
     drivers/cna3306/cna3306.cpp
+    drivers/st7262/st7262.cpp
     drivers/st7789/st7789.cpp
     drivers/gc9a01/gc9a01.cpp
     drivers/uc8151/uc8151.cpp
@@ -33,6 +34,7 @@ add_library(${PROJECT_NAME}
     graphics/filter.cpp
     graphics/gfxmath.c
     graphics/trig.c
+    memory/memory.c
     print/print.cpp
     subsys/qr/qr.cpp
     picogfx.cpp
@@ -47,6 +49,7 @@ target_include_directories(${PROJECT_NAME}
     PUBLIC ${PROJECT_SOURCE_DIR}/display
     PUBLIC ${PROJECT_SOURCE_DIR}/drivers
     PUBLIC ${PROJECT_SOURCE_DIR}/drivers/cna3306
+    PUBLIC ${PROJECT_SOURCE_DIR}/drivers/st7262
     PUBLIC ${PROJECT_SOURCE_DIR}/drivers/st7789
     PUBLIC ${PROJECT_SOURCE_DIR}/drivers/gc9a01
     PUBLIC ${PROJECT_SOURCE_DIR}/drivers/uc8151
@@ -56,6 +59,8 @@ target_include_directories(${PROJECT_NAME}
     PUBLIC ${PROJECT_SOURCE_DIR}/gauge
     PUBLIC ${PROJECT_SOURCE_DIR}/gradient
     PUBLIC ${PROJECT_SOURCE_DIR}/graphics
+    PUBLIC ${PROJECT_SOURCE_DIR}/memory
+    PUBLIC ${PROJECT_SOURCE_DIR}/shapes
     PUBLIC ${PROJECT_SOURCE_DIR}/print
     PUBLIC ${PROJECT_SOURCE_DIR}/shapes
     PUBLIC ${PROJECT_SOURCE_DIR}/subsys
@@ -65,6 +70,9 @@ target_include_directories(${PROJECT_NAME}
 
 pico_generate_pio_header(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/drivers/pio_spi.pio)
 pico_generate_pio_header(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/drivers/pio_qspi.pio)
+pico_generate_pio_header(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/drivers/pio_rgb8.pio)
+pico_generate_pio_header(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/drivers/pio_rgb16.pio)
+pico_generate_pio_header(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/drivers/pio_rgb24.pio)
 
 target_link_libraries(${PROJECT_NAME} 
     pico_stdlib
