@@ -19,7 +19,7 @@ public:
     display_obj(hardware_driver *hw, color_t *frameBuffer);
 #else
     display_obj(hardware_driver *hw, color_t *frameBuffer, 
-        uint32_t *CASET, uint32_t *RASET, uint32_t *RAMWR);
+        uint32_t CASET, uint32_t RASET, uint32_t RAMWR);
 #endif
     uint32_t getRotation(void) { return this->rotation; }
     void clear(void);
