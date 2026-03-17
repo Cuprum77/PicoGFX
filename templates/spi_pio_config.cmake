@@ -1,4 +1,4 @@
-# spi_config.cmake
+# spi_pio_config.cmake
 
 # Set the driver for the display, e.g. ST7789, GC9A01, etc.
 set(LCD_DRIVER          ?)
