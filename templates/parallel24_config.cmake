@@ -1,4 +1,4 @@
-# parallel8_config.cmake
+# parallel24_config.cmake
 
 # Set the driver for the display, e.g. ST7789, GC9A01, etc.
 set(LCD_DRIVER          ?)
@@ -13,7 +13,7 @@ set(LCD_PROTOCOL        PARALLEL_24)
 # Set the hardware interface used to communicate with the display (PIO, GPIO, or HW)
 set(LCD_HARDWARE        GPIO)
 # Set the color depth of the display (1, 8, 16, 18, or 24 bits per pixel)
-set(LCD_COLOR_DEPTH     ?)
+set(LCD_COLOR_DEPTH     24)
 
 # Set the width of the display in pixels
 set(LCD_WIDTH           ?)
