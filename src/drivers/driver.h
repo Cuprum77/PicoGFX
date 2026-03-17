@@ -10,10 +10,11 @@
 #include "lcd_config.h"
 #include "color.h"
 
-#if defined(LCD_HARDWARE_PIO)
+#if defined(LCD_PROTOCOL_SPI) && defined(LCD_HARDWARE_PIO)
 #include "pio_spi.pio.h"
 
 #elif defined(LCD_PROTOCOL_QSPI) && defined(LCD_HARDWARE_PIO)
+#include "pio_spi.pio.h"
 #include "pio_qspi.pio.h"
 
 #elif defined(LCD_HARDWARE_RGB)
