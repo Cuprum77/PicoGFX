@@ -6,6 +6,7 @@ This is my work in progress RP2040 based display driver for the different cheap 
 * GC9A01    (240x240)
 * ST7789    (240x320)
 * CNA3306   (240x320)
+* ST7262    (800x480) (RGB interface only, requires PSRAM for framebuffer)
 
 ## License
 See the [LICENSE](LICENSE) file for license rights and limitations.

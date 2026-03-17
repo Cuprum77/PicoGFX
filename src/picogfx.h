@@ -15,6 +15,9 @@
 #elif defined(LCD_DRIVER_CNA3306)
     #include "cna3306.h"
     using display_driver_t = cna3306;
+#elif defined(LCD_DRIVER_ST7262)
+    #include "st7262.h"
+    using display_driver_t = st7262;
 #else
     #error "No display driver defined"
 #endif

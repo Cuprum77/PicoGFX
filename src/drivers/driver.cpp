@@ -497,82 +497,103 @@ void hardware_driver::writePixels(const color_t *data, size_t length)
     || defined(LCD_PROTOCOL_PARALLEL_8)
     inline void hardware_driver::protocol_init()
     {
-    // Set the pins to output
-    gpio_init(LCD_PIN_RST);
-    gpio_set_dir(LCD_PIN_RST, GPIO_OUT);
-    gpio_put(LCD_PIN_RST, 1);
-    gpio_pull_down(LCD_PIN_RST);
+        this->reset(100);
+        
+    #if defined(LCD_HARDWARE_GPIO)
+        gpio_init(LCD_PIN_CS);
+        gpio_set_dir(LCD_PIN_CS, GPIO_OUT);
+        gpio_put(LCD_PIN_CS, 0);
+        gpio_pull_down(LCD_PIN_CS);
 
-    gpio_init(LCD_PIN_CS);
-    gpio_set_dir(LCD_PIN_CS, GPIO_OUT);
-    gpio_put(LCD_PIN_CS, 0);
-    gpio_pull_down(LCD_PIN_CS);
+        gpio_init(LCD_PIN_DC);
+        gpio_set_dir(LCD_PIN_DC, GPIO_OUT);
+        gpio_put(LCD_PIN_DC, 1);
+        gpio_pull_down(LCD_PIN_DC);
 
-    gpio_init(LCD_PIN_DC);
-    gpio_set_dir(LCD_PIN_DC, GPIO_OUT);
-    gpio_put(LCD_PIN_DC, 1);
-    gpio_pull_down(LCD_PIN_DC);
+        gpio_init(LCD_PIN_RD);
+        gpio_set_dir(LCD_PIN_RD, GPIO_OUT);
+        gpio_put(LCD_PIN_RD, 1);
+        gpio_pull_down(LCD_PIN_RD);
 
-    gpio_init(LCD_PIN_RD);
-    gpio_set_dir(LCD_PIN_RD, GPIO_OUT);
-    gpio_put(LCD_PIN_RD, 1);
-    gpio_pull_down(LCD_PIN_RD);
+        gpio_init(LCD_PIN_WR);
+        gpio_set_dir(LCD_PIN_WR, GPIO_OUT);
+        gpio_put(LCD_PIN_WR, 1);
+        gpio_pull_down(LCD_PIN_WR);
 
-    gpio_init(LCD_PIN_WR);
-    gpio_set_dir(LCD_PIN_WR, GPIO_OUT);
-    gpio_put(LCD_PIN_WR, 1);
-    gpio_pull_down(LCD_PIN_WR);
+        gpio_init(LCD_PIN_IM0);
+        gpio_set_dir(LCD_PIN_IM0, GPIO_OUT);
+        gpio_put(LCD_PIN_IM0, 1);
+        gpio_pull_down(LCD_PIN_IM0);
 
-    gpio_init(LCD_PIN_IM0);
-    gpio_set_dir(LCD_PIN_IM0, GPIO_OUT);
-    gpio_put(LCD_PIN_IM0, 1);
-    gpio_pull_down(LCD_PIN_IM0);
+    #if defined(LCD_PIN_DB_SEQUENTIAL)
+        // Set the data pins to output
+        uint32_t start = this->parallel_data_pins[0];
+        uint32_t end = this->parallel_data_pins[LCD_PIN_DB_COUNT - 1];
 
-#if defined(LCD_PIN_DB_SEQUENTIAL)
-    // Set the data pins to output
-    uint32_t start = this->parallel_data_pins[0];
-    uint32_t end = this->parallel_data_pins[LCD_PIN_DB_COUNT - 1];
+        // Figure out the biggest pin of the two
+        uint32_t max_pin = (start > end) ? start : end;
+        uint32_t min_pin = (start < end) ? start : end;
 
-    // Figure out the biggest pin of the two
-    uint32_t max_pin = (start > end) ? start : end;
-    uint32_t min_pin = (start < end) ? start : end;
+        this->parallel_interface_max_pin = max_pin;
+        this->parallel_interface_min_pin = min_pin;
 
-    this->parallel_interface_max_pin = max_pin;
-    this->parallel_interface_min_pin = min_pin;
+        // Use booth to create a mask for the data pins
+        if (max_pin == 31)
+            this->parallel_interface_mask = 0xffffffff - ((1u << min_pin) - 1);
+        else if (min_pin == 0)
+            this->parallel_interface_mask = (1u << (max_pin + 1)) - 1;
+        else
+            this->parallel_interface_mask = (1u << (max_pin + 1)) - (1u << min_pin);
 
-    // Use booth to create a mask for the data pins
-    if (max_pin == 31)
-        this->parallel_interface_mask = 0xffffffff - ((1u << min_pin) - 1);
-    else if (min_pin == 0)
-        this->parallel_interface_mask = (1u << (max_pin + 1)) - 1;
-    else
-        this->parallel_interface_mask = (1u << (max_pin + 1)) - (1u << min_pin);
+        // Initialize the GPIO pins in a masked way for performance
+        gpio_init_mask(this->parallel_interface_mask);
+        gpio_set_dir_out_masked(this->parallel_interface_mask);
+        gpio_put_masked(this->parallel_interface_mask, 0);
 
-    // Initialize the GPIO pins in a masked way for performance
-    gpio_init_mask(this->parallel_interface_mask);
-    gpio_set_dir_out_masked(this->parallel_interface_mask);
-    gpio_put_masked(this->parallel_interface_mask, 0);
+        for (size_t i = 0; i < LCD_PIN_DB_COUNT; i++)
+            gpio_pull_down(this->parallel_data_pins[i]);
+    #else
+        for (size_t i = 0; i < LCD_PIN_DB_COUNT; i++)
+        {
+            uint32_t pin = this->parallel_data_pins[i];
+            gpio_init(pin);
+            gpio_set_dir(pin, GPIO_OUT);
+            gpio_put(pin, 1);
+            gpio_pull_down(pin);
+        }
+    #endif
+    #elif defined(LCD_HARDWARE_RGB)
+        // Enable the LCD if there is an enable pin
+    #if defined(LCD_PIN_EN)
+        gpio_init(LCD_PIN_EN);
+        gpio_set_dir(LCD_PIN_EN, GPIO_OUT);
+        gpio_put(LCD_PIN_EN, 1);
+        gpio_pull_down(LCD_PIN_EN);
+    #endif
 
-    for (size_t i = 0; i < LCD_PIN_DB_COUNT; i++)
-        gpio_pull_down(this->parallel_data_pins[i]);
-#else
-    for (size_t i = 0; i < LCD_PIN_DB_COUNT; i++)
-    {
-        uint32_t pin = this->parallel_data_pins[i];
-        gpio_init(pin);
-        gpio_set_dir(pin, GPIO_OUT);
-        gpio_put(pin, 1);
-        gpio_pull_down(pin);
-    }
-#endif
+        this->off_hsync = pio_add_program(this->pio, &hsync_program);
+        this->off_vsync = pio_add_program(this->pio, &vsync_program);
+        this->off_rgb   = pio_add_program(this->pio, &rgb_program);
+        this->off_de    = pio_add_program(this->pio, &rgb_de_program);
+
+        pio_rgb_init(this->pio, this->sm_hsync, this->sm_vsync, this->sm_rgb, this->sm_de,
+            this->off_hsync, this->off_vsync, this->off_rgb, this->off_de, LCD_PIN_DB0, LCD_PIN_PCLK,
+            LCD_PIN_HSYNC, LCD_PIN_VSYNC, LCD_PIN_DE
+        );
+    #endif
     }
     
     inline void hardware_driver::protocol_write_data(uint8_t command, const uint8_t *data, size_t length)
     {
+    #if defined(LCD_HARDWARE_GPIO)
         this->write8080(command, true, false);
 
         for (size_t i = 0; i < length; i++)
             this->write8080(data[i], false, false);
+    #elif defined(LCD_HARDWARE_RGB)
+        // No need to write command/data for RGB interface, just write pixels
+        return;
+    #endif
     }
 
     inline void hardware_driver::protocol_set_data_mode(uint8_t command)
@@ -582,40 +603,47 @@ void hardware_driver::writePixels(const color_t *data, size_t length)
 
     inline void hardware_driver::protocol_write_pixels(const color_t *data, size_t length)
     {
-    #if defined(LCD_COLOR_DEPTH_8)
-        uint8_t *pixels = (uint8_t *)data;
+        const color_t *pixels = data;
+
+    #if defined(LCD_HARDWARE_RGB)
+        if (length != LCD_WIDTH * LCD_HEIGHT)
+            return;
+
+        pio_rgb_set_width(this->pio, this->sm_hsync, this->sm_rgb, this->sm_de, LCD_WIDTH);
+        pio_rgb_set_height(this->pio, this->sm_vsync, LCD_HEIGHT);
+
+        for (int y = 0; y < LCD_HEIGHT; y++) 
+        {
+            for (int x = 0; x < LCD_WIDTH; x++) 
+            {
+                color_t pixel = data[x + y * LCD_WIDTH];
+                pio_rgb_write(pio, sm_rgb, pixel);
+            }
+
+            // wait for line to finish before pushing next
+            pio_rgb_wait_line(pio);
+        }
+    #else
         for (size_t i = 0; i < length; i++)
-            this->write8080(pixels[i], false, false);
-    #elif defined(LCD_COLOR_DEPTH_16)
-        uint16_t *pixels = data;
-        for (size_t i = 0; i < length; i++)
-            this->write8080(pixels[i], false, true);
-    #elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
-        uint32_t *pixels = data;
-        for (size_t i = 0; i < length; i++)
-            this->write8080(pixels[i], false, true);
+            this->write_parallel_pixels(pixels[i]);
     #endif
     }
 
-    inline void hardware_driver::write8080(uint32_t data, bool command, bool bit16)
+#if defined(LCD_HARDWARE_GPIO)
+    inline void hardware_driver::write8080data(uint8_t data, bool command)
     {
-        gpio_put(LCD_PIN_DC, !command);
+        gpio_put(LCD_PIN_DC, 1);
         gpio_put(LCD_PIN_WR, 0);
 
     #if defined(LCD_PIN_DB_SEQUENTIAL)
-        uint32_t _data = data;
-
     #if defined(LCD_PIN_DB_REVERSED)
-        if (!bit16)
-        {
-            _data = ((_data & 0xaa) >> 1) | ((_data & 0x55) << 1);
-            _data = ((_data & 0xcc) >> 2) | ((_data & 0x33) << 2);
-            _data = (_data >> 4) | (_data << 4);
-            _data <<= 8;
-        }
+        data = ((data & 0xaa) >> 1) | ((data & 0x55) << 1);
+        data = ((data & 0xcc) >> 2) | ((data & 0x33) << 2);
+        data = (data >> 4) | (data << 4);
+        data <<= 8;
     #endif
 
-        uint32_t mask = _data << this->parallel_interface_min_pin;
+        uint32_t mask = data << this->parallel_interface_min_pin;
         gpio_put_masked(this->parallel_interface_mask, mask);
         gpio_put(LCD_PIN_WR, 1);
     #else
@@ -625,6 +653,30 @@ void hardware_driver::writePixels(const color_t *data, size_t length)
             gpio_put(this->parallel_data_pins[i], (data >> i) & 1);
 
         gpio_put(LCD_PIN_WR, 1);
+    #endif
+    }
+#endif
+
+    inline void hardware_driver::write_parallel_pixels(const color_t data)
+    {
+    #if defined(LCD_HARDWARE_GPIO)
+        // This will be 1, 2, or 4 depending on the color depth
+        size_t end = sizeof(data);
+        end *= 8; // Convert to bits
+
+        gpio_put(LCD_PIN_DC, 0);
+        gpio_put(LCD_PIN_WR, 0);
+
+    #if defined(LCD_PIN_DB_SEQUENTIAL)
+        uint32_t mask = data << this->parallel_interface_min_pin;
+        gpio_put_masked(this->parallel_interface_mask, mask);
+        gpio_put(LCD_PIN_WR, 1);
+    #else
+        for (size_t i = 0; i < end; ++i)
+            gpio_put(this->parallel_data_pins[i], (data >> i) & 1);
+
+        gpio_put(LCD_PIN_WR, 1);
+    #endif
     #endif
     }
 

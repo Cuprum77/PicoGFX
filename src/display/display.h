@@ -15,7 +15,12 @@
 class display_obj
 {
 public:
-    display_obj(hardware_driver *hw, color_t *frameBuffer, uint8_t CASET, uint8_t RASET, uint8_t RAMWR);
+#if defined(LCD_NO_MEMORY_COMMANDS)
+    display_obj(hardware_driver *hw, color_t *frameBuffer);
+#else
+    display_obj(hardware_driver *hw, color_t *frameBuffer, 
+        uint32_t *CASET, uint32_t *RASET, uint32_t *RAMWR);
+#endif
     uint32_t getRotation(void) { return this->rotation; }
     void clear(void);
 
@@ -74,6 +79,22 @@ protected:
     uint32_t rotation = 0;
 #endif
 
+    bool dataMode = false;
+    point cursor = {0, 0};
+    uint32_t totalPixels;
+
+    uint32_t width = LCD_WIDTH;
+    uint32_t maxWidth;
+    uint32_t height = LCD_HEIGHT;
+    uint32_t maxHeight;
+
+    // timer for the framerate calculation
+    int32_t framecounter = 0;
+    int32_t frames = 0;
+    uint64_t timer = 0;
+    uint64_t lastFrame = 0;
+
+#if !defined(LCD_NO_MEMORY_COMMANDS)
 #if defined(LCD_OFFSET_X0)
     uint32_t offset_x0 = LCD_OFFSET_X0;
     uint32_t base_offset_x0 = LCD_OFFSET_X0;
@@ -116,31 +137,18 @@ protected:
 #endif
 #endif
 
-    bool dataMode = false;
-    point cursor = {0, 0};
-    uint32_t totalPixels;
-
-    uint32_t width = LCD_WIDTH;
-    uint32_t maxWidth;
-    uint32_t height = LCD_HEIGHT;
-    uint32_t maxHeight;
-
     int32_t CASET;
     int32_t RASET;
     int32_t RAMWR;
 
-    // timer for the framerate calculation
-    int32_t framecounter = 0;
-    int32_t frames = 0;
-    uint64_t timer = 0;
-    uint64_t lastFrame = 0;
-
     void writeData(uint8_t command, const uint8_t *data, size_t length);
     void writeData(uint8_t command, uint8_t data) { writeData(command, &data, 1); }
     void writeData(uint8_t command) { writeData(command, nullptr, 0); }
-    void writePixels(const color_t *data, size_t length);
     void switchTransmissionMode(bool data) { this->hw->switchTransmissionMode(data); }
     void swap_offsets(uint32_t rotation);
     inline void columnAddressSet(uint32_t x0, uint32_t x1);
     inline void rowAddressSet(uint32_t y0, uint32_t y1);
+#endif
+
+    void writePixels(const color_t *data, size_t length);
 };

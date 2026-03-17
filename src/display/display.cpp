@@ -1,18 +1,39 @@
 #include "display.h"
 
-/**
- * @brief display initialization
-*/
-display_obj::display_obj(hardware_driver *hw, color_t *frameBuffer, uint8_t CASET, uint8_t RASET, uint8_t RAMWR)
-{
-    this->hw = hw;
-    this->frameBuffer = frameBuffer;
-    this->CASET = CASET;
-    this->RASET = RASET;
-    this->RAMWR = RAMWR;
-    this->width = LCD_WIDTH;
-    this->height = LCD_HEIGHT;
-}
+#if defined(LCD_NO_MEMORY_COMMANDS)
+    /**
+     * @brief display initialization
+     * @param hw Pointer to the hardware driver
+     * @param frameBuffer Pointer to the frame buffer
+    */
+    display_obj::display_obj(hardware_driver *hw, color_t *frameBuffer)
+    {
+        this->hw = hw;
+        this->frameBuffer = frameBuffer;
+        this->width = LCD_WIDTH;
+        this->height = LCD_HEIGHT;
+    }
+#else
+    /**
+     * @brief display initialization
+     * @param hw Pointer to the hardware driver
+     * @param frameBuffer Pointer to the frame buffer
+     * @param CASET Command to set the column address
+     * @param RASET Command to set the row address
+     * @param RAMWR Command to write to memory
+    */
+    display_obj::display_obj(hardware_driver *hw, color_t *frameBuffer, 
+        uint32_t CASET, uint32_t RASET, uint32_t RAMWR)
+    {
+        this->hw = hw;
+        this->frameBuffer = frameBuffer;
+        this->CASET = CASET;
+        this->RASET = RASET;
+        this->RAMWR = RAMWR;
+        this->width = LCD_WIDTH;
+        this->height = LCD_HEIGHT;
+    }
+#endif
 
 /**
  * @brief Clear the display by drawing a black rectangle
@@ -200,6 +221,7 @@ color_t display_obj::getPixel(uint32_t index)
 */
 void display_obj::writePixels(const color_t *data, size_t length)
 {
+#if !defined(LCD_NO_MEMORY_COMMANDS)
     // check if the data mode is set
     if (!this->dataMode)
     {
@@ -212,6 +234,7 @@ void display_obj::writePixels(const color_t *data, size_t length)
     
     // set to quad spi transfer mode if qspi is enabled
     this->switchTransmissionMode(true);
+#endif
     // write the pixels
     this->hw->writePixels(data, length);
 }
@@ -222,6 +245,7 @@ void display_obj::writePixels(const color_t *data, size_t length)
 */
 void display_obj::setCursor(point point)
 {
+#if !defined(LCD_NO_MEMORY_COMMANDS)
     // set the pixel x address
     this->columnAddressSet(
         point.x + this->offset_x0,
@@ -232,6 +256,7 @@ void display_obj::setCursor(point point)
         point.y + this->offset_y0,
         (this->height - 1) + this->offset_y1
     );
+#endif
     // set the internal cursor position
     this->cursor = point;
 }
@@ -258,99 +283,101 @@ point display_obj::getCenter()
     return point;
 }
 
-/**
- * @private
- * @brief Write data to the display
- * @param command Command to send
- * @param data Data to send
- * @param length Length of the data
-*/
-void display_obj::writeData(uint8_t command, const uint8_t *data, size_t length)
-{
-    // set the data mode
-    this->dataMode = false;
-
-    // set to single spi transfer mode if qspi is enabled
-    this->switchTransmissionMode(false);
-    // write the command
-    this->hw->writeData(command, data, length);
-}
-
-/**
- * @private
- * @brief Set the column address
- * @param x0 Start column
- * @param x1 End column
-*/
-inline void display_obj::columnAddressSet(uint32_t x0, uint32_t x1)
-{
-    // deny out of bounds
-    if (x0 >= x1 || x1 >= this->maxWidth)
-        return;
-
-    // pack the data
-    uint8_t data[4] = {
-        (uint8_t)(x0 >> 8),
-        (uint8_t)(x0 & 0xff),
-        (uint8_t)(x1 >> 8),
-        (uint8_t)(x1 & 0xff)
-    };
-
-    // set to single spi transfer mode if qspi is enabled
-    this->switchTransmissionMode(false);
-    // write the data
-    this->writeData(this->CASET, data, sizeof(data));
-}
-
-/**
- * @private
- * @brief Set the row address
- * @param y0 Start row
- * @param y1 End row
-*/
-inline void display_obj::rowAddressSet(uint32_t y0, uint32_t y1)
-{
-    // deny out of bounds
-    if (y0 >= y1 || y1 >= this->maxHeight)
-        return;
-
-    // pack the data
-    uint8_t data[4] = {
-        (uint8_t)(y0 >> 8),
-        (uint8_t)(y0 & 0xff),
-        (uint8_t)(y1 >> 8),
-        (uint8_t)(y1 & 0xff)
-    };
-
-    // set to single spi transfer mode if qspi is enabled
-    this->switchTransmissionMode(false);
-    // write the data
-    this->writeData(this->RASET, data, sizeof(data));
-}
-
-/**
- * @brief Swap the offsets based on the rotation
- * @param rotation Rotation to swap the offsets for
-*/
-void display_obj::swap_offsets(uint32_t rotation)
-{
-    switch(rotation)
+#if !defined(LCD_NO_MEMORY_COMMANDS)
+    /**
+     * @private
+     * @brief Write data to the display
+     * @param command Command to send
+     * @param data Data to send
+     * @param length Length of the data
+    */
+    void display_obj::writeData(uint8_t command, const uint8_t *data, size_t length)
     {
-        case 0:
-        case 180:
-            this->offset_x0 = this->base_offset_x0;
-            this->offset_x1 = this->base_offset_x1;
-            this->offset_y0 = this->base_offset_y0;
-            this->offset_y1 = this->base_offset_y1;
-            break;
-        case 90:
-        case 270:
-            this->offset_x0 = this->base_offset_y0;
-            this->offset_x1 = this->base_offset_y1;
-            this->offset_y0 = this->base_offset_x0;
-            this->offset_y1 = this->base_offset_x1;
-            break;
-        default:
-            break;
+        // set the data mode
+        this->dataMode = false;
+
+        // set to single spi transfer mode if qspi is enabled
+        this->switchTransmissionMode(false);
+        // write the command
+        this->hw->writeData(command, data, length);
     }
-}
+
+    /**
+     * @private
+     * @brief Set the column address
+     * @param x0 Start column
+     * @param x1 End column
+    */
+    inline void display_obj::columnAddressSet(uint32_t x0, uint32_t x1)
+    {
+        // deny out of bounds
+        if (x0 >= x1 || x1 >= this->maxWidth)
+            return;
+
+        // pack the data
+        uint8_t data[4] = {
+            (uint8_t)(x0 >> 8),
+            (uint8_t)(x0 & 0xff),
+            (uint8_t)(x1 >> 8),
+            (uint8_t)(x1 & 0xff)
+        };
+
+        // set to single spi transfer mode if qspi is enabled
+        this->switchTransmissionMode(false);
+        // write the data
+        this->writeData(this->CASET, data, sizeof(data));
+    }
+
+    /**
+     * @private
+     * @brief Set the row address
+     * @param y0 Start row
+     * @param y1 End row
+    */
+    inline void display_obj::rowAddressSet(uint32_t y0, uint32_t y1)
+    {
+        // deny out of bounds
+        if (y0 >= y1 || y1 >= this->maxHeight)
+            return;
+
+        // pack the data
+        uint8_t data[4] = {
+            (uint8_t)(y0 >> 8),
+            (uint8_t)(y0 & 0xff),
+            (uint8_t)(y1 >> 8),
+            (uint8_t)(y1 & 0xff)
+        };
+
+        // set to single spi transfer mode if qspi is enabled
+        this->switchTransmissionMode(false);
+        // write the data
+        this->writeData(this->RASET, data, sizeof(data));
+    }
+
+    /**
+     * @brief Swap the offsets based on the rotation
+     * @param rotation Rotation to swap the offsets for
+    */
+    void display_obj::swap_offsets(uint32_t rotation)
+    {
+        switch(rotation)
+        {
+            case 0:
+            case 180:
+                this->offset_x0 = this->base_offset_x0;
+                this->offset_x1 = this->base_offset_x1;
+                this->offset_y0 = this->base_offset_y0;
+                this->offset_y1 = this->base_offset_y1;
+                break;
+            case 90:
+            case 270:
+                this->offset_x0 = this->base_offset_y0;
+                this->offset_x1 = this->base_offset_y1;
+                this->offset_y0 = this->base_offset_x0;
+                this->offset_y1 = this->base_offset_x1;
+                break;
+            default:
+                break;
+        }
+    }
+#endif
