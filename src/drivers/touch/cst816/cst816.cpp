@@ -135,7 +135,8 @@ void cst816::fetch()
         .y = y
     };
     
-    this->available = true;
+    if (this->report.points > 0)
+        this->available = true;
 }
 
 /**

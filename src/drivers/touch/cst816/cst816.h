@@ -9,14 +9,14 @@
 
 typedef enum
 {
-    CST816_GESTURE_NONE,
-    CST816_GESTURE_SWIPE_UP,
-    CST816_GESTURE_SWIPE_DOWN,
-    CST816_GESTURE_SWIPE_LEFT,
-    CST816_GESTURE_SWIPE_RIGHT,
-    CST816_GESTURE_SINGLE_CLICK,
-    CST816_GESTURE_DOUBLE_CLICK,
-    CST816_GESTURE_LONG_PRESS
+    CST816_GESTURE_NONE         = 0x00,
+    CST816_GESTURE_SWIPE_UP     = 0x01,
+    CST816_GESTURE_SWIPE_DOWN   = 0x02,
+    CST816_GESTURE_SWIPE_LEFT   = 0x03,
+    CST816_GESTURE_SWIPE_RIGHT  = 0x04,
+    CST816_GESTURE_SINGLE_CLICK = 0x05,
+    CST816_GESTURE_DOUBLE_CLICK = 0x0b,
+    CST816_GESTURE_LONG_PRESS   = 0x0c
 } cst816_gesture_t;
 
 typedef struct
@@ -38,6 +38,8 @@ public:
 
     uint32_t getX();
     uint32_t getY();
+
+    cst816_gesture_t getGesture() { return (cst816_gesture_t)this->report.gesture; }
 
 private:
     uint32_t rst_pin;
