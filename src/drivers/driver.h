@@ -134,6 +134,8 @@ private:
     float clkdiv;
 #elif defined(LCD_HARDWARE_RGB)
     PIO pio;
+    PIO pio_rgb;
+    bool started = false;
 
     uint32_t sm_hsync;
     uint32_t sm_vsync;
@@ -144,6 +146,8 @@ private:
     uint32_t off_vsync;
     uint32_t off_rgb;
     uint32_t off_de;
+
+    uint32_t dma_channel;
 
     uint32_t pixel_clock_hz = LCD_DCLK_FREQ;
 #endif

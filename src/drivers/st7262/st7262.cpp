@@ -9,9 +9,6 @@ void st7262::init()
     // Apply constants
     this->maxWidth = LCD_WIDTH;
     this->maxHeight = LCD_HEIGHT;
-
-    // clear the display
-    this->clear();
 }
 
 /**
