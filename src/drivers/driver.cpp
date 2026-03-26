@@ -570,16 +570,54 @@ void hardware_driver::writePixels(const color_t *data, size_t length)
         gpio_put(LCD_PIN_EN, 1);
         gpio_pull_down(LCD_PIN_EN);
     #endif
+        float sys_clk = clock_get_hz(clk_sys);
+        float pio_freq = sys_clk / ((float)(this->pixel_clock_hz * 2));
+        uint32_t db_pin_array[] = LCD_PIN_DB_ARRAY;
+        pio_set_gpio_base(this->pio, db_pin_array[0]);
+        pio_set_gpio_base(this->pio_rgb, db_pin_array[0]);
+
+        this->pio = pio1;
+        this->pio_rgb = pio2;
+        this->sm_hsync = pio_claim_unused_sm(this->pio, true);
+        this->sm_vsync = pio_claim_unused_sm(this->pio, true);
+        this->sm_rgb   = pio_claim_unused_sm(this->pio_rgb, true);
+        this->sm_de    = pio_claim_unused_sm(this->pio_rgb, true);
 
         this->off_hsync = pio_add_program(this->pio, &hsync_program);
         this->off_vsync = pio_add_program(this->pio, &vsync_program);
-        this->off_rgb   = pio_add_program(this->pio, &rgb_program);
-        this->off_de    = pio_add_program(this->pio, &rgb_de_program);
+        this->off_rgb   = pio_add_program(this->pio_rgb, &rgb_program);
+        this->off_de    = pio_add_program(this->pio_rgb, &rgb_de_program);
+        
+        hsync_program_init(this->pio, this->sm_hsync, this->off_hsync, LCD_PIN_HSYNC, pio_freq);
+        vsync_program_init(this->pio, this->sm_vsync, this->off_vsync, LCD_PIN_VSYNC, 1.0f);
+        rgb_de_program_init(this->pio_rgb, this->sm_de, this->off_de, LCD_PIN_DE, 1.0f);
+        rgb_program_init(this->pio_rgb, this->sm_rgb, this->off_rgb, db_pin_array[0], pio_freq);
 
-        pio_rgb_init(this->pio, this->sm_hsync, this->sm_vsync, this->sm_rgb, this->sm_de,
-            this->off_hsync, this->off_vsync, this->off_rgb, this->off_de, LCD_PIN_DB0, LCD_PIN_PCLK,
-            LCD_PIN_HSYNC, LCD_PIN_VSYNC, LCD_PIN_DE
-        );
+        pio_rgb_dma_init();
+
+        pio_sm_put_blocking(this->pio, this->sm_hsync, LCD_WIDTH - 1);
+        pio_sm_put_blocking(this->pio, this->sm_vsync, LCD_HEIGHT - 1);
+        pio_sm_put_blocking(this->pio_rgb, this->sm_de, LCD_HEIGHT - 1);
+        pio_sm_put_blocking(this->pio_rgb, this->sm_rgb, LCD_WIDTH - 1);
+
+        pio_enable_sm_mask_in_sync(this->pio, (1u << this->sm_hsync) | (1u << this->sm_vsync));
+        pio_enable_sm_mask_in_sync(this->pio_rgb, (1u << this->sm_de) | (1u << this->sm_rgb));
+
+        // configure dma channels for pixel data transfer
+        this->dma_channel = dma_claim_unused_channel(true);
+        dma_channel_config c = dma_channel_get_default_config(this->dma_channel);
+
+    #if defined(LCD_COLOR_DEPTH_8)
+        channel_config_set_transfer_data_size(&c, DMA_SIZE_8);
+    #elif defined(LCD_COLOR_DEPTH_16)
+        channel_config_set_transfer_data_size(&c, DMA_SIZE_16);
+    #elif defined(LCD_COLOR_DEPTH_18) || defined(LCD_COLOR_DEPTH_24)
+        channel_config_set_transfer_data_size(&c, DMA_SIZE_32);
+    #endif
+        channel_config_set_read_increment(&c, true);
+        channel_config_set_write_increment(&c, false);
+        channel_config_set_dreq(&c, pio_get_dreq(this->pio, this->sm_rgb, true));
+        dma_channel_configure(this->dma_channel, &c, &this->pio_rgb->txf[this->sm_rgb], nullptr, LCD_WIDTH * LCD_HEIGHT, false);
     #endif
     }
     
@@ -609,20 +647,15 @@ void hardware_driver::writePixels(const color_t *data, size_t length)
         if (length != LCD_WIDTH * LCD_HEIGHT)
             return;
 
-        pio_rgb_set_width(this->pio, this->sm_hsync, this->sm_rgb, this->sm_de, LCD_WIDTH);
-        pio_rgb_set_height(this->pio, this->sm_vsync, LCD_HEIGHT);
+        if (this->started)
+            return;
+        this->started = true;
 
-        for (int y = 0; y < LCD_HEIGHT; y++) 
-        {
-            for (int x = 0; x < LCD_WIDTH; x++) 
-            {
-                color_t pixel = data[x + y * LCD_WIDTH];
-                pio_rgb_write(pio, sm_rgb, pixel);
-            }
+        pio_rgb_set_width(this->pio, this->sm_hsync, this->sm_rgb, this->sm_de, LCD_HEIGHT);
+        pio_rgb_set_height(this->pio, this->sm_vsync, LCD_WIDTH);
 
-            // wait for line to finish before pushing next
-            pio_rgb_wait_line(pio);
-        }
+        dma_channel_start(this->dma_channel);
+        dma_channel_set_read_addr(this->dma_channel, data, true);
     #else
         for (size_t i = 0; i < length; i++)
             this->write_parallel_pixels(pixels[i]);
