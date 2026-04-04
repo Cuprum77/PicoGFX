@@ -135,10 +135,7 @@ void graphics::drawBitmap(const uint16_t *bitmap, uint32_t width, uint32_t heigh
         for (int x = startX + offsetX, bx = offsetX; x < endX; ++x, ++bx)
         {
             uint16_t colorWord = bitmap[by * width + bx];
-            
-#if defined(LCD_INVERT_COLORS)
             colorWord = COLOR_INV(colorWord);
-#endif
             this->frameBuffer[y * this->display_ptr->getWidth() + x] = colorWord;
         }
     }
