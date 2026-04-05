@@ -213,9 +213,6 @@ void qr_generator::generate(const uint8_t *data, size_t data_size, qr_ecc_level 
     this->generate_data_mask(size, QR_MASK_TYPE_1, data_mask, mask);
     this->create_format_pattern(size, ecc_lvl, QR_MASK_TYPE_1, buffer, mask);
 
-    uint32_t x = location.x - (size * scale) / 2;
-    uint32_t y = location.y - (size * scale) / 2;
-
     // Add the masked data to the buffer
     for (size_t i = 0; i < size * size; i++)
     {
@@ -223,7 +220,86 @@ void qr_generator::generate(const uint8_t *data, size_t data_size, qr_ecc_level 
             buffer[i] = data_mask[i];
     }
 
+    uint32_t x = location.x - (size * scale) / 2;
+    uint32_t y = location.y - (size * scale) / 2;
+
     this->draw_qr_code(size, x, y, scale, buffer);
+}
+
+/**
+ * @brief Generate a QR code from the input string data and render it to the display, within a specified box area
+ * @param data Pointer to the null-terminated string data to be encoded in the QR code
+ * @param ecc_lvl Error correction level (0-3), determines the amount of error correction in the QR code
+ * @param box The box area where the QR code should be rendered 
+ * @param artistic_bitmap A bitmap to use for the QR code pixels, must be the same size as the box area
+ */
+void qr_generator::generate_artistic(const char *data, qr_ecc_level ecc_lvl, 
+    rect box, const uint32_t *artistic_bitmap)
+{
+    uint32_t data_size = strlen(data);
+    this->generate_artistic((const uint8_t *)data, data_size, ecc_lvl, box, artistic_bitmap);
+}
+
+/**
+ * @brief Generate a QR code from the input string data and render it to the display, within a specified box area
+ * @param data Pointer to the null-terminated string data to be encoded in the QR code
+ * @param data_size Size of the input data in bytes
+ * @param ecc_lvl Error correction level (0-3), determines the amount of error correction in the QR code
+ * @param box The box area where the QR code should be rendered 
+ * @param artistic_bitmap A bitmap to use for the QR code pixels, must be the same size as the box area
+ */
+void qr_generator::generate_artistic(const uint8_t *data, size_t data_size, 
+    qr_ecc_level ecc_lvl, rect box, const uint32_t *artistic_bitmap)
+{
+    uint32_t min_version = 1;
+    uint32_t scale = 1;
+    point center = box.getCenter();
+
+    // Attempt to scale the QR code to fit the box area
+    uint32_t adj_version = this->get_adjusted_version(data_size, ecc_lvl, min_version);
+    uint32_t size = this->qr_modules_size + (adj_version * 4);
+    uint32_t max_scale_x = box.width() / size;
+    uint32_t max_scale_y = box.height() / size;
+    point location = box.getCenter();
+    scale = imin(max_scale_x, max_scale_y);
+
+    // Validate input parameters
+    if (ecc_lvl > 3)
+        return;
+    if (data == nullptr || data_size == 0)
+        return;
+    if (scale == 0)
+        return;
+
+    // Check that this does not render out of bounds
+    if ((size * scale) > this->display_ptr->getWidth())
+        return;
+    if ((size * scale) > this->display_ptr->getHeight())
+        return;
+
+    bool mask[size * size] = { false };
+    bool buffer[size * size] = { false };
+
+    uint32_t alignment_coordinates[46] = { 0 };
+    uint32_t alignment_count = this->get_alignment_coordinates(adj_version, alignment_coordinates);
+
+    // Dummy format pattern to reserve space for it in the mask
+    this->create_dummy_format_pattern(size, buffer, mask);
+    this->create_timing_pattern(size, buffer, mask);
+    this->add_finder_patterns(size, buffer, mask);
+    this->add_alignment_patterns(size, alignment_coordinates, alignment_count, buffer, mask);
+    this->create_version_pattern(size, adj_version, buffer, mask);
+
+    int success = this->encode_data(size, data, data_size, QR_MODE_BYTE, adj_version, ecc_lvl, buffer, mask);
+    if (success != 0)
+        return;
+    this->generate_data_mask(size, QR_MASK_TYPE_1, buffer, mask);
+    this->create_format_pattern(size, ecc_lvl, QR_MASK_TYPE_1, buffer, mask);
+    this->remove_mask_format_pattern(size, mask);
+
+    uint32_t x = location.x - (size * scale) / 2;
+    uint32_t y = location.y - (size * scale) / 2;
+    this->draw_artistic_qr_code(size, x, y, scale, buffer, mask, artistic_bitmap, box.width(), box.height());
 }
 
 /**
@@ -382,10 +458,7 @@ void qr_generator::generate_data_mask(uint32_t module_size, qr_mask_type mask_ty
             size_t index = x + y * module_size;
 
             if (mask[index])
-            {
-                data_mask[index] = mask[index];
                 continue;
-            }
 
             bool mask_bit = false;
             switch (mask_type)
@@ -549,9 +622,6 @@ int qr_generator::encode_data(uint32_t module_size, const uint8_t *data, size_t 
     else if (mode == QR_MODE_KANJI)
         total_count += data_size * 13;
 
-    // For some reason data_size should be 1 larger?
-    // data_size += 1;
-
     // Check if the total count exceeds the capacity of the QR code
     uint32_t capacity = qr_version_words[version];
     uint32_t ecc_capacity = qr_ecc_words[version][ecc_lvl];
@@ -566,21 +636,19 @@ int qr_generator::encode_data(uint32_t module_size, const uint8_t *data, size_t 
         total_count += 8 - (total_count % 8);
 
     uint8_t bit_buffer[capacity + 1] = { 0 };
-    uint32_t ptr = 0;
-    uint32_t bits_written = 0;
+    uint32_t bit_offset = 0;
 
-    // Add the mode indicator to the bit buffer
-    bit_buffer[ptr] = mode << 4;
-    bits_written += 4;
+    // Add the mode indicator to the bit buffer (4 bits) - placed in upper nibble of byte 0
+    bit_buffer[0] = mode << 4;
+    bit_offset = 4;
 
     // Add the character count indicator to the bit buffer
     for (size_t i = 0; i < char_count_bits; i++)
     {
-        uint32_t byte_index = (4 + i) / 8;  // Account for the 4-bit mode indicator
+        uint32_t byte_index = (4 + i) / 8;
         uint32_t bit_position = 7 - ((4 + i) % 8);
-        
         bit_buffer[byte_index] |= ((data_size >> (char_count_bits - 1 - i)) & 0b1) << bit_position;
-        bits_written++;
+        bit_offset++;
     }
 
     // Add the data encoding to the bit buffer
@@ -593,27 +661,26 @@ int qr_generator::encode_data(uint32_t module_size, const uint8_t *data, size_t 
         {
             uint32_t byte_index = (4 + char_count_bits + (i * 8) + bit) / 8;
             uint32_t bit_position = 7 - ((4 + char_count_bits + (i * 8) + bit) % 8);
-            
             bit_buffer[byte_index] |= ((data[i] >> (7 - bit)) & 0b1) << bit_position;
-            bits_written++;
+            bit_offset++;
         }
     }
 
     // Add the terminator bits (4 bits)
-    bits_written += 4;
+    bit_offset += 4;
 
     // If the data does not fill the entire capacity, add the pad code words
     uint32_t pad_index = 0;
-    while (bits_written < (capacity - ecc_capacity) * 8) // Leave 4 bits for the terminator
+    while (bit_offset < (capacity - ecc_capacity) * 8) // Leave 4 bits for the terminator
     {
-        uint32_t byte_index = bits_written / 8;
-        uint32_t bit_position = 7 - (bits_written % 8);
+        uint32_t byte_index = bit_offset / 8;
+        uint32_t bit_position = 7 - (bit_offset % 8);
         
         uint8_t pad_byte = pad_code_words[(pad_index / 8) % 2];  // Alternate pad bytes every 8 bits
         uint32_t bit_in_pad = pad_index % 8;  // Which bit (0-7) in the pad byte
 
         bit_buffer[byte_index] |= ((pad_byte >> (7 - bit_in_pad)) & 0b1) << bit_position;
-        bits_written++;
+        bit_offset++;
         pad_index++;
     }
 
@@ -634,6 +701,27 @@ int qr_generator::encode_data(uint32_t module_size, const uint8_t *data, size_t 
         uint32_t num_blocks1 = total_blocks - num_blocks2;
         uint32_t data_len2 = data_len1 + 1;
 
+        // Create interleaved buffer: [block1_byte0, block2_byte0, ..., block1_byte1, block2_byte1, ...]
+        uint8_t interleaved[QR_MAX_BUFFER_SIZE] = {0};
+        uint32_t write_pos = 0;
+        
+        for (uint32_t byte_offset = 0; byte_offset < data_len2; byte_offset++)
+        {
+            for (uint32_t block_idx = 0; block_idx < total_blocks; block_idx++)
+            {
+                uint32_t block_len = (block_idx < num_blocks1) ? data_len1 : data_len2;
+                if (byte_offset < block_len)
+                {
+                    // Source position in original sequential buffer
+                    uint32_t source_pos = (block_idx * data_len1) + byte_offset;
+                    interleaved[write_pos++] = bit_buffer[source_pos];
+                }
+            }
+        }
+        
+        // Copy interleaved data back to bit_buffer
+        memcpy(bit_buffer, interleaved, total_data_bytes);
+
         uint8_t current_block[QR_MAX_BLOCK_SIZE];
         uint8_t current_ecc[QR_MAX_BLOCK_SIZE];
 
@@ -641,20 +729,10 @@ int qr_generator::encode_data(uint32_t module_size, const uint8_t *data, size_t 
         {
             uint32_t current_len = (block_idx < num_blocks1) ? data_len1 : data_len2;
             
-            // Extract the block from the buffer
+            // Extract the block from the now-interleaved buffer
             for (size_t byte_idx = 0; byte_idx < current_len; byte_idx++) 
             {
-                uint32_t buffer_index = 0;
-                
-                if (byte_idx < data_len1) 
-                {
-                    buffer_index = byte_idx * total_blocks + block_idx;
-                } 
-                else 
-                {
-                    buffer_index = data_len1 * total_blocks + (byte_idx - data_len1) * num_blocks2 + (block_idx - num_blocks1);
-                }
-                
+                uint32_t buffer_index = byte_idx * total_blocks + block_idx;
                 current_block[byte_idx] = bit_buffer[buffer_index];
             }
 
@@ -707,6 +785,101 @@ void qr_generator::draw_qr_code(uint32_t module_size, uint32_t x, uint32_t y,
 
                     if (bc == colors::black)
                         this->frameBuffer[frame_ptr] = bc;
+                }
+            }
+        }
+    }
+}
+
+/**
+ * @private
+ * @brief Draw the QR code to the display using the buffer, but use an artistic bitmap for the non-essential details
+ * @param module_size The size of the QR code in modules
+ * @param x The x coordinate to start drawing the QR code
+ * @param y The y coordinate to start drawing the QR code
+ * @param scale The scale of the QR code, how big the individual pixels should be
+ * @param buffer The buffer containing the QR code data
+ * @param mask The buffer containing the mask for reserved areas
+ * @param artistic_bitmap The bitmap to use for the QR code pixels
+ * @param bitmap_width The width of the artistic bitmap in pixels
+ * @param bitmap_height The height of the artistic bitmap in pixels
+ */
+void qr_generator::draw_artistic_qr_code(uint32_t module_size, uint32_t x, uint32_t y, 
+        uint32_t scale, bool *buffer, bool* mask, 
+        const uint32_t *artistic_bitmap, uint32_t bitmap_width, uint32_t bitmap_height)
+{
+    uint32_t frame_ptr = 0;
+    const uint8_t* bitmap_bytes = (const uint8_t*)artistic_bitmap;
+
+    uint32_t disp_width = this->display_ptr->getWidth();
+    uint32_t disp_height = this->display_ptr->getHeight();
+
+    for (size_t iy = 0; iy < module_size; iy++)
+    {
+        for (size_t ix = 0; ix < module_size; ix++)
+        {
+            bool is_black_module = buffer[ix + iy * module_size];
+            bool is_important_detail = mask[ix + iy * module_size];
+
+            for (size_t sy = 0; sy < scale; sy++)
+            {
+                for (size_t sx = 0; sx < scale; sx++)
+                {
+                    frame_ptr = ((ix * scale) + sx + x) + 
+                                (((iy * scale) + sy + y) * disp_width);
+
+                    int bx = (ix * scale) + sx;
+                    int by = (iy * scale) + sy;
+
+                    if ((bx + (int)x) >= 0 && (bx + (int)x) < (int)disp_width &&
+                        (by + (int)y) >= 0 && (by + (int)y) < (int)disp_height &&
+                        bx >= 0 && bx < (int)bitmap_width &&
+                        by >= 0 && by < (int)bitmap_height)
+                    {
+                        uint32_t colorWord = 0;
+                        for (int i = 0; i < 3; ++i)
+                        {
+                            uint8_t colorByte = bitmap_bytes[(by * bitmap_width + bx) * 3 + i];
+                            colorWord |= (uint32_t)colorByte << ((2 - i) * 8);
+                        }
+                        color c = color(colorWord);
+                        uint32_t img_pixel = c.toWord();
+
+                        if (is_important_detail)
+                        {
+                            this->frameBuffer[frame_ptr] = is_black_module ? colors::black : colors::white;
+                        }
+                        else
+                        {
+                            bool is_center_x = false;
+                            bool is_center_y = false;
+
+                            if (scale >= 6) {
+                                uint32_t padding = scale / 3;
+                                is_center_x = (sx >= padding) && (sx < scale - padding);
+                                is_center_y = (sy >= padding) && (sy < scale - padding);
+                            } 
+                            else if (scale >= 4) {
+                                uint32_t low = (scale / 2) - 1;
+                                uint32_t high = scale / 2;
+                                is_center_x = (sx == low || sx == high);
+                                is_center_y = (sy == low || sy == high);
+                            } 
+                            else {
+                                is_center_x = (sx == scale / 2);
+                                is_center_y = (sy == scale / 2);
+                            }
+
+                            if (is_center_x && is_center_y)
+                            {
+                                this->frameBuffer[frame_ptr] = is_black_module ? colors::black : colors::white;
+                            }
+                            else
+                            {
+                                this->frameBuffer[frame_ptr] = img_pixel;
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -1007,4 +1180,39 @@ void qr_generator::create_version_pattern(uint32_t module_size, uint32_t version
             mask[(i + adj_x) + (j * module_size)] = true;
         }
     }
+}
+
+/**
+ * @private
+ * @brief Remove the format pattern mask, which allows the information to be down sampled for artistic QR codes
+ * @param module_size The size of the QR code in modules
+ * @param mask The mask to remove the format pattern from
+ */
+void qr_generator::remove_mask_format_pattern(uint32_t module_size, bool *mask)
+{
+    // First 0-5 bits on the top-left finder
+    for (size_t i = 0; i < 6; i++)
+        mask[8 + i * module_size] = false;
+
+    // 6-7 bits on the top-left finder
+    for (size_t i = 0; i < 2; i++)
+        mask[8 + (i + 7) * module_size] = false;
+
+    // 8 bit on the top-left finder
+    mask[7 + 8 * module_size] = true;
+
+    // 9-14 bits on the top-left finder
+    for (size_t i = 0; i < 6; i++)
+        mask[(5 - i) + 8 * module_size] = false;
+
+    // 0-7 bits on the top-right finder
+    for (size_t i = 0; i < 8; i++)
+        mask[(module_size - 8 + i) + (8 * module_size)] = false;
+
+    // 8-14 bits on the bottom-left finder
+    for (size_t i = 0; i < 7; i++)
+        mask[8 + ((module_size - i - 1) * module_size)] = false;
+
+    // Dark module
+    mask[8 + (module_size - 8) * module_size] = false;
 }

@@ -39,6 +39,11 @@ public:
     void generate(const uint8_t *data, size_t data_size, qr_ecc_level ecc_lvl, 
         point location, uint32_t min_version, uint32_t scale);
 
+    void generate_artistic(const char *data, qr_ecc_level ecc_lvl, 
+        rect box, const uint32_t *artistic_bitmap);
+    void generate_artistic(const uint8_t *data, size_t data_size, 
+        qr_ecc_level ecc_lvl, rect box, const uint32_t *artistic_bitmap);
+
 private:
     display_obj *display_ptr;
     color_t *frameBuffer;
@@ -251,6 +256,9 @@ private:
         uint32_t version, qr_ecc_level ecc_lvl, bool *data_mask, bool *mask);
     void draw_qr_code(uint32_t module_size, uint32_t x, uint32_t y, 
         uint32_t scale, bool *buffer);
+    void draw_artistic_qr_code(uint32_t module_size, uint32_t x, uint32_t y, 
+        uint32_t scale, bool *buffer, bool* mask, 
+        const uint32_t *artistic_bitmap, uint32_t bitmap_width, uint32_t bitmap_height);
 
     void create_timing_pattern(uint32_t module_size, bool *buffer, bool *mask);
     void create_finder_pattern(uint32_t module_size, uint32_t x, uint32_t y, 
@@ -263,4 +271,5 @@ private:
     void add_alignment_patterns(uint32_t module_size, uint32_t *coordinates, 
         uint32_t count, bool *buffer, bool *mask);
     void create_version_pattern(uint32_t module_size, uint32_t version, bool *buffer, bool *mask);
+    void remove_mask_format_pattern(uint32_t module_size, bool *mask);
 };
