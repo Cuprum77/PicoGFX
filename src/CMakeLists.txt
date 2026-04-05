@@ -33,6 +33,7 @@ add_library(${PROJECT_NAME}
     graphics/gfxmath.c
     graphics/trig.c
     print/print.cpp
+    subsys/qr/qr.cpp
     picogfx.cpp
 )
 
@@ -53,8 +54,10 @@ target_include_directories(${PROJECT_NAME}
     PUBLIC ${PROJECT_SOURCE_DIR}/gauge
     PUBLIC ${PROJECT_SOURCE_DIR}/gradient
     PUBLIC ${PROJECT_SOURCE_DIR}/graphics
-    PUBLIC ${PROJECT_SOURCE_DIR}/shapes
     PUBLIC ${PROJECT_SOURCE_DIR}/print
+    PUBLIC ${PROJECT_SOURCE_DIR}/shapes
+    PUBLIC ${PROJECT_SOURCE_DIR}/subsys
+    PUBLIC ${PROJECT_SOURCE_DIR}/subsys/qr
     PUBLIC ${CMAKE_BINARY_DIR}/src/print/fonts
 )
 

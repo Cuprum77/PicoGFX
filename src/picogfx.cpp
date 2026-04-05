@@ -23,6 +23,10 @@ printer print(display.getFrameBuffer(), &display);
 gradient_obj gradient(display.getFrameBuffer(), &display);
 #endif
 
+#if defined(PICO_GFX_SUBSYS)
+qr_generator qr(&display);
+#endif
+
 extern "C" void __real_stdio_init_all();
 
 extern "C" void __wrap_stdio_init_all()

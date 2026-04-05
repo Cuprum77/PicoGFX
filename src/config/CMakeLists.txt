@@ -242,6 +242,10 @@ if(PICO_GFX_GRAPHICS)
     string(APPEND CONFIG_CONTENT "#define PICO_GFX_GRAPHICS\n")
 endif()
 
+if(PICO_GFX_SUBSYS)
+    string(APPEND CONFIG_CONTENT "#define PICO_GFX_SUBSYS\n")
+endif()
+
 # If no touch driver is defined, set TOUCH_ENABLED to 0
 if(NOT DEFINED TOUCH_DRIVER)
     string(APPEND CONFIG_CONTENT "#define TOUCH_DISABLED\n")

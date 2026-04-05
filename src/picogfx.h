@@ -52,6 +52,11 @@
     extern gradient_obj gradient;
 #endif
 
+#if defined(PICO_GFX_SUBSYS)
+    #include "qr.h"
+    extern qr_generator qr;
+#endif
+
 extern hardware_driver  _hw;
 extern display_driver_t display;
 #endif
