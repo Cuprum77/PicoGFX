@@ -39,10 +39,14 @@ public:
     void generate(const uint8_t *data, size_t data_size, qr_ecc_level ecc_lvl, 
         point location, uint32_t min_version, uint32_t scale);
 
+    void generate_minimal(const char *data, qr_ecc_level ecc_lvl, rect box, uint32_t min_version = 1);
+    void generate_minimal(const uint8_t *data, size_t data_size, 
+        qr_ecc_level ecc_lvl, rect bo, uint32_t min_version = 1);
+
     void generate_artistic(const char *data, qr_ecc_level ecc_lvl, 
-        rect box, const uint32_t *artistic_bitmap);
+        rect box, const uint32_t *artistic_bitmap, uint32_t min_version = 1);
     void generate_artistic(const uint8_t *data, size_t data_size, 
-        qr_ecc_level ecc_lvl, rect box, const uint32_t *artistic_bitmap);
+        qr_ecc_level ecc_lvl, rect box, const uint32_t *artistic_bitmap, uint32_t min_version = 1);
 
 private:
     display_obj *display_ptr;
@@ -256,6 +260,8 @@ private:
         uint32_t version, qr_ecc_level ecc_lvl, bool *data_mask, bool *mask);
     void draw_qr_code(uint32_t module_size, uint32_t x, uint32_t y, 
         uint32_t scale, bool *buffer);
+    void draw_minimal_qr_code(uint32_t module_size, uint32_t x, uint32_t y, 
+        uint32_t scale, bool *buffer, bool* mask);
     void draw_artistic_qr_code(uint32_t module_size, uint32_t x, uint32_t y, 
         uint32_t scale, bool *buffer, bool* mask, 
         const uint32_t *artistic_bitmap, uint32_t bitmap_width, uint32_t bitmap_height);

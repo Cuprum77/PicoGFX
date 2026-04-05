@@ -227,6 +227,81 @@ void qr_generator::generate(const uint8_t *data, size_t data_size, qr_ecc_level 
 }
 
 /**
+ * @brief Generate a minimalistic QR code from the input string data and render it to the display, within a specified box area
+ * @param data Pointer to the null-terminated string data to be encoded in the QR code
+ * @param ecc_lvl Error correction level (0-3), determines the amount of error correction in the QR code
+ * @param box The box area where the QR code should be rendered 
+ */
+void qr_generator::generate_minimal(const char *data, qr_ecc_level ecc_lvl, rect box, uint32_t min_version)
+{
+    uint32_t data_size = strlen(data);
+    this->generate_minimal((const uint8_t *)data, data_size, ecc_lvl, box, min_version);
+}
+
+/**
+ * @brief Generate a minimalistic QR code from the input string data and render it to the display, within a specified box area
+ * @param data Pointer to the null-terminated string data to be encoded in the QR code
+ * @param data_size Size of the input data in bytes
+ * @param ecc_lvl Error correction level (0-3), determines the amount of error correction in the QR code
+ * @param box The box area where the QR code should be rendered 
+ */
+void qr_generator::generate_minimal(const uint8_t *data, size_t data_size, 
+    qr_ecc_level ecc_lvl, rect box, uint32_t min_version)
+{
+    if (min_version < 1 || min_version > 40)
+        return;
+
+    uint32_t scale = 1;
+    point center = box.getCenter();
+
+    // Attempt to scale the QR code to fit the box area
+    uint32_t adj_version = this->get_adjusted_version(data_size, ecc_lvl, min_version);
+    uint32_t size = this->qr_modules_size + (adj_version * 4);
+    uint32_t max_scale_x = box.width() / size;
+    uint32_t max_scale_y = box.height() / size;
+    point location = box.getCenter();
+    scale = imin(max_scale_x, max_scale_y);
+
+    // Validate input parameters
+    if (ecc_lvl > 3)
+        return;
+    if (data == nullptr || data_size == 0)
+        return;
+    if (scale == 0)
+        return;
+
+    // Check that this does not render out of bounds
+    if ((size * scale) > this->display_ptr->getWidth())
+        return;
+    if ((size * scale) > this->display_ptr->getHeight())
+        return;
+
+    bool mask[size * size] = { false };
+    bool buffer[size * size] = { false };
+
+    uint32_t alignment_coordinates[46] = { 0 };
+    uint32_t alignment_count = this->get_alignment_coordinates(adj_version, alignment_coordinates);
+
+    // Dummy format pattern to reserve space for it in the mask
+    this->create_dummy_format_pattern(size, buffer, mask);
+    this->create_timing_pattern(size, buffer, mask);
+    this->add_finder_patterns(size, buffer, mask);
+    this->add_alignment_patterns(size, alignment_coordinates, alignment_count, buffer, mask);
+    this->create_version_pattern(size, adj_version, buffer, mask);
+
+    int success = this->encode_data(size, data, data_size, QR_MODE_BYTE, adj_version, ecc_lvl, buffer, mask);
+    if (success != 0)
+        return;
+    this->generate_data_mask(size, QR_MASK_TYPE_1, buffer, mask);
+    this->create_format_pattern(size, ecc_lvl, QR_MASK_TYPE_1, buffer, mask);
+    this->remove_mask_format_pattern(size, mask);
+
+    uint32_t x = location.x - (size * scale) / 2;
+    uint32_t y = location.y - (size * scale) / 2;
+    this->draw_minimal_qr_code(size, x, y, scale, buffer, mask);
+}
+
+/**
  * @brief Generate a QR code from the input string data and render it to the display, within a specified box area
  * @param data Pointer to the null-terminated string data to be encoded in the QR code
  * @param ecc_lvl Error correction level (0-3), determines the amount of error correction in the QR code
@@ -234,10 +309,10 @@ void qr_generator::generate(const uint8_t *data, size_t data_size, qr_ecc_level 
  * @param artistic_bitmap A bitmap to use for the QR code pixels, must be the same size as the box area
  */
 void qr_generator::generate_artistic(const char *data, qr_ecc_level ecc_lvl, 
-    rect box, const uint32_t *artistic_bitmap)
+    rect box, const uint32_t *artistic_bitmap, uint32_t min_version)
 {
     uint32_t data_size = strlen(data);
-    this->generate_artistic((const uint8_t *)data, data_size, ecc_lvl, box, artistic_bitmap);
+    this->generate_artistic((const uint8_t *)data, data_size, ecc_lvl, box, artistic_bitmap, min_version);
 }
 
 /**
@@ -249,9 +324,11 @@ void qr_generator::generate_artistic(const char *data, qr_ecc_level ecc_lvl,
  * @param artistic_bitmap A bitmap to use for the QR code pixels, must be the same size as the box area
  */
 void qr_generator::generate_artistic(const uint8_t *data, size_t data_size, 
-    qr_ecc_level ecc_lvl, rect box, const uint32_t *artistic_bitmap)
+    qr_ecc_level ecc_lvl, rect box, const uint32_t *artistic_bitmap, uint32_t min_version)
 {
-    uint32_t min_version = 1;
+    if (min_version < 1 || min_version > 40)
+        return;
+        
     uint32_t scale = 1;
     point center = box.getCenter();
 
@@ -785,6 +862,95 @@ void qr_generator::draw_qr_code(uint32_t module_size, uint32_t x, uint32_t y,
 
                     if (bc == colors::black)
                         this->frameBuffer[frame_ptr] = bc;
+                }
+            }
+        }
+    }
+}
+
+/**
+ * @private
+ * @brief Draw the QR code to the display using the buffer, but use an artistic bitmap for the non-essential details
+ * @param module_size The size of the QR code in modules
+ * @param x The x coordinate to start drawing the QR code
+ * @param y The y coordinate to start drawing the QR code
+ * @param scale The scale of the QR code, how big the individual pixels should be
+ * @param buffer The buffer containing the QR code data
+ * @param mask The buffer containing the mask for reserved areas
+ * @param artistic_bitmap The bitmap to use for the QR code pixels
+ * @param bitmap_width The width of the artistic bitmap in pixels
+ * @param bitmap_height The height of the artistic bitmap in pixels
+ */
+void qr_generator::draw_minimal_qr_code(uint32_t module_size, uint32_t x, uint32_t y, 
+        uint32_t scale, bool *buffer, bool* mask)
+{
+    uint32_t frame_ptr = 0;
+    uint32_t disp_width = this->display_ptr->getWidth();
+    uint32_t disp_height = this->display_ptr->getHeight();
+
+    for (size_t iy = 0; iy < module_size; iy++)
+    {
+        for (size_t ix = 0; ix < module_size; ix++)
+        {
+            bool is_black_module = buffer[ix + iy * module_size];
+            bool is_important_detail = mask[ix + iy * module_size];
+
+            for (size_t sy = 0; sy < scale; sy++)
+            {
+                for (size_t sx = 0; sx < scale; sx++)
+                {
+                    frame_ptr = ((ix * scale) + sx + x) + 
+                                (((iy * scale) + sy + y) * disp_width);
+
+                    int screen_x = (ix * scale) + sx + x;
+                    int screen_y = (iy * scale) + sy + y;
+
+                    if (screen_x >= 0 && screen_x < (int)disp_width &&
+                        screen_y >= 0 && screen_y < (int)disp_height)
+                    {
+                        if (is_important_detail)
+                        {
+                            this->frameBuffer[frame_ptr] = is_black_module ? colors::black : colors::white;
+                        }
+                        else
+                        {
+                            bool is_center_x = false;
+                            bool is_center_y = false;
+
+                            if (scale >= 6) {
+                                uint32_t padding = scale / 3;
+                                is_center_x = (sx >= padding) && (sx < scale - padding);
+                                is_center_y = (sy >= padding) && (sy < scale - padding);
+                            } 
+                            else if (scale >= 4) {
+                                uint32_t low = (scale / 2) - 1;
+                                uint32_t high = scale / 2;
+                                is_center_x = (sx == low || sx == high);
+                                is_center_y = (sy == low || sy == high);
+                            } 
+                            else {
+                                is_center_x = (sx == scale / 2);
+                                is_center_y = (sy == scale / 2);
+                            }
+
+                            if (is_center_x && is_center_y)
+                            {
+                                if (is_black_module)
+                                {
+                                    this->frameBuffer[frame_ptr] = colors::black;
+                                }
+                                else
+                                {
+                                    uint32_t current_pixel = this->frameBuffer[frame_ptr];
+                                    
+                                    if (current_pixel < 0x808080) 
+                                    {
+                                        this->frameBuffer[frame_ptr] = colors::white;
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
