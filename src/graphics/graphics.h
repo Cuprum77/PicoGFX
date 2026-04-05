@@ -27,6 +27,7 @@ public:
     void drawRectangle(point start, point end, color color = colors::white);
     void drawRectangle(rect rect, color color = colors::white);
     void drawRectangle(point center, uint32_t width, uint32_t height, color color = colors::white);
+    void drawFilledRectangle(rect rect, color color = colors::white);
     void drawFilledRectangle(point start, point end, color color = colors::white);
 
     void drawPolygon(point *points, size_t numberOfPoints, color color = colors::white);
