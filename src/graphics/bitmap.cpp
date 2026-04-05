@@ -194,7 +194,7 @@ void graphics::drawBitmap(const uint32_t *bitmap, uint32_t width, uint32_t heigh
  * @param transparentColor Color to treat as transparent, pixels with this color will not be drawn
 */
 void graphics::drawBitmap(const uint32_t *bitmap, 
-    uint32_t width, uint32_t height, color_t transparentColor)
+    uint32_t width, uint32_t height, uint32_t transparentColor)
 {
     this->drawBitmap(bitmap, width, height, point(0, 0), transparentColor);
 }
@@ -209,7 +209,7 @@ void graphics::drawBitmap(const uint32_t *bitmap,
  * @param transparentColor Color to treat as transparent, pixels with this color will not be drawn
 */
 void graphics::drawBitmap(const uint32_t *bitmap, uint32_t width, uint32_t height, 
-    bool center, color_t transparentColor)
+    bool center, uint32_t transparentColor)
 {
     int startX = 0;
     int startY = 0;
@@ -234,7 +234,7 @@ void graphics::drawBitmap(const uint32_t *bitmap, uint32_t width, uint32_t heigh
  * @param transparentColor Color to treat as transparent, pixels with this color will not be drawn
 */
 void graphics::drawBitmap(const uint32_t *bitmap, uint32_t width, uint32_t height, 
-    point start, color_t transparentColor)
+    point start, uint32_t transparentColor)
 {
 
     int startX = start.x;

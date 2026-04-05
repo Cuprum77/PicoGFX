@@ -55,11 +55,11 @@ public:
     void drawBitmap(const uint32_t *bitmap, uint32_t width, uint32_t height, point start);
 
     void drawBitmap(const uint32_t *bitmap, 
-        uint32_t width, uint32_t height, color_t transparentColor);
+        uint32_t width, uint32_t height, uint32_t transparentColor);
     void drawBitmap(const uint32_t *bitmap, uint32_t width, uint32_t height, 
-        bool center, color_t transparentColor);
+        bool center, uint32_t transparentColor);
     void drawBitmap(const uint32_t *bitmap, uint32_t width, uint32_t height, 
-        point start, color_t transparentColor);
+        point start, uint32_t transparentColor);
 
     void addBayerFilter(void);
     void addFloydSteinbergDithering(void);
