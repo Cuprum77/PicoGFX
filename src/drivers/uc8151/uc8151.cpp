@@ -93,14 +93,20 @@ void uc8151::set_display_state(bool on)
 {
     if (on) 
     {
+        this->writeData(0x04, NULL, 0);
+        while(this->hw->is_busy(true))
+            sleep_ms(1);
+
         this->writeData(0x12, NULL, 0);
     } 
     else 
     {
         this->writeData(0x02, NULL, 0);
-        
-        const uint8_t deep_sleep_val = 0xa5;
-        this->writeData(0x07, &deep_sleep_val, 1);
+
+        while(this->hw->is_busy(true))
+            sleep_ms(10);
+
+        this->writeData(0x07, (const uint8_t *)"\xa5", 1);
     }
 }
 
@@ -166,7 +172,8 @@ void uc8151::writePixels(const color_t *data, size_t length)
     while (this->hw->is_busy(true))
         sleep_ms(1);
 
-    // Power OFF
-    this->writeData(0x02, NULL, 0); 
+    // Turn it off
+    this->set_display_state(true);
+    this->set_display_state(false);
 }
 #endif
