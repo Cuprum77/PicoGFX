@@ -1,9 +1,23 @@
 #include "display.h"
 
+#if defined(LCD_EINK_DRIVER)
+/**
+ * @brief display initialization for e-ink displays
+*/
+display_obj::display_obj(hardware_driver *hw, color_t *frameBuffer)
+{
+    this->hw = hw;
+    this->frameBuffer = frameBuffer;
+    this->width = LCD_WIDTH;
+    this->height = LCD_HEIGHT;
+    this->isEINK = true;
+}
+#else
 /**
  * @brief display initialization
 */
-display_obj::display_obj(hardware_driver *hw, color_t *frameBuffer, uint8_t CASET, uint8_t RASET, uint8_t RAMWR)
+display_obj::display_obj(hardware_driver *hw, color_t *frameBuffer, 
+    uint32_t *CASET, uint32_t *RASET, uint32_t *RAMWR)
 {
     this->hw = hw;
     this->frameBuffer = frameBuffer;
@@ -12,7 +26,9 @@ display_obj::display_obj(hardware_driver *hw, color_t *frameBuffer, uint8_t CASE
     this->RAMWR = RAMWR;
     this->width = LCD_WIDTH;
     this->height = LCD_HEIGHT;
+    this->isEINK = false;
 }
+#endif
 
 /**
  * @brief Clear the display by drawing a black rectangle
@@ -196,18 +212,20 @@ color_t display_obj::getPixel(uint32_t index)
  * @brief Write pixels to the display
  * @param data data to write
  * @param length Length of the data
- * @note length should be number of 16 bit pixels, not bytes!
 */
 void display_obj::writePixels(const color_t *data, size_t length)
 {
     // check if the data mode is set
     if (!this->dataMode)
     {
-        // set to single spi transfer mode if qspi is enabled
-        this->switchTransmissionMode(false);
-        // set the data mode
-        this->hw->setDataMode(this->RAMWR);
-        this->dataMode = true;
+        if (this->RAMWR)
+        {
+            // set to single spi transfer mode if qspi is enabled
+            this->switchTransmissionMode(false);
+            // set the data mode
+            this->hw->setDataMode(*this->RAMWR);
+            this->dataMode = true;
+        }
     }
     
     // set to quad spi transfer mode if qspi is enabled
@@ -284,6 +302,10 @@ void display_obj::writeData(uint8_t command, const uint8_t *data, size_t length)
 */
 inline void display_obj::columnAddressSet(uint32_t x0, uint32_t x1)
 {
+    // if CASET is not available, just return
+    if (!this->CASET)
+        return;
+
     // deny out of bounds
     if (x0 >= x1 || x1 >= this->maxWidth)
         return;
@@ -299,7 +321,7 @@ inline void display_obj::columnAddressSet(uint32_t x0, uint32_t x1)
     // set to single spi transfer mode if qspi is enabled
     this->switchTransmissionMode(false);
     // write the data
-    this->writeData(this->CASET, data, sizeof(data));
+    this->writeData(*this->CASET, data, sizeof(data));
 }
 
 /**
@@ -310,6 +332,10 @@ inline void display_obj::columnAddressSet(uint32_t x0, uint32_t x1)
 */
 inline void display_obj::rowAddressSet(uint32_t y0, uint32_t y1)
 {
+    // if RASET is not available, just return
+    if (!this->RASET)
+        return;
+
     // deny out of bounds
     if (y0 >= y1 || y1 >= this->maxHeight)
         return;
@@ -325,7 +351,7 @@ inline void display_obj::rowAddressSet(uint32_t y0, uint32_t y1)
     // set to single spi transfer mode if qspi is enabled
     this->switchTransmissionMode(false);
     // write the data
-    this->writeData(this->RASET, data, sizeof(data));
+    this->writeData(*this->RASET, data, sizeof(data));
 }
 
 /**

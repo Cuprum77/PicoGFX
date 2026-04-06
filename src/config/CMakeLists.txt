@@ -187,6 +187,14 @@ else()
 endif()
 
 # ==========================================
+# eInk specific configuration
+# ==========================================
+
+if (LCD_DRIVER MATCHES "^UC8151[CD]?$")
+    string(APPEND CONFIG_CONTENT "\n#define LCD_EINK_DRIVER\n")
+endif()
+
+# ==========================================
 # Backlight (optional)
 # ==========================================
 
@@ -199,6 +207,14 @@ if (DEFINED LCD_PIN_BL)
     if(LCD_BACKLIGHT_DIM)
         string(APPEND CONFIG_CONTENT "#define LCD_BACKLIGHT_DIMMABLE\n")
     endif()
+endif()
+
+# ==========================================
+# Busy pin (optional)
+# ==========================================
+
+if (DEFINED LCD_PIN_BUSY)
+    string(APPEND CONFIG_CONTENT "\n#define LCD_PIN_BUSY ${LCD_PIN_BUSY}\n")
 endif()
 
 # ==========================================

@@ -20,7 +20,7 @@ class cna3306 : public display_obj
 {
 public:
     cna3306(hardware_driver *hw) : 
-        display_obj(hw, this->framebuffer, COMMAND_CASET, COMMAND_RASET, COMMAND_RAMWR) {}
+        display_obj(hw, this->framebuffer, &this->caset, &this->raset, &this->ramwr) {}
     void init();
 
     void set_rotation(uint32_t rotation);
@@ -33,5 +33,8 @@ public:
 private:
     color_t framebuffer[FRAMEBUFFER_SIZE];
     uint8_t brightness = 0;
+    uint32_t ramwr = COMMAND_RAMWR;
+    uint32_t caset = COMMAND_CASET;
+    uint32_t raset = COMMAND_RASET;
 };
 #endif

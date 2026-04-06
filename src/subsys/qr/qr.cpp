@@ -1020,21 +1020,39 @@ void qr_generator::draw_artistic_qr_code(uint32_t module_size, uint32_t x, uint3
                             bool is_center_x = false;
                             bool is_center_y = false;
 
-                            if (scale >= 6) {
-                                uint32_t padding = scale / 3;
-                                is_center_x = (sx >= padding) && (sx < scale - padding);
-                                is_center_y = (sy >= padding) && (sy < scale - padding);
-                            } 
-                            else if (scale >= 4) {
+#if defined(LCD_EINK_DRIVER)
+                            if (scale >= 4) 
+                            {
                                 uint32_t low = (scale / 2) - 1;
                                 uint32_t high = scale / 2;
                                 is_center_x = (sx == low || sx == high);
                                 is_center_y = (sy == low || sy == high);
                             } 
-                            else {
+                            else 
+                            {
                                 is_center_x = (sx == scale / 2);
                                 is_center_y = (sy == scale / 2);
                             }
+#else
+                            if (scale >= 6) 
+                            {
+                                uint32_t padding = scale / 3;
+                                is_center_x = (sx >= padding) && (sx < scale - padding);
+                                is_center_y = (sy >= padding) && (sy < scale - padding);
+                            } 
+                            else if (scale >= 4) 
+                            {
+                                uint32_t low = (scale / 2) - 1;
+                                uint32_t high = scale / 2;
+                                is_center_x = (sx == low || sx == high);
+                                is_center_y = (sy == low || sy == high);
+                            } 
+                            else 
+                            {
+                                is_center_x = (sx == scale / 2);
+                                is_center_y = (sy == scale / 2);
+                            }
+#endif
 
                             if (is_center_x && is_center_y)
                             {

@@ -17,7 +17,7 @@ class gc9a01 : public display_obj
 {
 public:
     gc9a01(hardware_driver *hw) : 
-        display_obj(hw, this->framebuffer, COMMAND_CASET, COMMAND_RASET, COMMAND_RAMWR) {}
+        display_obj(hw, this->framebuffer, &this->caset, &this->raset, &this->ramwr) {}
     void init();
     void softReset();
 
@@ -26,5 +26,8 @@ public:
 
 private:
     color_t framebuffer[FRAMEBUFFER_SIZE];
+    uint32_t ramwr = COMMAND_RAMWR;
+    uint32_t caset = COMMAND_CASET;
+    uint32_t raset = COMMAND_RASET;
 };
 #endif

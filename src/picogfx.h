@@ -15,6 +15,9 @@
 #elif defined(LCD_DRIVER_CNA3306)
     #include "cna3306.h"
     using display_driver_t = cna3306;
+#elif defined(LCD_DRIVER_UC8151)
+    #include "uc8151.h"
+    using display_driver_t = uc8151;
 #else
     #error "No display driver defined"
 #endif
@@ -47,9 +50,11 @@
 // does nothing for now
 #endif
 
+#if !defined(LCD_COLOR_DEPTH_1)
 #if defined(PICO_GFX_GRADIENT)
     #include "gradient.h"
     extern gradient_obj gradient;
+#endif
 #endif
 
 #if defined(PICO_GFX_SUBSYS)

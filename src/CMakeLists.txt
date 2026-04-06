@@ -18,6 +18,7 @@ add_library(${PROJECT_NAME}
     drivers/cna3306/cna3306.cpp
     drivers/st7789/st7789.cpp
     drivers/gc9a01/gc9a01.cpp
+    drivers/uc8151/uc8151.cpp
     drivers/touch/touch.cpp
     drivers/touch/cst816/cst816.cpp
     drivers/touch/gt911/gt911.cpp
@@ -48,6 +49,7 @@ target_include_directories(${PROJECT_NAME}
     PUBLIC ${PROJECT_SOURCE_DIR}/drivers/cna3306
     PUBLIC ${PROJECT_SOURCE_DIR}/drivers/st7789
     PUBLIC ${PROJECT_SOURCE_DIR}/drivers/gc9a01
+    PUBLIC ${PROJECT_SOURCE_DIR}/drivers/uc8151
     PUBLIC ${PROJECT_SOURCE_DIR}/drivers/touch
     PUBLIC ${PROJECT_SOURCE_DIR}/drivers/touch/cst816
     PUBLIC ${PROJECT_SOURCE_DIR}/drivers/touch/gt911

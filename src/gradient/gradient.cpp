@@ -1,6 +1,8 @@
 #include "gradient.h"
 #include <stdio.h>
 
+#if !defined(LCD_COLOR_DEPTH_1)
+
 // create a global instance of the lookup tables
 color_t colorLUT[MAX_COLOR_DIFF + 1];
 
@@ -205,3 +207,5 @@ void gradient_obj::drawRotRectGradient(point center, rect area, int32_t rotation
 {
     this->drawRotRectGradient(center, area.width(), area.height(), rotationSpeed, lightColor, darkColor);
 }
+
+#endif

@@ -15,48 +15,53 @@
 class display_obj
 {
 public:
-    display_obj(hardware_driver *hw, color_t *frameBuffer, uint8_t CASET, uint8_t RASET, uint8_t RAMWR);
-    uint32_t getRotation(void) { return this->rotation; }
-    void clear(void);
+#if defined(LCD_EINK_DRIVER)
+    display_obj(hardware_driver *hw, color_t *frameBuffer);
+#else
+    display_obj(hardware_driver *hw, color_t *frameBuffer, 
+        uint32_t *CASET, uint32_t *RASET, uint32_t *RAMWR);
+#endif
+    virtual uint32_t getRotation(void) { return this->rotation; }
+    virtual void clear(void);
 
 #if defined(LCD_BACKLIGHT_ENABLED)
-    void initBacklight();
+    virtual void initBacklight();
 #if defined(LCD_BACKLIGHT_DIMMABLE)
-    void setBrightness(uint8_t brightness);
-    void setBrightnessRaw(uint8_t brightness);
-    uint8_t getBrightness(void);
-    uint8_t getBrightnessRaw(void);
+    virtual void setBrightness(uint8_t brightness);
+    virtual void setBrightnessRaw(uint8_t brightness);
+    virtual uint8_t getBrightness(void);
+    virtual uint8_t getBrightnessRaw(void);
 #else
-    void setBrightness(bool on);
-    bool getBrightness(void);
+    virtual void setBrightness(bool on);
+    virtual bool getBrightness(void);
 #endif
 #endif
 
-    void update();
-    void update(int32_t start, int32_t end);
-    void update(int32_t start, int32_t end, bool moveCursor);
-    void update(point start, point end);
-    void update(rect rect);
+    virtual void update();
+    virtual void update(int32_t start, int32_t end);
+    virtual void update(int32_t start, int32_t end, bool moveCursor);
+    virtual void update(point start, point end);
+    virtual void update(rect rect);
     
-    void frameCounter(void);
-    bool frameLimiter(uint32_t frameRate);
+    virtual void frameCounter(void);
+    virtual bool frameLimiter(uint32_t frameRate);
 
-    void setPixel(point point, color color);
-    void setPixel(uint32_t point, color_t color);
-    color getPixel(point point);
-    color_t getPixel(uint32_t index);
+    virtual void setPixel(point point, color color);
+    virtual void setPixel(uint32_t point, color_t color);
+    virtual color getPixel(point point);
+    virtual color_t getPixel(uint32_t index);
 
-    void setCursor(point point);
-    point getCursor(void);
-    point getCenter(void);
+    virtual void setCursor(point point);
+    virtual point getCursor(void);
+    virtual point getCenter(void);
 
-    int32_t getFrameCounter() { return this->frames; }
-    uint32_t getWidth(void) { return this->width; }
-    uint32_t getHeight(void)  { return this->height; }
-    uint32_t getShortestSide(void) { return imin(this->width, this->height); }
-    uint32_t getLongestSide(void) { return imax(this->width, this->height); }
-    rect getArea(void) { return rect(point(0, 0), point(this->width, this->height)); }
-    color_t *getFrameBuffer(void) { return this->frameBuffer; }
+    virtual int32_t getFrameCounter() { return this->frames; }
+    virtual uint32_t getWidth(void) { return this->width; }
+    virtual uint32_t getHeight(void)  { return this->height; }
+    virtual uint32_t getShortestSide(void) { return imin(this->width, this->height); }
+    virtual uint32_t getLongestSide(void) { return imax(this->width, this->height); }
+    virtual rect getArea(void) { return rect(point(0, 0), point(this->width, this->height)); }
+    virtual color_t *getFrameBuffer(void) { return this->frameBuffer; }
     
 protected:
     hardware_driver *hw;
@@ -125,9 +130,10 @@ protected:
     uint32_t height = LCD_HEIGHT;
     uint32_t maxHeight;
 
-    int32_t CASET;
-    int32_t RASET;
-    int32_t RAMWR;
+    uint32_t *CASET;
+    uint32_t *RASET;
+    uint32_t *RAMWR;
+    bool isEINK = false;
 
     // timer for the framerate calculation
     int32_t framecounter = 0;
@@ -135,12 +141,12 @@ protected:
     uint64_t timer = 0;
     uint64_t lastFrame = 0;
 
-    void writeData(uint8_t command, const uint8_t *data, size_t length);
-    void writeData(uint8_t command, uint8_t data) { writeData(command, &data, 1); }
-    void writeData(uint8_t command) { writeData(command, nullptr, 0); }
-    void writePixels(const color_t *data, size_t length);
-    void switchTransmissionMode(bool data) { this->hw->switchTransmissionMode(data); }
-    void swap_offsets(uint32_t rotation);
-    inline void columnAddressSet(uint32_t x0, uint32_t x1);
-    inline void rowAddressSet(uint32_t y0, uint32_t y1);
+    virtual void writeData(uint8_t command, const uint8_t *data, size_t length);
+    virtual void writeData(uint8_t command, uint8_t data) { writeData(command, &data, 1); }
+    virtual void writeData(uint8_t command) { writeData(command, nullptr, 0); }
+    virtual void writePixels(const color_t *data, size_t length);
+    virtual void switchTransmissionMode(bool data) { this->hw->switchTransmissionMode(data); }
+    virtual void swap_offsets(uint32_t rotation);
+    virtual inline void columnAddressSet(uint32_t x0, uint32_t x1);
+    virtual inline void rowAddressSet(uint32_t y0, uint32_t y1);
 };

@@ -123,18 +123,20 @@
 
 #if defined(LCD_INVERT_COLORS)
 #define COLOR_INV(c) (!c)
+#else
+#define COLOR_INV(c) (c)
 #endif
 #define __COLOR_SIZE__ bool
 #endif
 
 using color_t = __COLOR_SIZE__;
 
-#if !defined(LCD_COLOR_DEPTH_1)
 /**
  * @brief Colors enum
 */
 typedef enum
 {
+#if !defined(LCD_COLOR_DEPTH_1)
     black =         ADJ_COLOR(COLOR_BLACK),
     navy =          ADJ_COLOR(COLOR_NAVY),
     darkGreen =     ADJ_COLOR(COLOR_DARK_GREEN),
@@ -174,8 +176,11 @@ typedef enum
     deepViolet =    ADJ_COLOR(COLOR_DEEP_VIOLET),
     vampireBlack =  ADJ_COLOR(COLOR_VAMPIRE_BLACK),
     eerieBlack =    ADJ_COLOR(COLOR_EERIE_BLACK)
-} colors;
+#else
+    white =         COLOR_WHITE,
+    black =         COLOR_BLACK
 #endif
+} colors;
 
 struct color
 {
@@ -201,19 +206,24 @@ struct color
     */
     color()
     {
+#if !defined(LCD_COLOR_DEPTH_1)
         this->r = 0;
         this->g = 0;
         this->b = 0;
+#else
+        this->white = false;
+#endif
     }
 
-#if !defined(LCD_COLOR_DEPTH_1)
     /**
      * @brief Creates a color from a Colors enum
      * @param color Colors enum
     */
     color(colors c)
     {
-#if defined(LCD_COLOR_DEPTH_8)
+#if defined(LCD_COLOR_DEPTH_1)
+        this->white = c == colors::white;
+#elif defined(LCD_COLOR_DEPTH_8)
         this->r = (c >> 5) & 0x03;
         this->g = (c >> 2) & 0x03;
         this->b = c & 0x02;
@@ -231,13 +241,23 @@ struct color
         this->b = c & 0xff;
 #endif
     }
+
+#if defined(LCD_COLOR_DEPTH_1)
+    /**
+     * @brief Creates a color from a boolean value
+     * @param color 8-bit color
+    */
+    explicit color(bool c)
+    {
+        this->white = c;
+    }
 #endif
 
     /**
      * @brief Creates a color from a 8 bit value
      * @param color 8-bit color
     */
-    color(uint8_t c)
+    explicit color(uint8_t c)
     {
 #if defined(LCD_COLOR_DEPTH_1)
         this->white = c >= 0x7f;
@@ -266,7 +286,7 @@ struct color
      * @brief Creates a color from a 16 bit value
      * @param color 16-bit color
     */
-    color(uint16_t c)
+    explicit color(uint16_t c)
     {
 #if defined(LCD_COLOR_DEPTH_1)
         this->white = c >= 0x7fff;
@@ -295,7 +315,7 @@ struct color
      * @brief Creates a color from a 24 bit value
      * @param color 16-bit color
     */
-    color(uint32_t c)
+    explicit color(uint32_t c)
     {
 #if defined(LCD_COLOR_DEPTH_1)
         if (c >= 0x7fffff)
@@ -329,7 +349,7 @@ struct color
      * @param g Green value
      * @param b Blue value
     */
-    color(uint8_t r, uint8_t g, uint8_t b)
+    explicit color(uint8_t r, uint8_t g, uint8_t b)
     {
 #if defined(LCD_COLOR_DEPTH_1)
         uint32_t temp = (r << 16) | (g << 8) | b;
@@ -387,7 +407,7 @@ struct color
     color blend(color c, uint16_t ratio)
     {
 #if defined(LCD_COLOR_DEPTH_1)
-        return this.white ? c : *this;
+        return this->white ? c : *this;
 #elif defined(LCD_COLOR_DEPTH_8)
         // split blue and red
         color_t rb = c.toWord() & 0x1f;
@@ -454,6 +474,7 @@ struct color
 #endif
     }
 
+#if !defined(LCD_COLOR_DEPTH_1)
     bool operator==(color c)
     {
         return this->r == c.r && this->g == c.g && this->b == c.b;
@@ -513,4 +534,5 @@ struct color
     {
         return color(this->r < c.r ? this->r : c.r, this->g < c.g ? this->g : c.g, this->b < c.b ? this->b : c.b);
     }
+#endif
 };

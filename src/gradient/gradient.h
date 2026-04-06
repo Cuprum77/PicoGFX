@@ -6,6 +6,8 @@
 #include "display.h"
 #include "lcd_config.h"
 
+#if !defined(LCD_COLOR_DEPTH_1)
+
 class gradient_obj
 {
 public:
@@ -30,3 +32,5 @@ private:
     const int32_t secondQuadrant = 180;
     const int32_t thirdQuadrant = 270;
 };
+
+#endif

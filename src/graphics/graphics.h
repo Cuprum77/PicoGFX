@@ -17,30 +17,30 @@ public:
 
     void testPattern(void);
 
-    void drawLine(point start, point end, color color = colors::white);
-    void drawLineAntiAliased(point start, point end, color color = colors::white);
-    void drawLineThickAntiAliased(point start, point end, uint32_t thickness, color color = colors::white);
+    void drawLine(point start, point end, color color);
+    void drawLineAntiAliased(point start, point end, color color);
+    void drawLineThickAntiAliased(point start, point end, uint32_t thickness, color color);
 
-	void drawTriangle(point p1, point p2, point p3, color color = colors::white);
-	void drawFilledTriangle(point p1, point p2, point p3, color color = colors::white);
+	void drawTriangle(point p1, point p2, point p3, color color);
+	void drawFilledTriangle(point p1, point p2, point p3, color color);
 
-    void drawRectangle(point start, point end, color color = colors::white);
-    void drawRectangle(rect rect, color color = colors::white);
-    void drawRectangle(point center, uint32_t width, uint32_t height, color color = colors::white);
-    void drawFilledRectangle(rect rect, color color = colors::white);
-    void drawFilledRectangle(point start, point end, color color = colors::white);
+    void drawRectangle(point start, point end, color color);
+    void drawRectangle(rect rect, color color);
+    void drawRectangle(point center, uint32_t width, uint32_t height, color color);
+    void drawFilledRectangle(rect rect, color color);
+    void drawFilledRectangle(point start, point end, color color);
 
-    void drawPolygon(point *points, size_t numberOfPoints, color color = colors::white);
-    void drawFilledPolygon(point *points, size_t numberOfPoints, color color = colors::white);
+    void drawPolygon(point *points, size_t numberOfPoints, color color);
+    void drawFilledPolygon(point *points, size_t numberOfPoints, color color);
 
-    void drawCircle(circle c, color color = colors::white, uint32_t thickness = 1);
-    void drawCircle(point center, uint32_t radius, color color = colors::white, uint32_t thickness = 1);
-    void drawFilledCircle(circle c, color color = colors::white);
-    void drawFilledCircle(point center, uint32_t radius, color color = colors::white);
+    void drawCircle(circle c, color color, uint32_t thickness = 1);
+    void drawCircle(point center, uint32_t radius, color color, uint32_t thickness = 1);
+    void drawFilledCircle(circle c, color color);
+    void drawFilledCircle(point center, uint32_t radius, color color);
     void drawFilledCircleWithStroke(circle c, color fillColor, color strokeColor, uint32_t strokeThickness);
     void drawFilledCircleWithStroke(point center, uint32_t radius, color fillColor, color strokeColor, uint32_t strokeThickness);
 
-    void drawArc(point center, uint32_t radius, uint32_t start_angle, uint32_t end_angle, color color = colors::white);
+    void drawArc(point center, uint32_t radius, uint32_t start_angle, uint32_t end_angle, color color);
     void drawFilledDualArc(point center, uint32_t innerRadius, uint32_t outerRadius, uint32_t startAngle, uint32_t endAngle, color color);
 
     void drawBitmap(const uint8_t *bitmap, uint32_t width, uint32_t height);
