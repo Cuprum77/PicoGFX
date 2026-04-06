@@ -6,6 +6,7 @@ This is my work in progress RP2040 based display driver for the different cheap 
 * GC9A01    (240x240)
 * ST7789    (240x320)
 * CNA3306   (240x320)
+* UC8151    (128x296)
 
 ## License
 See the [LICENSE](LICENSE) file for license rights and limitations.
