@@ -48,9 +48,12 @@ class hardware_driver
 public:
     void init(void);
     void reset(uint32_t time_ms);
+    bool is_busy(bool inv = false);
+    void stop_transmission();
 
     void writeData(uint8_t command, const uint8_t *data, size_t length);
     void writePixels(const color_t *data, size_t length);
+    void writeSingleColor(color_t data, size_t length);
     void setDataMode(uint8_t command);
     void switchTransmissionMode(bool data);
 
@@ -78,6 +81,7 @@ private:
     inline void protocol_write_data(uint8_t command, const uint8_t *data, size_t length);
     inline void protocol_set_data_mode(uint8_t command);
     inline void protocol_write_pixels(const color_t *data, size_t length);
+    inline void protocol_write_single_pixel(color_t data, size_t length);
     inline void pio_set_bits(uint32_t bits);
     inline void set_spi_dc_cs(bool dc, bool cs);
 
@@ -94,6 +98,7 @@ private:
     inline void protocol_write_data(uint8_t command, const uint8_t *data, size_t length);
     inline void protocol_set_data_mode(uint8_t command);
     inline void protocol_write_pixels(const color_t *data, size_t length);
+    inline void protocol_write_single_pixel(color_t data, size_t length);
 
     // QSPI instance
 #elif defined(LCD_PROTOCOL_QSPI)
@@ -102,6 +107,7 @@ private:
     inline void protocol_write_data(uint8_t command, const uint8_t *data, size_t length, bool keep_cs = false);
     inline void protocol_set_data_mode(uint8_t command);
     inline void protocol_write_pixels(const color_t *data, size_t length);
+    inline void protocol_write_single_pixel(color_t data, size_t length);
     inline void pio_set_bits(uint32_t bits);
     inline void send_command_over_spi(uint8_t command);
 #else
@@ -114,6 +120,7 @@ private:
     inline void protocol_write_data(uint8_t command, const uint8_t *data, size_t length);
     inline void protocol_set_data_mode(uint8_t command);
     inline void protocol_write_pixels(const color_t *data, size_t length);
+    inline void protocol_write_single_pixel(color_t data, size_t length);
 
     // Parallel interface
 #elif defined(LCD_PROTOCOL_PARALLEL_24) \
@@ -126,6 +133,7 @@ private:
     inline void protocol_set_data_mode(uint8_t command);
     inline void write8080(uint32_t data, bool command, bool bit16);
     inline void protocol_write_pixels(const color_t *data, size_t length);
+    inline void protocol_write_single_pixel(color_t data, size_t length);
 #else
 #error "Unsupported display protocol or hardware interface"
 

@@ -5,6 +5,7 @@ set(PICO_GFX_PRINT      1)
 set(PICO_GFX_GAUGE      0)
 set(PICO_GFX_GRADIENT   0)
 set(PICO_GFX_GRAPHICS   1)
+set(PICO_GFX_SUBSYS     0)
 
 # List of desired fonts to include in the build (e.g. "RobotoMono.ttf")
 # Can store multiple fonts by separating them with a semicolon.

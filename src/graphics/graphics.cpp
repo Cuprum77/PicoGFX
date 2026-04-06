@@ -40,9 +40,13 @@ void graphics::fillRaw(color_t color)
 
 /**
  * @brief Fill the display with a test pattern
+ * @warning Does not work on 1-bit displays
 */
 void graphics::testPattern(void)
 {
+#if defined(LCD_COLOR_DEPTH_1)
+	this->fill(colors::white);
+#else
 	uint32_t width = this->display_ptr->getWidth();
 	uint32_t height = this->display_ptr->getHeight();
 
@@ -124,6 +128,7 @@ void graphics::testPattern(void)
 
 		this->drawFilledRectangle(start, end, bottom_black_band[i]);
 	}
+#endif
 }
 
 //   rrrrrggggggbbbbb

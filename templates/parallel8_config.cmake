@@ -7,6 +7,7 @@ set(PICO_GFX_PRINT      ?)
 set(PICO_GFX_GAUGE      ?)
 set(PICO_GFX_GRADIENT   ?)
 set(PICO_GFX_GRAPHICS   ?)
+set(PICO_GFX_SUBSYS     ?)
 
 # Protocol used to communicate with the display
 set(LCD_PROTOCOL        PARALLEL_8)

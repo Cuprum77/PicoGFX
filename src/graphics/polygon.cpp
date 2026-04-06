@@ -58,6 +58,17 @@ void graphics::drawRectangle(point center, uint32_t width, uint32_t height, colo
  * @param end End point
  * @param color color to draw in
 */
+void graphics::drawFilledRectangle(rect rect, color color)
+{
+    this->drawFilledRectangle(rect.x(), rect.y(), color);
+}
+
+/**
+ * @brief Draw a filled rectangle on the display
+ * @param start Start point
+ * @param end End point
+ * @param color color to draw in
+*/
 void graphics::drawFilledRectangle(point start, point end, color color)
 {
     color_t colorWord = color.toWord();

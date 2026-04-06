@@ -197,18 +197,17 @@ void graphics::drawCircle2(point center, uint32_t radius, color color, uint32_t 
     uint32_t y0 = center.y;
     int32_t erro = 1 - x_outer;
     int32_t erri = 1 - x_inner;
-    color_t colorWord = color.toWord();
 
     while (x_outer >= y)
     {
-        this->drawCircleXLine(x0 + x_inner, x0 + x_outer, y0 + y,  colorWord);
-        this->drawCircleYLine(x0 + y,  y0 + x_inner, y0 + x_outer, colorWord);
-        this->drawCircleXLine(x0 - x_outer, x0 - x_inner, y0 + y,  colorWord);
-        this->drawCircleYLine(x0 - y,  y0 + x_inner, y0 + x_outer, colorWord);
-        this->drawCircleXLine(x0 - x_outer, x0 - x_inner, y0 - y,  colorWord);
-        this->drawCircleYLine(x0 - y,  y0 - x_outer, y0 - x_inner, colorWord);
-        this->drawCircleXLine(x0 + x_inner, x0 + x_outer, y0 - y,  colorWord);
-        this->drawCircleYLine(x0 + y,  y0 - x_outer, y0 - x_inner, colorWord);
+        this->drawCircleXLine(x0 + x_inner, x0 + x_outer, y0 + y,  color);
+        this->drawCircleYLine(x0 + y,  y0 + x_inner, y0 + x_outer, color);
+        this->drawCircleXLine(x0 - x_outer, x0 - x_inner, y0 + y,  color);
+        this->drawCircleYLine(x0 - y,  y0 + x_inner, y0 + x_outer, color);
+        this->drawCircleXLine(x0 - x_outer, x0 - x_inner, y0 - y,  color);
+        this->drawCircleYLine(x0 - y,  y0 - x_outer, y0 - x_inner, color);
+        this->drawCircleXLine(x0 + x_inner, x0 + x_outer, y0 - y,  color);
+        this->drawCircleYLine(x0 + y,  y0 - x_outer, y0 - x_inner, color);
 
         y++;
 

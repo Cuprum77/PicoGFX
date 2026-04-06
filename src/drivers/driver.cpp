@@ -15,6 +15,11 @@ void hardware_driver::init()
 #endif
 #endif
 
+#if defined(LCD_PIN_BUSY)
+    gpio_init(LCD_PIN_BUSY);
+    gpio_set_dir(LCD_PIN_BUSY, GPIO_IN);
+#endif
+
     hardware_driver::protocol_init();
 }
 
@@ -36,6 +41,21 @@ void hardware_driver::reset(uint32_t time_ms)
     gpio_put(LCD_PIN_RST, 1);
     sleep_ms(time_ms);
 #endif
+#endif
+}
+
+/**
+ * @brief Check if the display is busy using the busy signal
+ * @param inv Whether to invert the busy signal, default is false
+ * @return true if the display is busy, false otherwise
+ * @note This function will always return false if no busy pin is defined
+ */
+bool hardware_driver::is_busy(bool inv)
+{
+#if defined(LCD_PIN_BUSY)
+    return gpio_get(LCD_PIN_BUSY) == (inv ? 0 : 1);
+#else
+    return false;
 #endif
 }
 
@@ -81,6 +101,17 @@ void hardware_driver::switchTransmissionMode(bool data)
 void hardware_driver::writePixels(const color_t *data, size_t length)
 {
     this->protocol_write_pixels(data, length);
+}
+
+/**
+ * @brief Write data to the display, but only a single color repeated for the length of the data
+ * @param data The data to send
+ * @param length The length of the data
+ * @return bytes written on success, -1 on failure
+*/
+void hardware_driver::writeSingleColor(color_t data, size_t length)
+{
+    this->protocol_write_single_pixel(data, length);
 }
 
 #if defined(LCD_PROTOCOL_SPI) && defined(LCD_HARDWARE_PIO)
@@ -237,7 +268,29 @@ void hardware_driver::writePixels(const color_t *data, size_t length)
 
     inline void hardware_driver::protocol_write_pixels(const color_t *data, size_t length)
     {
-#if defined(LCD_COLOR_DEPTH_16)
+#if defined(LCD_COLOR_DEPTH_1)
+    spi_set_format(this->spi_instance, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
+    
+    gpio_put(LCD_PIN_CS, 0);
+    
+    for (size_t i = 0; i < length; i += 8) 
+    {
+        uint8_t byte = 0;
+        
+        for (uint32_t bit = 0; bit < 8; bit++) 
+        {
+            if (i + bit < length) 
+            {
+                if (data[i + bit])
+                    byte |= (1 << (7 - bit));
+            }
+        }
+        
+        spi_write_blocking(this->spi_instance, &byte, 1);
+    }
+
+    gpio_put(LCD_PIN_CS, 1);
+#elif defined(LCD_COLOR_DEPTH_16)
     spi_set_format(this->spi_instance, 16, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
 
     gpio_put(LCD_PIN_CS, 0);
@@ -279,6 +332,65 @@ void hardware_driver::writePixels(const color_t *data, size_t length)
     
     gpio_put(LCD_PIN_CS, 0);
     spi_write_blocking(this->spi_instance, (const uint8_t *)data, length);
+    gpio_put(LCD_PIN_CS, 1);
+#endif
+    }
+
+    inline void hardware_driver::protocol_write_single_pixel(color_t data, size_t length)
+    {
+#if defined(LCD_COLOR_DEPTH_1)
+    spi_set_format(this->spi_instance, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
+    
+    gpio_put(LCD_PIN_CS, 0);
+    uint8_t byte = data ? 0x00 : 0xff;
+    for (size_t i = 0; i < length; i += 8)
+        spi_write_blocking(this->spi_instance, &byte, 1);
+
+    gpio_put(LCD_PIN_CS, 1);
+#elif defined(LCD_COLOR_DEPTH_16)
+    spi_set_format(this->spi_instance, 16, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
+
+    gpio_put(LCD_PIN_CS, 0);
+    for (size_t i = 0; i < length; i++)
+        spi_write16_blocking(this->spi_instance, &data, 1);
+    gpio_put(LCD_PIN_CS, 1);
+#elif defined(LCD_COLOR_DEPTH_18)
+    spi_set_format(this->spi_instance, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
+
+    gpio_put(LCD_PIN_CS, 0);
+    const uint32_t pixel = data;
+    for (size_t i = 0; i < length; i++) 
+    {
+        uint8_t words[3] = {
+            (uint8_t)((pixels >> 12) & 0x3f) << 2,
+            (uint8_t)((pixels >>  6) & 0x3f) << 2,
+            (uint8_t)((pixels >>  0) & 0x3f) << 2,
+        };
+        
+        spi_write_blocking(this->spi_instance, words, 3);
+    }
+    gpio_put(LCD_PIN_CS, 1);
+#elif defined(LCD_COLOR_DEPTH_24)
+    spi_set_format(this->spi_instance, 12, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
+
+    gpio_put(LCD_PIN_CS, 0);
+    const uint32_t pixel = data;
+    for (size_t i = 0; i < length; i++) 
+    {
+        uint16_t words[2] = {
+            (uint16_t)((pixel >> 12) & 0xfff),
+            (uint16_t)( pixel        & 0xfff)
+        };
+
+        spi_write16_blocking(this->spi_instance, words, 2);
+    }
+    gpio_put(LCD_PIN_CS, 1);
+#else
+    spi_set_format(this->spi_instance, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
+    
+    gpio_put(LCD_PIN_CS, 0);
+    for (size_t i = 0; i < length; i++)
+        spi_write_blocking(this->spi_instance, &data, 1);
     gpio_put(LCD_PIN_CS, 1);
 #endif
     }
