@@ -79,6 +79,7 @@ protected:
     uint32_t rotation = 0;
 #endif
 
+#if !defined(LCD_NO_MEMORY_COMMANDS)
 #if defined(LCD_OFFSET_X0)
     uint32_t offset_x0 = LCD_OFFSET_X0;
     uint32_t base_offset_x0 = LCD_OFFSET_X0;
@@ -109,6 +110,7 @@ protected:
 #else
     uint32_t offset_y1 = 0;
     uint32_t base_offset_y1 = 0;
+#endif
 #endif
 
 #if defined(LCD_BACKLIGHT_ENABLED)
