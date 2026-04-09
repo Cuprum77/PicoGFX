@@ -16,37 +16,38 @@ typedef enum {
     QR_ECC_LVL_M,
     QR_ECC_LVL_Q,
     QR_ECC_LVL_H
-} qr_ecc_level;
+} qr_ecc_level_t;
+
+typedef enum {
+    QR_M1 = -4, QR_M2 = -3, QR_M3 = -2, 
+    QR_M4 = -1, QR_V1 = 1,
+    QR_V2,  QR_V3,  QR_V4,  QR_V5,  QR_V6,
+    QR_V7,  QR_V8,  QR_V9,  QR_V10, QR_V11,
+    QR_V12, QR_V13, QR_V14, QR_V15, QR_V16,
+    QR_V17, QR_V18, QR_V19, QR_V20, QR_V21,
+    QR_V22, QR_V23, QR_V24, QR_V25, QR_V26,
+    QR_V27, QR_V28, QR_V29, QR_V30, QR_V31,
+    QR_V32, QR_V33, QR_V34, QR_V35, QR_V36,
+    QR_V37, QR_V38, QR_V39, QR_V40
+} qr_version_t;
 
 class qr_generator
 {
 public:
     qr_generator(display_obj *display_ptr);
 
-    void generate(const char *data, qr_ecc_level ecc_lvl);
-    void generate(const char *data, qr_ecc_level ecc_lvl, rect box);
-    void generate(const char *data, qr_ecc_level ecc_lvl, 
-        point box_start, point box_end);
-    void generate(const char *data, qr_ecc_level ecc_lvl, uint32_t scale);
-    void generate(const char *data, qr_ecc_level ecc_lvl, point location,
-        uint32_t min_version, uint32_t scale);
+    rect generate(const char *data, qr_ecc_level_t ecc_lvl, rect box, qr_version_t min_version = QR_V1);
+    rect generate(const uint8_t *data, size_t data_size, 
+        qr_ecc_level_t ecc_lvl, rect bo, qr_version_t min_version = QR_V1);
 
-    void generate(const uint8_t *data, size_t data_size, qr_ecc_level ecc_lvl);
-    void generate(const uint8_t *data, size_t data_size, qr_ecc_level ecc_lvl, rect box);
-    void generate(const uint8_t *data, size_t data_size, qr_ecc_level ecc_lvl, 
-        point box_start, point box_end);
-    void generate(const uint8_t *data, size_t data_size, qr_ecc_level ecc_lvl, uint32_t scale); 
-    void generate(const uint8_t *data, size_t data_size, qr_ecc_level ecc_lvl, 
-        point location, uint32_t min_version, uint32_t scale);
+    rect generate_minimal(const char *data, qr_ecc_level_t ecc_lvl, rect box, qr_version_t min_version = QR_V1);
+    rect generate_minimal(const uint8_t *data, size_t data_size, 
+        qr_ecc_level_t ecc_lvl, rect bo, qr_version_t min_version = QR_V1);
 
-    void generate_minimal(const char *data, qr_ecc_level ecc_lvl, rect box, uint32_t min_version = 1);
-    void generate_minimal(const uint8_t *data, size_t data_size, 
-        qr_ecc_level ecc_lvl, rect bo, uint32_t min_version = 1);
-
-    void generate_artistic(const char *data, qr_ecc_level ecc_lvl, 
-        rect box, const uint32_t *artistic_bitmap, uint32_t min_version = 1);
-    void generate_artistic(const uint8_t *data, size_t data_size, 
-        qr_ecc_level ecc_lvl, rect box, const uint32_t *artistic_bitmap, uint32_t min_version = 1);
+    rect generate_artistic(const char *data, qr_ecc_level_t ecc_lvl, 
+        rect box, const uint32_t *artistic_bitmap, qr_version_t min_version = QR_V1);
+    rect generate_artistic(const uint8_t *data, size_t data_size, 
+        qr_ecc_level_t ecc_lvl, rect box, const uint32_t *artistic_bitmap, qr_version_t min_version = QR_V1);
 
 private:
     display_obj *display_ptr;
@@ -54,9 +55,14 @@ private:
 
     // How big the qr modules are, found by 21 + ((version - 1) * 4)
     const uint32_t qr_modules_size = 21;
+    // How big the micro qr code modules are, found by 11 + ((version - 1) * 2)
+    const uint32_t qr_m_module_size = 11;
     const uint32_t pad_code_words[2] = { 0xec, 0x11 };
 
-    // QR code sizes depending on version and error correction level
+    // micro QR code sizes dpending on version
+    const uint32_t qr_m_version_words[4]   = {  5,  10,  17,  24 };
+
+    // QR code sizes depending on version
     const uint32_t qr_version_words[40] = {
           26,   44,   70,  100,  134,  172,  196,  242,  292,  346, // Version 1-10
          404,  466,  532,  581,  655,  733,  815,  901,  991, 1085, // Version 11-20
@@ -64,6 +70,15 @@ private:
         2323, 2465, 2611, 2761, 2876, 3034, 3196, 3362, 3532, 3706  // Version 31-40
     };
 
+    // Number of error correction code words for the micro QR code versions, indexed by version and error correction level
+    const uint32_t qr_ecc_mwords[4][4] = {
+        {  0,  7, 10, 13 }, // Version M1
+        {  7, 10, 15, 20 }, // Version M2
+        { 10, 15, 20, 26 }, // Version M3
+        { 13, 20, 26, 36 }  // Version M4
+    };
+
+    // Number of error correction code words for the standard QR code versions, indexed by version and error correction level
     const uint32_t qr_ecc_words[40][4] = {
         {    7,   10,   13,   17 }, // Version 1
         {   10,   16,   22,   28 }, // Version 2
@@ -226,14 +241,14 @@ private:
         QR_FINDER_TOP_LEFT,
         QR_FINDER_TOP_RIGHT,
         QR_FINDER_BOTTOM_LEFT
-    } qr_finder_corner;
+    } qr_finder_corner_t;
 
     typedef enum {
         QR_MODE_NUMERIC = 1,
         QR_MODE_ALPHANUMERIC = 2,
         QR_MODE_BYTE = 4,
         QR_MODE_KANJI = 8
-    } qr_mode;
+    } qr_mode_t;
 
     typedef enum {
         QR_MASK_TYPE_0,
@@ -244,38 +259,68 @@ private:
         QR_MASK_TYPE_5,
         QR_MASK_TYPE_6,
         QR_MASK_TYPE_7
-    } qr_mask_type;
+    } qr_mask_type_t;
 
-    uint32_t get_adjusted_version(size_t data_size, qr_ecc_level ecc_lvl, uint32_t min_version);
+    typedef struct
+    {
+        const uint8_t *data;
+        uint8_t *bits;
+        size_t data_size;
+        size_t bit_size;
+        rect box;
+        uint32_t x;
+        uint32_t y;
+        uint32_t scale;
+        uint32_t module_size;
+        uint32_t dummy_zone;
+        uint32_t qr_size;
+        qr_version_t version;
+        qr_ecc_level_t ecc_lvl;
+        qr_mode_t mode;
+        qr_mask_type_t mask_type;
+        uint32_t *alignment_patterns;
+        uint32_t alignment_pattern_count;
+        bool *buffer;
+        bool *mask;
+        bool minimal;
+        const uint32_t *bitmap;
+        uint32_t bitmap_width;
+        uint32_t bitmap_height;
+    } qr_data_t;
+
+    rect create_qr_code(qr_data_t *qr_data);
+
+    void get_adjusted_version(qr_data_t *qr_data);
+    void get_module_size(qr_data_t *qr_data);
+    void determine_mode(qr_data_t *qr_data);
 
     uint8_t gf_mul(uint8_t a, uint8_t b);
     void get_generator(uint32_t degree, uint8_t *generator);
     void calculate_ecc(const uint8_t *data, size_t data_size, uint32_t ecc_size, uint8_t *ecc);
 
-    uint32_t get_alignment_coordinates(uint32_t version, uint32_t *coordinates);
-    void generate_data_mask(uint32_t module_size, qr_mask_type mask_type, bool *data_mask, bool *mask);
-    void place_data_zigzag(uint32_t module_size, uint8_t *bit_buffer, uint32_t buffer_size,
-        bool *data_mask, bool *mask);
-    int encode_data(uint32_t module_size, const uint8_t *data, size_t data_size, qr_mode mode, 
-        uint32_t version, qr_ecc_level ecc_lvl, bool *data_mask, bool *mask);
-    void draw_qr_code(uint32_t module_size, uint32_t x, uint32_t y, 
-        uint32_t scale, bool *buffer);
-    void draw_minimal_qr_code(uint32_t module_size, uint32_t x, uint32_t y, 
-        uint32_t scale, bool *buffer, bool* mask);
-    void draw_artistic_qr_code(uint32_t module_size, uint32_t x, uint32_t y, 
-        uint32_t scale, bool *buffer, bool* mask, 
-        const uint32_t *artistic_bitmap, uint32_t bitmap_width, uint32_t bitmap_height);
+    void get_alignment_coordinates(qr_data_t *qr_data);
+    void place_data_zigzag(qr_data_t *qr_data);
+    int encode_data(qr_data_t *qr_data);
 
-    void create_timing_pattern(uint32_t module_size, bool *buffer, bool *mask);
-    void create_finder_pattern(uint32_t module_size, uint32_t x, uint32_t y, 
-        qr_finder_corner corner, bool *buffer, bool *mask);
-    void add_finder_patterns(uint32_t module_size, bool *buffer, bool *mask);
-    void create_format_pattern(uint32_t module_size, qr_ecc_level ecc_lvl, 
-        qr_mask_type mask_type, bool *buffer, bool *mask);
-    void create_dummy_format_pattern(uint32_t module_size, bool *buffer, bool *mask);
-    void create_alignment_pattern(uint32_t module_size, uint32_t x, uint32_t y, bool *buffer, bool *mask);
-    void add_alignment_patterns(uint32_t module_size, uint32_t *coordinates, 
-        uint32_t count, bool *buffer, bool *mask);
-    void create_version_pattern(uint32_t module_size, uint32_t version, bool *buffer, bool *mask);
-    void remove_mask_format_pattern(uint32_t module_size, bool *mask);
+    void draw_qr_code(qr_data_t *qr_data);
+    void draw_minimal_qr_code(qr_data_t *qr_data);
+    void draw_artistic_qr_code(qr_data_t *qr_data);
+
+    void mask_dummy_zone(qr_data_t *qr_data);
+
+    void create_format_pattern(qr_data_t *qr_data);
+    void create_dummy_format_pattern(qr_data_t *qr_data, bool mask_bit);
+    
+    void add_finder_patterns(qr_data_t *qr_data);
+
+    void create_timing_pattern(qr_data_t *qr_data);
+    void add_alignment_patterns(qr_data_t *qr_data);
+    void create_version_pattern(qr_data_t *qr_data);
+
+    void get_best_mask(qr_data_t *qr_data);
+    void generate_data_mask(qr_data_t *qr_data);
+    int get_mask_run_penalty(qr_data_t *qr_data);
+    int get_mask_box_penalty(qr_data_t *qr_data);
+    int get_mask_finder_penalty(qr_data_t *qr_data);
+    int get_mask_balance_penalty(qr_data_t *qr_data);
 };
