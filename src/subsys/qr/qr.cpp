@@ -146,6 +146,72 @@ void qr_generator::render_qr_code(void)
 
 /**
  * @private
+ * @brief Set a bit in the QR code buffer at the specified index
+ * @param index The index of the bit to set in the buffer
+ * @param bit The value of the bit to set
+ */
+inline void qr_generator::set_buffer(uint32_t index, bool bit)
+{
+    // Calculate the index in the uint32_t buffer and the bit position within that uint32_t
+    uint32_t buffer_index = index / 32;
+    uint32_t bit_position = index % 32;
+
+    if (bit)
+        this->qr_data->buffer[buffer_index] |= (1 << (31 - bit_position)); // Set the bit
+    else
+        this->qr_data->buffer[buffer_index] &= ~(1 << (31 - bit_position)); // Clear the bit
+}
+
+/**
+ * @private
+ * @brief Get the value of a bit in the QR code buffer at the specified index
+ * @param index The index of the bit to get in the buffer
+ * @return The value of the bit at the specified index in the buffer
+ */
+inline bool qr_generator::get_buffer(uint32_t index)
+{
+    // Calculate the index in the uint32_t buffer and the bit position within that uint32_t
+    uint32_t buffer_index = index / 32;
+    uint32_t bit_position = index % 32;
+
+    return (this->qr_data->buffer[buffer_index] >> (31 - bit_position)) & 1;
+}
+
+/**
+ * @private
+ * @brief Set a bit in the QR code mask at the specified index
+ * @param index The index of the bit to set in the mask
+ * @param bit The value of the bit to set
+ */
+inline void qr_generator::set_mask(uint32_t index, bool bit)
+{
+    // Calculate the index in the uint32_t buffer and the bit position within that uint32_t
+    uint32_t buffer_index = index / 32;
+    uint32_t bit_position = index % 32;
+
+    if (bit)
+        this->qr_data->mask[buffer_index] |= (1 << (31 - bit_position)); // Set the bit
+    else
+        this->qr_data->mask[buffer_index] &= ~(1 << (31 - bit_position)); // Clear the bit
+}
+
+/**
+ * @private
+ * @brief Get the value of a bit in the QR code mask at the specified index
+ * @param index The index of the bit to get in the mask
+ * @return The value of the bit at the specified index in the mask
+ */
+inline bool qr_generator::get_mask(uint32_t index)
+{
+    // Calculate the index in the uint32_t buffer and the bit position within that uint32_t
+    uint32_t buffer_index = index / 32;
+    uint32_t bit_position = index % 32;
+
+    return (this->qr_data->mask[buffer_index] >> (31 - bit_position)) & 1;
+}
+
+/**
+ * @private
  * @brief Create the QR code
  * @return The rect area where the QR code was rendered on the display
  */
@@ -212,9 +278,7 @@ rect qr_generator::create_qr_code()
     this->get_best_mask();
 
     if (this->qr_data->minimal)
-    {
         this->create_dummy_format_pattern(false);
-    }
 
     return rect(point(this->qr_data->x, this->qr_data->y), 
         point(this->qr_data->x + this->qr_data->module_size * this->qr_data->scale, 
@@ -372,10 +436,10 @@ void qr_generator::calculate_ecc(const uint8_t *data, size_t data_size, uint32_t
     uint8_t gen[256] = {0};
     get_generator(ecc_size, gen);
 
-    uint8_t ecc_buf[QR_MAX_BUFFER_SIZE] = {0};
+    uint8_t ecc_buf[QR_ECC_BUFFER_SIZE] = {0};
     
     // Safety check to prevent stack smash
-    if (data_size + ecc_size > QR_MAX_BUFFER_SIZE)
+    if (data_size + ecc_size > QR_ECC_BUFFER_SIZE)
         return;
 
     // Copy original message into the local array
@@ -430,6 +494,17 @@ void qr_generator::place_data_zigzag()
 {
     uint32_t bit_index = 0;
     uint32_t total_bits = this->qr_data->bit_size * 8;
+    uint32_t adjusted_col = 0;
+    uint32_t row_start = 0;
+    uint32_t row_end = 0;
+    uint32_t row_step = 0;
+    uint32_t x = 0;
+    uint32_t y = 0;
+    uint32_t byte_index = 0;
+    uint32_t bit_pos = 0;
+    uint32_t index;
+    uint32_t timing_column = this->qr_data->version >= QR_V1 ? 6 : 0;
+    bool moving_up = false;
     
     // Start from bottom-right, moving in 2-column strips upward
     // Alternate between moving right-to-left and left-to-right
@@ -440,35 +515,35 @@ void qr_generator::place_data_zigzag()
             col--;
         
         // Direction: account for skipped column 6 in the calculation
-        int adjusted_col = col > 6 ? col : col + 1;
-        bool moving_up = (((this->qr_data->module_size - adjusted_col) / 2) % 2) == 0;
+        adjusted_col = col > timing_column ? col : col + 1;
+        moving_up = (((this->qr_data->module_size - adjusted_col) / 2) % 2) == 0;
         
         // Determine row iteration direction
-        int row_start = moving_up ? this->qr_data->module_size - 1 : 0;
-        int row_end = moving_up ? -1 : this->qr_data->module_size;
-        int row_step = moving_up ? -1 : 1;
+        row_start = moving_up ? this->qr_data->module_size - 1 : 0;
+        row_end = moving_up ? -1 : this->qr_data->module_size;
+        row_step = moving_up ? -1 : 1;
         
         for (int row = row_start; row != row_end; row += row_step)
         {
             // Right column then left column of the pair
             for (int c = 0; c < 2; c++)
             {
-                int x = col - c;
-                int y = row;
+                x = col - c;
+                y = row;
                 
                 // Skip timing column 6
-                if (x == 6)
+                if (x == timing_column)
                     continue;
                 
-                size_t index = (x + this->qr_data->dummy_zone) + ((y + this->qr_data->dummy_zone) * this->qr_data->qr_size);
+                index = (x + this->qr_data->dummy_zone) + ((y + this->qr_data->dummy_zone) * this->qr_data->qr_size);
                 
                 // Only place data where there's no mask (reserved area)
-                if (!this->qr_data->mask[index] && bit_index < total_bits)
+                if (!this->get_mask(index) && bit_index < total_bits)
                 {
-                    uint32_t byte_index = bit_index / 8;
-                    uint32_t bit_pos = 7 - (bit_index % 8);
+                    byte_index = bit_index / 8;
+                    bit_pos = 7 - (bit_index % 8);
                     
-                    this->qr_data->buffer[index] = (this->qr_data->bits[byte_index] >> bit_pos) & 0x1;
+                    this->set_buffer(index, (this->qr_data->bits[byte_index] >> bit_pos) & 0x1);
                     bit_index++;
                 }
             }
@@ -658,7 +733,7 @@ int qr_generator::encode_data()
         uint32_t data_len2 = data_len1 + 1;
 
         // Create interleaved buffer: [block1_byte0, block2_byte0, ..., block1_byte1, block2_byte1, ...]
-        uint8_t interleaved[QR_MAX_BUFFER_SIZE] = {0};
+        uint8_t interleaved[QR_ECC_BUFFER_SIZE] = {0};
         uint32_t write_pos = 0;
         
         for (uint32_t byte_offset = 0; byte_offset < data_len2; byte_offset++)
@@ -720,7 +795,7 @@ void qr_generator::draw_qr_code()
         // X loop
         for (size_t ix = 0; ix < this->qr_data->qr_size; ix++)
         {
-            color_t color = this->qr_data->buffer[ix + iy * this->qr_data->qr_size] ? colors::black : colors::white;
+            color_t color = this->get_buffer(ix + iy * this->qr_data->qr_size) ? colors::black : colors::white;
 
             // Loop scaled pixel y
             for (size_t sy = 0; sy < this->qr_data->scale; sy++)
@@ -747,13 +822,23 @@ void qr_generator::draw_minimal_qr_code()
     uint32_t frame_ptr = 0;
     uint32_t disp_width = this->display_ptr->getWidth();
     uint32_t disp_height = this->display_ptr->getHeight();
+    bool is_black_module = false;
+    bool is_important_detail = false;
+    bool is_center_x = false;
+    bool is_center_y = false;
+    int screen_x = 0;
+    int screen_y = 0;
+    uint32_t padding = 0;
+    uint32_t low = 0;
+    uint32_t high = 0;
+    uint32_t current_pixel = 0;
 
     for (size_t iy = 0; iy < this->qr_data->qr_size; iy++)
     {
         for (size_t ix = 0; ix < this->qr_data->qr_size; ix++)
         {
-            bool is_black_module = this->qr_data->buffer[ix + iy * this->qr_data->qr_size];
-            bool is_important_detail = this->qr_data->mask[ix + iy * this->qr_data->qr_size];
+            is_black_module = this->get_buffer(ix + iy * this->qr_data->qr_size);
+            is_important_detail = this->get_mask(ix + iy * this->qr_data->qr_size);
 
             for (size_t sy = 0; sy < this->qr_data->scale; sy++)
             {
@@ -762,8 +847,8 @@ void qr_generator::draw_minimal_qr_code()
                     frame_ptr = ((ix * this->qr_data->scale) + sx + this->qr_data->x) + 
                                 (((iy * this->qr_data->scale) + sy + this->qr_data->y) * disp_width);
 
-                    int screen_x = (ix * this->qr_data->scale) + sx + this->qr_data->x;
-                    int screen_y = (iy * this->qr_data->scale) + sy + this->qr_data->y;
+                    screen_x = (ix * this->qr_data->scale) + sx + this->qr_data->x;
+                    screen_y = (iy * this->qr_data->scale) + sy + this->qr_data->y;
 
                     if (screen_x >= 0 && screen_x < (int)disp_width &&
                         screen_y >= 0 && screen_y < (int)disp_height)
@@ -775,8 +860,8 @@ void qr_generator::draw_minimal_qr_code()
                         }
                         else
                         {
-                            bool is_center_x = false;
-                            bool is_center_y = false;
+                            is_center_x = false;
+                            is_center_y = false;
 
 #if defined(LCD_EINK_DRIVER)
                             if (this->qr_data->scale >= 4) 
@@ -794,14 +879,14 @@ void qr_generator::draw_minimal_qr_code()
 #else
                             if (this->qr_data->scale >= 6) 
                             {
-                                uint32_t padding = this->qr_data->scale / 3;
+                                padding = this->qr_data->scale / 3;
                                 is_center_x = (sx >= padding) && (sx < this->qr_data->scale - padding);
                                 is_center_y = (sy >= padding) && (sy < this->qr_data->scale - padding);
                             } 
                             else if (this->qr_data->scale >= 4) 
                             {
-                                uint32_t low = (this->qr_data->scale / 2) - 1;
-                                uint32_t high = this->qr_data->scale / 2;
+                                low = (this->qr_data->scale / 2) - 1;
+                                high = this->qr_data->scale / 2;
                                 is_center_x = (sx == low || sx == high);
                                 is_center_y = (sy == low || sy == high);
                             } 
@@ -820,7 +905,7 @@ void qr_generator::draw_minimal_qr_code()
                                 }
                                 else
                                 {
-                                    uint32_t current_pixel = this->frameBuffer[frame_ptr];
+                                    current_pixel = this->frameBuffer[frame_ptr];
                                     
                                     if (current_pixel < 0x808080) 
                                     {
@@ -844,6 +929,18 @@ void qr_generator::draw_artistic_qr_code()
 {
     uint32_t frame_ptr = 0;
     const uint8_t* bitmap_bytes = (const uint8_t*)this->qr_data->bitmap;
+    bool is_black_module = false;
+    bool is_important_detail = false;
+    bool is_center_x = false;
+    bool is_center_y = false;
+    int bx = 0;
+    int by = 0;
+    color c = colors::black;
+    uint32_t colorWord = 0;
+    uint32_t img_pixel = 0;
+    uint32_t padding = 0;
+    uint32_t low = 0;
+    uint32_t high = 0;
 
     uint32_t disp_width = this->display_ptr->getWidth();
     uint32_t disp_height = this->display_ptr->getHeight();
@@ -852,8 +949,8 @@ void qr_generator::draw_artistic_qr_code()
     {
         for (size_t ix = 0; ix < this->qr_data->qr_size; ix++)
         {
-            bool is_black_module = this->qr_data->buffer[ix + iy * this->qr_data->qr_size];
-            bool is_important_detail = this->qr_data->mask[ix + iy * this->qr_data->qr_size];
+            is_black_module = this->get_buffer(ix + iy * this->qr_data->qr_size);
+            is_important_detail = this->get_mask(ix + iy * this->qr_data->qr_size);
 
             for (size_t sy = 0; sy < this->qr_data->scale; sy++)
             {
@@ -862,22 +959,22 @@ void qr_generator::draw_artistic_qr_code()
                     frame_ptr = ((ix * this->qr_data->scale) + sx + this->qr_data->x) + 
                                 (((iy * this->qr_data->scale) + sy + this->qr_data->y) * disp_width);
 
-                    int bx = (ix * this->qr_data->scale) + sx;
-                    int by = (iy * this->qr_data->scale) + sy;
+                    bx = (ix * this->qr_data->scale) + sx;
+                    by = (iy * this->qr_data->scale) + sy;
 
                     if ((bx + (int)this->qr_data->x) >= 0 && (bx + (int)this->qr_data->x) < (int)disp_width &&
                         (by + (int)this->qr_data->y) >= 0 && (by + (int)this->qr_data->y) < (int)disp_height &&
                         bx >= 0 && bx < (int)this->qr_data->bitmap_width &&
                         by >= 0 && by < (int)this->qr_data->bitmap_height)
                     {
-                        uint32_t colorWord = 0;
+                        colorWord = 0;
                         for (int i = 0; i < 3; ++i)
                         {
                             uint8_t colorByte = bitmap_bytes[(by * this->qr_data->bitmap_width + bx) * 3 + i];
                             colorWord |= (uint32_t)colorByte << ((2 - i) * 8);
                         }
-                        color c = color(colorWord);
-                        uint32_t img_pixel = c.toWord();
+                        c = color(colorWord);
+                        img_pixel = c.toWord();
 
                         if (is_important_detail)
                         {
@@ -885,8 +982,8 @@ void qr_generator::draw_artistic_qr_code()
                         }
                         else
                         {
-                            bool is_center_x = false;
-                            bool is_center_y = false;
+                            is_center_x = false;
+                            is_center_y = false;
 
 #if defined(LCD_EINK_DRIVER)
                             if (this->qr_data->scale >= 4) 
@@ -904,14 +1001,14 @@ void qr_generator::draw_artistic_qr_code()
 #else
                             if (this->qr_data->scale >= 6) 
                             {
-                                uint32_t padding = this->qr_data->scale / 3;
+                                padding = this->qr_data->scale / 3;
                                 is_center_x = (sx >= padding) && (sx < this->qr_data->scale - padding);
                                 is_center_y = (sy >= padding) && (sy < this->qr_data->scale - padding);
                             } 
                             else if (this->qr_data->scale >= 4) 
                             {
-                                uint32_t low = (this->qr_data->scale / 2) - 1;
-                                uint32_t high = this->qr_data->scale / 2;
+                                low = (this->qr_data->scale / 2) - 1;
+                                high = this->qr_data->scale / 2;
                                 is_center_x = (sx == low || sx == high);
                                 is_center_y = (sy == low || sy == high);
                             } 
@@ -953,8 +1050,8 @@ void qr_generator::mask_dummy_zone()
             if (x < this->qr_data->dummy_zone || x >= (this->qr_data->module_size + this->qr_data->dummy_zone) ||
                 y < this->qr_data->dummy_zone || y >= (this->qr_data->module_size + this->qr_data->dummy_zone))
             {
-                size_t index = x + y * padded_size;
-                this->qr_data->mask[index] = true; // Mark as reserved to prevent data placement
+                size_t index = (x + y * padded_size);
+                this->set_mask(index, true);
             }
         }
     }
@@ -966,7 +1063,7 @@ void qr_generator::mask_dummy_zone()
  */
 void qr_generator::create_timing_pattern()
 {
-    // These are always at row 6 and column 6
+    // These are always at row 6 and column 6 on regular QR codes.
     uint32_t offset = 6 + this->qr_data->dummy_zone;
     uint32_t module_size = this->qr_data->module_size + this->qr_data->dummy_zone;
 
@@ -976,22 +1073,22 @@ void qr_generator::create_timing_pattern()
         // Only draw at the edges for micro QR codes
         for (size_t i = this->qr_data->dummy_zone; i < module_size; i++)
         {
-            this->qr_data->buffer[i * this->qr_data->qr_size] = (i % 2) == 0;
-            this->qr_data->buffer[i] = (i % 2) == 0;
-
-            this->qr_data->mask[i * this->qr_data->qr_size] = true;
-            this->qr_data->mask[i] = true;
+            this->set_buffer(i * this->qr_data->qr_size, (i % 2) == 0);
+            this->set_buffer(i, (i % 2) == 0);
+            
+            this->set_mask(i * this->qr_data->qr_size, true);
+            this->set_mask(i, true);
         }
     }
     else
     {
         for (size_t i = this->qr_data->dummy_zone; i < module_size; i++)
         {
-            this->qr_data->buffer[offset + i * this->qr_data->qr_size] = (i % 2) == 0;
-            this->qr_data->buffer[i + offset * this->qr_data->qr_size] = (i % 2) == 0;
+            this->set_buffer(offset + i * this->qr_data->qr_size, (i % 2) == 0);
+            this->set_buffer(i + offset * this->qr_data->qr_size, (i % 2) == 0);
 
-            this->qr_data->mask[offset + i * this->qr_data->qr_size] = true;
-            this->qr_data->mask[i + offset * this->qr_data->qr_size] = true;
+            this->set_mask(offset + i * this->qr_data->qr_size, true);
+            this->set_mask(i + offset * this->qr_data->qr_size, true);
         }
     }
 }
@@ -1021,7 +1118,7 @@ void qr_generator::add_finder_patterns()
             for (size_t ix = 0; ix < 7; ix++)
             {
                 buffer_offset = (ix + x + x_offset) + ((iy + y + y_offset) * this->qr_data->qr_size);
-                this->qr_data->buffer[buffer_offset] = this->finder_pattern[ix + iy * 7];
+                this->set_buffer(buffer_offset, this->finder_pattern[ix + iy * 7]);
             }
         }
 
@@ -1031,7 +1128,7 @@ void qr_generator::add_finder_patterns()
             for (size_t ix = 0; ix < 8; ix++)
             {
                 mask_offset = (ix + x) + ((iy + y) * this->qr_data->qr_size);
-                this->qr_data->mask[mask_offset] = true;
+                this->set_mask(mask_offset, true);
             }
         }
     }
@@ -1065,16 +1162,16 @@ void qr_generator::create_format_pattern()
         for (size_t i = 1; i < 9; i++)
         {
             ptr = 8 + this->qr_data->dummy_zone + (i + this->qr_data->dummy_zone) * module_size;
-            this->qr_data->buffer[ptr] = ((value >> i) & 0x1);
-            this->qr_data->mask[ptr] = true;
+            this->set_buffer(ptr, ((value >> i) & 0x1));
+            this->set_mask(ptr, true);
         }
 
         // 8-14 bits on the top-left finder
         for (size_t i = 0; i < 7; i++)
         {
             ptr = (8 - i) + this->qr_data->dummy_zone + (8 + this->qr_data->dummy_zone) * module_size;
-            this->qr_data->buffer[ptr] = ((value >> (i + 8)) & 0x1);
-            this->qr_data->mask[ptr] = true;
+            this->set_buffer(ptr, ((value >> (i + 8)) & 0x1));
+            this->set_mask(ptr, true);
         }
     }
     // Standard QR codes have the format code split into two locations, where one is divided into two sections
@@ -1084,51 +1181,51 @@ void qr_generator::create_format_pattern()
         for (size_t i = 0; i < 6; i++)
         {
             ptr = 8 + this->qr_data->dummy_zone + (i + this->qr_data->dummy_zone) * module_size;
-            this->qr_data->buffer[ptr] = ((value >> i) & 0x1);
-            this->qr_data->mask[ptr] = true;
+            this->set_buffer(ptr, ((value >> i) & 0x1));
+            this->set_mask(ptr, true);
         }
 
         // 6-7 bits on the top-left finder
         for (size_t i = 0; i < 2; i++)
         {
             ptr = 8 + this->qr_data->dummy_zone + (i + 7 + this->qr_data->dummy_zone) * module_size;
-            this->qr_data->buffer[ptr] = ((value >> (i + 6)) & 0x1);
-            this->qr_data->mask[ptr] = true;
+            this->set_buffer(ptr, ((value >> (i + 6)) & 0x1));
+            this->set_mask(ptr, true);
         }
 
         // 8 bit on the top-left finder
         ptr = 7 + this->qr_data->dummy_zone + (8 + this->qr_data->dummy_zone) * module_size;
-        this->qr_data->buffer[ptr] = ((value >> 8) & 0x1);
-        this->qr_data->mask[ptr] = true;
+        this->set_buffer(ptr, ((value >> 8) & 0x1));
+        this->set_mask(ptr, true);
 
         // 9-14 bits on the top-left finder
         for (size_t i = 0; i < 6; i++)
         {
             ptr = (5 - i) + this->qr_data->dummy_zone + (8 + this->qr_data->dummy_zone) * module_size;
-            this->qr_data->buffer[ptr] = ((value >> (i + 9)) & 0x1);
-            this->qr_data->mask[ptr] = true;
+            this->set_buffer(ptr, ((value >> (i + 9)) & 0x1));
+            this->set_mask(ptr, true);
         }
 
         // 0-7 bits on the top-right finder
         for (size_t i = 0; i < 8; i++)
         {
             ptr = (module_size - this->qr_data->dummy_zone - 8 + i) + ((8 + this->qr_data->dummy_zone) * module_size);
-            this->qr_data->buffer[ptr] = ((value >> (7 - i)) & 0x1);
-            this->qr_data->mask[ptr] = true;
+            this->set_buffer(ptr, ((value >> (7 - i)) & 0x1));
+            this->set_mask(ptr, true);
         }
 
         // 8-14 bits on the bottom-left finder
         for (size_t i = 0; i < 7; i++)
         {
             ptr = 8 + this->qr_data->dummy_zone + ((module_size - i - 1 - this->qr_data->dummy_zone) * module_size);
-            this->qr_data->buffer[ptr] = ((value >> (14 - i)) & 0x1);
-            this->qr_data->mask[ptr] = true;
+            this->set_buffer(ptr, ((value >> (14 - i)) & 0x1));
+            this->set_mask(ptr, true);
         }
 
         // Dark module
         ptr = 8 + this->qr_data->dummy_zone + ((module_size - 8 - this->qr_data->dummy_zone) * module_size);
-        this->qr_data->buffer[ptr] = true;
-        this->qr_data->mask[ptr] = true;
+        this->set_buffer(ptr, true);
+        this->set_mask(ptr, true);
     }
 }
 
@@ -1145,11 +1242,13 @@ void qr_generator::create_dummy_format_pattern(bool mask_bit)
     {
         // First 0-7 bits on the top-left finder
         for (size_t i = 1; i < 9; i++)
-            this->qr_data->mask[8 + this->qr_data->dummy_zone + (i + this->qr_data->dummy_zone) * module_size] = mask_bit;
+            this->set_mask(8 + this->qr_data->dummy_zone + 
+                (i + this->qr_data->dummy_zone) * module_size, mask_bit);
 
         // 8-14 bits on the top-left finder
         for (size_t i = 0; i < 7; i++)
-            this->qr_data->mask[(8 - i) + this->qr_data->dummy_zone + (8 + this->qr_data->dummy_zone) * module_size] = mask_bit;
+            this->set_mask((8 - i) + this->qr_data->dummy_zone + 
+            (8 + this->qr_data->dummy_zone) * module_size, mask_bit);
 
     }
     // Standard QR codes have the format code split into two locations, where one is divided into two sections
@@ -1157,32 +1256,36 @@ void qr_generator::create_dummy_format_pattern(bool mask_bit)
     {
         // First 0-5 bits on the top-left finder
         for (size_t i = 0; i < 6; i++)
-            this->qr_data->mask[8 + this->qr_data->dummy_zone + (i + this->qr_data->dummy_zone) * module_size] = mask_bit;
+            this->set_mask(8 + this->qr_data->dummy_zone + 
+                (i + this->qr_data->dummy_zone) * module_size, mask_bit);
 
         // 6-7 bits on the top-left finder
         for (size_t i = 0; i < 2; i++)
-            this->qr_data->mask[8 + this->qr_data->dummy_zone + (i + 7 + this->qr_data->dummy_zone) * module_size] = mask_bit;
+            this->set_mask(8 + this->qr_data->dummy_zone + 
+                (i + 7 + this->qr_data->dummy_zone) * module_size, mask_bit);
 
         // 8 bit on the top-left finder
-        this->qr_data->mask[7 + this->qr_data->dummy_zone + (8 + this->qr_data->dummy_zone) * module_size] = mask_bit;
+        this->set_mask(7 + this->qr_data->dummy_zone + 
+            (8 + this->qr_data->dummy_zone) * module_size, mask_bit);
 
         // 9-14 bits on the top-left finder
         for (size_t i = 0; i < 6; i++)
-            this->qr_data->mask[(5 - i) + this->qr_data->dummy_zone + (8 + this->qr_data->dummy_zone) * module_size] = mask_bit;
+            this->set_mask((5 - i) + this->qr_data->dummy_zone + 
+            (8 + this->qr_data->dummy_zone) * module_size, mask_bit);
 
         // 0-7 bits on the top-right finder
         for (size_t i = 0; i < 8; i++)
-            this->qr_data->mask[(module_size - this->qr_data->dummy_zone - 8 + i) + 
-                ((8 + this->qr_data->dummy_zone) * module_size)] = mask_bit;
+            this->set_mask((module_size - this->qr_data->dummy_zone - 8 + i) + 
+                ((8 + this->qr_data->dummy_zone) * module_size), mask_bit);
 
         // 8-14 bits on the bottom-left finder
         for (size_t i = 0; i < 7; i++)
-            this->qr_data->mask[8 + this->qr_data->dummy_zone + 
-                ((module_size - i - 1 - this->qr_data->dummy_zone) * module_size)] = mask_bit;
+            this->set_mask(8 + this->qr_data->dummy_zone + 
+                ((module_size - i - 1 - this->qr_data->dummy_zone) * module_size), mask_bit);
 
         // Dark module
-        this->qr_data->mask[8 + this->qr_data->dummy_zone + 
-            ((module_size - 8 - this->qr_data->dummy_zone) * module_size)] = mask_bit;
+        this->set_mask(8 + this->qr_data->dummy_zone + 
+            ((module_size - 8 - this->qr_data->dummy_zone) * module_size), mask_bit);
     }
 }
 
@@ -1234,8 +1337,8 @@ void qr_generator::add_alignment_patterns()
                 {
                     buffer_offset = (j + alt_x) + 
                         ((i + alt_y) * this->qr_data->qr_size);
-                    this->qr_data->buffer[buffer_offset] = this->alignment_pattern[j + i * 5];
-                    this->qr_data->mask[buffer_offset] = true;
+                    this->set_buffer(buffer_offset, this->alignment_pattern[j + i * 5]);
+                    this->set_mask(buffer_offset, true);
                 }
             }
         }
@@ -1275,15 +1378,15 @@ void qr_generator::create_version_pattern()
         {
             uint32_t ptr = i + (j * 3);
             bool bit = ((value >> ptr) & 0x1);
-            this->qr_data->buffer[j + this->qr_data->dummy_zone + 
-                ((i + adj_y) * (this->qr_data->module_size + this->qr_data->dummy_zone * 2))] = bit;
-            this->qr_data->mask[j + this->qr_data->dummy_zone + 
-                ((i + adj_y) * (this->qr_data->module_size + this->qr_data->dummy_zone * 2))] = true;
-            
-            this->qr_data->buffer[(i + this->qr_data->dummy_zone + adj_x) + 
-                (j * (this->qr_data->module_size + this->qr_data->dummy_zone * 2))] = bit;
-            this->qr_data->mask[(i + this->qr_data->dummy_zone + adj_x) + 
-                (j * (this->qr_data->module_size + this->qr_data->dummy_zone * 2))] = true;
+            this->set_buffer(j + this->qr_data->dummy_zone + 
+                ((i + adj_y) * (this->qr_data->module_size + this->qr_data->dummy_zone * 2)), bit);
+            this->set_mask(j + this->qr_data->dummy_zone + 
+                ((i + adj_y) * (this->qr_data->module_size + this->qr_data->dummy_zone * 2)), true);
+
+            this->set_buffer((i + this->qr_data->dummy_zone + adj_x) + 
+                (j * (this->qr_data->module_size + this->qr_data->dummy_zone * 2)), bit);
+            this->set_mask((i + this->qr_data->dummy_zone + adj_x) + 
+                (j * (this->qr_data->module_size + this->qr_data->dummy_zone * 2)), true);
         }
     }
 }
@@ -1295,8 +1398,8 @@ void qr_generator::create_version_pattern()
 void qr_generator::get_best_mask()
 {
     // Save the original buffer state before any format pattern is applied
-    bool original_buffer[this->qr_data->qr_size * this->qr_data->qr_size];
-    memcpy(original_buffer, this->qr_data->buffer, this->qr_data->qr_size * this->qr_data->qr_size);
+    uint32_t original_buffer[980] = { 0 };
+    memcpy(original_buffer, this->qr_data->buffer, QR_BUFFER_SIZE);
     
     uint32_t best_penalty = UINT32_MAX;
     uint32_t penalty = 0;
@@ -1325,13 +1428,13 @@ void qr_generator::get_best_mask()
         }
 
         // Restore the original buffer state for this mask test
-        memcpy(this->qr_data->buffer, original_buffer, this->qr_data->qr_size * this->qr_data->qr_size);
+        memcpy(this->qr_data->buffer, original_buffer, QR_BUFFER_SIZE);
     }
 
     this->qr_data->mask_type = best_mask;
 
     // Restore the original buffer and apply the best mask to the QR code
-    memcpy(this->qr_data->buffer, original_buffer, this->qr_data->qr_size * this->qr_data->qr_size);
+    memcpy(this->qr_data->buffer, original_buffer, QR_BUFFER_SIZE);
     this->create_format_pattern();
     this->generate_data_mask();
 }
@@ -1342,14 +1445,16 @@ void qr_generator::get_best_mask()
  */
 void qr_generator::generate_data_mask()
 {
+    uint32_t index = 0;
+
     // Copy the mask to the data mask, while inverting the data bits according to the mask type
     for (size_t y = 0; y < this->qr_data->module_size; y++)
     {
         for (size_t x = 0; x < this->qr_data->module_size; x++)
         {
-            size_t index = (x + this->qr_data->dummy_zone) + ((y + this->qr_data->dummy_zone) * this->qr_data->qr_size);
+            index = (x + this->qr_data->dummy_zone) + ((y + this->qr_data->dummy_zone) * this->qr_data->qr_size);
 
-            if (this->qr_data->mask[index])
+            if (this->get_mask(index))
                 continue;
 
             bool mask_bit = false;
@@ -1381,7 +1486,7 @@ void qr_generator::generate_data_mask()
                     break;
             }
 
-            this->qr_data->buffer[index] = this->qr_data->buffer[index] ^ mask_bit;
+            this->set_buffer(index, this->get_buffer(index) ^ mask_bit);
         }
     }
 }
@@ -1408,7 +1513,7 @@ int qr_generator::get_mask_run_penalty()
         for (size_t x = 1; x < this->qr_data->module_size; x++)
         {
             ptr = (x + this->qr_data->dummy_zone) + ((y + this->qr_data->dummy_zone) * this->qr_data->qr_size);
-            current_color = this->qr_data->buffer[ptr];
+            current_color = this->get_buffer(ptr);
 
             if (current_color == prev_color)
             {
@@ -1437,7 +1542,7 @@ int qr_generator::get_mask_run_penalty()
         for (size_t y = 1; y < this->qr_data->module_size; y++)
         {
             ptr = (x + this->qr_data->dummy_zone) + ((y + this->qr_data->dummy_zone) * this->qr_data->qr_size);
-            current_color = this->qr_data->buffer[ptr];
+            current_color = this->get_buffer(ptr);
 
             if (current_color == prev_color)
             {
@@ -1477,9 +1582,9 @@ int qr_generator::get_mask_box_penalty()
             ptr = (x + this->qr_data->dummy_zone) + ((y + this->qr_data->dummy_zone) * this->qr_data->qr_size);
             bool color = this->qr_data->buffer[ptr];
 
-            if (color == this->qr_data->buffer[ptr + 1] && 
-                color == this->qr_data->buffer[ptr + this->qr_data->qr_size] && 
-                color == this->qr_data->buffer[ptr + this->qr_data->qr_size + 1])
+            if (color == this->get_buffer(ptr + 1) && 
+                color == this->get_buffer(ptr + this->qr_data->qr_size) && 
+                color == this->get_buffer(ptr + this->qr_data->qr_size + 1))
             {
                 penalty += 3;
             }
@@ -1513,7 +1618,7 @@ int qr_generator::get_mask_finder_penalty()
             for (size_t i = 0; i < 12; i++)
             {
                 bits <<= 1;
-                bits |= this->qr_data->buffer[ptr + i] ? 1 : 0;
+                bits |= this->get_buffer(ptr + i) ? 1 : 0;
             }
 
             if (bits == pattern_a || bits == pattern_b)
@@ -1531,7 +1636,7 @@ int qr_generator::get_mask_finder_penalty()
             for (size_t i = 0; i < 12; i++)
             {
                 bits <<= 1;
-                bits |= this->qr_data->buffer[ptr + i * this->qr_data->qr_size] ? 1 : 0;
+                bits |= this->get_buffer(ptr + i * this->qr_data->qr_size) ? 1 : 0;
             }
 
             if (bits == pattern_a || bits == pattern_b)
@@ -1558,7 +1663,7 @@ int qr_generator::get_mask_balance_penalty()
         for (size_t x = 0; x < this->qr_data->module_size; x++)
         {
             ptr = (x + this->qr_data->dummy_zone) + ((y + this->qr_data->dummy_zone) * this->qr_data->qr_size);
-            if (this->qr_data->buffer[ptr])
+            if (this->get_buffer(ptr))
                 black_modules++;
         }
     }

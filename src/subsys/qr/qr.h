@@ -8,8 +8,8 @@
 #include <stdarg.h>
 #include <string.h>
 
-#define QR_MAX_BUFFER_SIZE  3706
-#define QR_MAX_SIZE         31329
+#define QR_BUFFER_SIZE      980
+#define QR_ECC_BUFFER_SIZE  3706
 #define QR_MAX_BLOCK_SIZE   125
 
 typedef enum {
@@ -55,8 +55,10 @@ public:
 private:
     display_obj *display_ptr;
     color_t *frameBuffer;
-    bool mask[QR_MAX_SIZE] = { 0 };
-    bool buffer[QR_MAX_SIZE] = { 0 };
+
+    // Storing it in uint32_t arrays produces 32x smaller buffers compared to bool arrays
+    uint32_t buffer[QR_BUFFER_SIZE] = { 0 };
+    uint32_t mask[QR_BUFFER_SIZE] = { 0 };
 
     // How big the qr modules are, found by 21 + ((version - 1) * 4)
     const uint32_t qr_modules_size = 21;
@@ -285,8 +287,8 @@ private:
         qr_mask_type_t mask_type;
         uint32_t *alignment_patterns;
         uint32_t alignment_pattern_count;
-        bool *buffer;
-        bool *mask;
+        uint32_t *buffer;
+        uint32_t *mask;
         bool minimal;
         const uint32_t *bitmap;
         uint32_t bitmap_width;
@@ -294,6 +296,12 @@ private:
     } qr_data_t;
 
     qr_data_t *qr_data;
+
+    inline void set_buffer(uint32_t index, bool bit);
+    inline bool get_buffer(uint32_t index);
+
+    inline void set_mask(uint32_t index, bool bit);
+    inline bool get_mask(uint32_t index);
 
     rect create_qr_code();
 
