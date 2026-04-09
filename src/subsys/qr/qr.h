@@ -8,7 +8,8 @@
 #include <stdarg.h>
 #include <string.h>
 
-#define QR_MAX_BUFFER_SIZE 3706
+#define QR_MAX_BUFFER_SIZE  3706
+#define QR_MAX_SIZE         31329
 #define QR_MAX_BLOCK_SIZE   125
 
 typedef enum {
@@ -49,9 +50,13 @@ public:
     rect generate_artistic(const uint8_t *data, size_t data_size, 
         qr_ecc_level_t ecc_lvl, rect box, const uint32_t *artistic_bitmap, qr_version_t min_version = QR_V1);
 
+    void render_qr_code(void);
+
 private:
     display_obj *display_ptr;
     color_t *frameBuffer;
+    bool mask[QR_MAX_SIZE] = { 0 };
+    bool buffer[QR_MAX_SIZE] = { 0 };
 
     // How big the qr modules are, found by 21 + ((version - 1) * 4)
     const uint32_t qr_modules_size = 21;
@@ -288,39 +293,41 @@ private:
         uint32_t bitmap_height;
     } qr_data_t;
 
-    rect create_qr_code(qr_data_t *qr_data);
+    qr_data_t *qr_data;
 
-    void get_adjusted_version(qr_data_t *qr_data);
-    void get_module_size(qr_data_t *qr_data);
-    void determine_mode(qr_data_t *qr_data);
+    rect create_qr_code();
+
+    void get_adjusted_version();
+    void get_module_size();
+    void determine_mode();
 
     uint8_t gf_mul(uint8_t a, uint8_t b);
     void get_generator(uint32_t degree, uint8_t *generator);
     void calculate_ecc(const uint8_t *data, size_t data_size, uint32_t ecc_size, uint8_t *ecc);
 
-    void get_alignment_coordinates(qr_data_t *qr_data);
-    void place_data_zigzag(qr_data_t *qr_data);
-    int encode_data(qr_data_t *qr_data);
+    void get_alignment_coordinates();
+    void place_data_zigzag();
+    int encode_data();
 
-    void draw_qr_code(qr_data_t *qr_data);
-    void draw_minimal_qr_code(qr_data_t *qr_data);
-    void draw_artistic_qr_code(qr_data_t *qr_data);
+    void draw_qr_code();
+    void draw_minimal_qr_code();
+    void draw_artistic_qr_code();
 
-    void mask_dummy_zone(qr_data_t *qr_data);
+    void mask_dummy_zone();
 
-    void create_format_pattern(qr_data_t *qr_data);
-    void create_dummy_format_pattern(qr_data_t *qr_data, bool mask_bit);
+    void create_format_pattern();
+    void create_dummy_format_pattern(bool mask_bit);
     
-    void add_finder_patterns(qr_data_t *qr_data);
+    void add_finder_patterns();
 
-    void create_timing_pattern(qr_data_t *qr_data);
-    void add_alignment_patterns(qr_data_t *qr_data);
-    void create_version_pattern(qr_data_t *qr_data);
+    void create_timing_pattern();
+    void add_alignment_patterns();
+    void create_version_pattern();
 
-    void get_best_mask(qr_data_t *qr_data);
-    void generate_data_mask(qr_data_t *qr_data);
-    int get_mask_run_penalty(qr_data_t *qr_data);
-    int get_mask_box_penalty(qr_data_t *qr_data);
-    int get_mask_finder_penalty(qr_data_t *qr_data);
-    int get_mask_balance_penalty(qr_data_t *qr_data);
+    void get_best_mask();
+    void generate_data_mask();
+    int get_mask_run_penalty();
+    int get_mask_box_penalty();
+    int get_mask_finder_penalty();
+    int get_mask_balance_penalty();
 };
