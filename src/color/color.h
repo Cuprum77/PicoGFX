@@ -474,6 +474,34 @@ struct color
 #endif
     }
 
+    color hsv_to_rgb(uint16_t h, uint8_t s, uint8_t v) {
+#if defined(LCD_COLOR_DEPTH_1)
+        return v > 127 ? color(true) : color(false);
+#else
+        uint8_t region = h / 60;
+        uint16_t remainder = (h - (region * 60)) * 256 / 60;
+
+        uint8_t p = (v * (255 - s)) / 255;
+        uint8_t q = (v * (255 - ((s * remainder) / 255))) / 255;
+        uint8_t t = (v * (255 - ((s * (255 - remainder)) / 255))) / 255;
+
+        switch(region) {
+            case 0: 
+                return color(v, t, p);
+            case 1: 
+                return color(q, v, p);
+            case 2: 
+                return color(p, v, t);
+            case 3: 
+                return color(p, q, v);
+            case 4: 
+                return color(t, p, v);
+            default: 
+                return color(v, p, q);
+        }
+#endif
+    }
+
 #if !defined(LCD_COLOR_DEPTH_1)
     bool operator==(color c)
     {
